@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<application xmlns="http://ns.adobe.com/air/application/23.0">
+
+	<id>io.getbreeze.breezedb</id>
+
+	<!-- Used as the filename for the application. Required. -->
+	<filename>breezedb</filename>
+	<name>Breeze Db</name>
+	<versionNumber>0.0.1</versionNumber>
+	<copyright>2017 Digital Strawberry LLC</copyright>
+
+	<initialWindow>
+		<content>breezedb.swf</content>
+        <systemChrome>standard</systemChrome>
+        <transparent>false</transparent>
+        <visible>true</visible>
+        <fullScreen>true</fullScreen>
+        <renderMode>cpu</renderMode>
+        <autoOrients>true</autoOrients>
+        <aspectRatio>landscape</aspectRatio>
+    </initialWindow>
+
+</application>

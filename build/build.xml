@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="BreezeDb Build Scripts" default="build-swc" basedir=".">
+
+	<!-- Config -->
+	<property file="./build.properties"/>
+
+	<!-- Properties -->
+	<property name="name" value="breezedb"/>
+	<property name="flex.sdk.compc" value="${flex.sdk}/bin/compc"/>
+	<property name="flex.sdk.mxmlc" value="${flex.sdk}/bin/mxmlc"/>
+	<property name="flex.sdk.adl" value="${flex.sdk}/bin/adl"/>
+	<property name="swf.version" value="30"/>
+
+	<!-- Targets -->
+	<target name="test" depends="build-swc,build-test,run-test" description="Full build and test"/>
+
+
+	<!-- Build SWC -->
+	<target name="build-swc">
+
+		<echo message="Building swc"/>
+		<delete dir="../bin/"/>
+
+		<exec executable="${flex.sdk.compc}" failonerror="true">
+			<arg line='-include-sources ../src/'/>
+			<arg line='-output ../bin/${name}.swc'/>
+			<arg line='-swf-version=${swf.version}'/>
+		</exec>
+	</target>
+
+
+	<!-- Build test file -->
+	<target name="build-test">
+
+		<echo message="Building test"/>
+		<delete dir="../test/bin/"/>
+
+		<!-- Copy resources (minus .as and .swc files) -->
+		<copy todir="../test/bin" includeemptydirs="false">
+			<fileset dir="../test/" excludes="**/*.as **/*.swc" />
+		</copy>
+
+		<exec executable="${flex.sdk.mxmlc}" failonerror="true">
+			<arg line="../test/src/Main.as"/>
+			<arg line="-source-path ../test/src/"/>
+			<arg line="-library-path ../bin/${name}.swc"/>
+			<arg line="-library-path ../test/lib/breezetest.swc"/>
+			<arg line='-external-library-path+="${flex.sdk}/frameworks/libs/air/airglobal.swc"'/>
+			<arg line="-debug=true"/>
+			<arg line="-swf-version=${swf.version}"/>
+			<arg line="-output ../test/bin/${name}.swf"/>
+		</exec>
+	</target>
+
+
+	<!-- Test the file -->
+	<target name="run-test">
+
+		<!-- Run for 2 minutes max -->
+		<parallel threadCount="1" timeout="120000">
+			<sequential>
+
+				<!-- Run the tests -->
+				<exec executable="${flex.sdk.adl}" failonerror="true" taskname="">
+					<arg line="../test/bin/application.xml"/>
+				</exec>
+
+			</sequential>
+		</parallel>
+
+	</target>
+
+
+</project>
