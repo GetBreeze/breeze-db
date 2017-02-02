@@ -8,6 +8,9 @@
             <entry library-id="e7c9f530-8400-4b2c-9245-1d3264d56d68">
               <dependency linkage="Merged" />
             </entry>
+            <entry module-name="BreezeDb" build-configuration-name="BreezeDb">
+              <dependency linkage="Merged" />
+            </entry>
           </entries>
           <sdk name="AIRSDK_Compiler_23" />
         </dependencies>
@@ -36,5 +39,6 @@
         <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="module" module-name="BreezeDb" exported="" />
   </component>
 </module>
