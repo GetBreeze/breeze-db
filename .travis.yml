@@ -1,0 +1,19 @@
+git:
+  depth: 10
+
+language: objective-c
+
+before_script:
+  #brew
+  - brew update > /dev/null
+  - brew install ant > /dev/null
+  # air
+  - mkdir -p build/air_sdk
+  - wget -O AIRSDK_Compiler.tbz2 http://airdownload.adobe.com/air/mac/download/23.0/AIRSDK_Compiler.tbz2
+  - tar -xjf AIRSDK_Compiler.tbz2 -C build/air_sdk
+  - mkdir -p build/air_sdk/frameworks/libs/player/11.1/
+  - wget -O playerglobal.swc http://download.macromedia.com/get/flashplayer/updaters/23/playerglobal23_0.swc
+  - cp -f playerglobal.swc build/air_sdk/frameworks/libs/player/11.1/
+
+script:
+  - cd build && ant test
