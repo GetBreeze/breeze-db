@@ -29,6 +29,8 @@ package
 	import breezetest.BreezeTest;
 	import breezetest.BreezeTestEvent;
 
+	import collections.TestCollection;
+
 	import flash.desktop.NativeApplication;
 
 	import flash.display.Sprite;
@@ -45,8 +47,7 @@ package
 
 			_breezeTest = new BreezeTest(this);
 			_breezeTest.addEventListener(BreezeTestEvent.TESTS_COMPLETE, onTestsComplete);
-			// todo: add tests
-			//_breezeTest.add();
+			_breezeTest.add([TestCollection]);
 			_breezeTest.run();
 		}
 
