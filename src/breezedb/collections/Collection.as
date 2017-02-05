@@ -43,39 +43,317 @@ package breezedb.collections
 		}
 
 
+		/**
+		 * Adds a single element to the end of the collection. If inserting a single element then this method is
+		 * preferred to <code>push</code> where new allocation is made due to the <code>rest</code> parameter.
+		 *
+		 * @param element Element to be added.
+		 * @return Reference to the collection, allowing method chaining.
+		 */
 		public function add(element:*):Collection
 		{
-			throw new Error("Not implemented");
+			this[length] = element;
+			return this;
 		}
 
 
+		/**
+		 * Returns the underlying array (a shallow copy) represented by the collection.
+		 *
+		 * @return Underlying array (a shallow copy) represented by the collection.
+		 */
 		public function all():Array
 		{
-			throw new Error("Not implemented");
+			var result:Array = [];
+			var length:int = this.length;
+			for(var i:int = 0; i < length; ++i)
+			{
+				result[i] = this[i];
+			}
+			return result;
 		}
 
 
+		/**
+		 * Returns the average of all items in the collection.
+		 *
+		 * @param keyOrCallback The parameter can be one of the following:
+		 *        <ul>
+		 *            <li><code>null</code>: The items are used to find the average.</li>
+		 *            <li><code>String</code>: The key on which to find the average value.</li>
+		 *            <li><code>Function</code>: Custom callback that returns the value to be averaged.</li>
+		 *        </ul>
+		 * <listing version="3.0">
+		 * var collection:Collection = new Collection( {name: "iPhone 6", price: 549}, {name: "Galaxy S6", price: 399} );
+		 * collection.avg("price"); // 474
+		 * collection.avg(function(item:Object):Number
+		 * {
+		 *    return item.price;
+		 * }); // 474
+		 * </listing>
+		 * @return Average of all items in the collection.
+		 */
 		public function avg(keyOrCallback:* = null):Number
 		{
-			throw new Error("Not implemented");
+			var length:int = this.length;
+			if(length == 0)
+			{
+				return 0;
+			}
+			return sum(keyOrCallback) / length;
 		}
 
 
+		/**
+		 * Returns the maximum of all items in the collection.
+		 *
+		 * @param keyOrCallback The parameter can be one of the following:
+		 *        <ul>
+		 *            <li><code>null</code>: The items are compared to find the maximum.</li>
+		 *            <li><code>String</code>: The key on which to find the maximum value.</li>
+		 *            <li><code>Function</code>: Custom callback that returns the value to be compared.</li>
+		 *        </ul>
+		 * <listing version="3.0">
+		 * var collection:Collection = new Collection( {name: "iPhone 6", price: 549}, {name: "Galaxy S6", price: 399} );
+		 * collection.max("price"); // 549
+		 * collection.max(function(item:Object):Number
+		 * {
+		 *    return item.price;
+		 * }); // 549
+		 * </listing>
+		 * @return Maximum of all items in the collection.
+		 */
 		public function max(keyOrCallback:* = null):Number
 		{
-			throw new Error("Not implemented");
+			var length:int = this.length;
+			if(length == 0)
+			{
+				return 0;
+			}
+
+			// Invalid parameter type
+			if(!(keyOrCallback == null || keyOrCallback is Function || keyOrCallback is String))
+			{
+				throw new ArgumentError("Parameter keyOrCallback must be a String, Function or null.");
+			}
+
+			var result:Number = NaN;
+
+			// No key or callback, just try to find the max element in the collection
+			if(keyOrCallback === null)
+			{
+				for(var i:int = 0; i < length; ++i)
+				{
+					if(result !== result || result < this[i])
+					{
+						result = this[i];
+					}
+				}
+				return result;
+			}
+
+			// Key provided, try to find max on that key
+			if(keyOrCallback is String)
+			{
+				var key:String = keyOrCallback as String;
+				for(i = 0; i < length; ++i)
+				{
+					var element:Object = this[i];
+					var next:Number = (key in element) ? element[key] : Number.MIN_VALUE;
+					if(result !== result || result < next)
+					{
+						result = next;
+					}
+				}
+				if(result == Number.MIN_VALUE)
+				{
+					result = 0;
+				}
+				return result;
+			}
+
+			// Use the provided callback to retrieve the value
+			var valueRetriever:Function = keyOrCallback as Function;
+			for(i = 0; i < length; ++i)
+			{
+				var ret:Number = valueRetriever(this[i]);
+				if(ret === ret && (result !== result || result < ret))
+				{
+					result = ret;
+				}
+			}
+
+			if(result !== result) // isNaN
+			{
+				result = 0;
+			}
+			return result;
 		}
 
 
+		/**
+		 * Returns the minimum of all items in the collection.
+		 *
+		 * @param keyOrCallback The parameter can be one of the following:
+		 *        <ul>
+		 *            <li><code>null</code>: The items are compared to find the minimum.</li>
+		 *            <li><code>String</code>: The key on which to find the minimum value.</li>
+		 *            <li><code>Function</code>: Custom callback that returns the value to be compared.</li>
+		 *        </ul>
+		 * <listing version="3.0">
+		 * var collection:Collection = new Collection( {name: "iPhone 6", price: 549}, {name: "Galaxy S6", price: 399} );
+		 * collection.min("price"); // 399
+		 * collection.min(function(item:Object):Number
+		 * {
+		 *    return item.price;
+		 * }); // 399
+		 * </listing>
+		 * @return Minimum of all items in the collection.
+		 */
 		public function min(keyOrCallback:* = null):Number
 		{
-			throw new Error("Not implemented");
+			var length:int = this.length;
+			if(length == 0)
+			{
+				return 0;
+			}
+
+			// Invalid parameter type
+			if(!(keyOrCallback == null || keyOrCallback is Function || keyOrCallback is String))
+			{
+				throw new ArgumentError("Parameter keyOrCallback must be a String, Function or null.");
+			}
+
+			var result:Number = NaN;
+
+			// No key or callback, just try to find the min element in the collection
+			if(keyOrCallback === null)
+			{
+				for(var i:int = 0; i < length; ++i)
+				{
+					if(result !== result || result > this[i])
+					{
+						result = this[i];
+					}
+				}
+				return result;
+			}
+
+			// Key provided, try to find max on that key
+			if(keyOrCallback is String)
+			{
+				var key:String = keyOrCallback as String;
+				for(i = 0; i < length; ++i)
+				{
+					var element:Object = this[i];
+					var next:Number = (key in element) ? element[key] : Number.MAX_VALUE;
+					if(result !== result || result > next)
+					{
+						result = next;
+					}
+				}
+				if(result == Number.MAX_VALUE)
+				{
+					result = 0;
+				}
+				return result;
+			}
+
+
+			// Invalid parameter type
+			if(!(keyOrCallback is Function))
+			{
+				throw new ArgumentError("Parameter keyOrCallback must be a String, Function or null.");
+			}
+
+			// Use the provided callback to retrieve the value
+			var valueRetriever:Function = keyOrCallback as Function;
+			for(i = 0; i < length; ++i)
+			{
+				var ret:Number = valueRetriever(this[i]);
+				if(ret === ret && (result !== result || result > ret))
+				{
+					result = ret;
+				}
+			}
+
+			if(result !== result) // isNaN
+			{
+				result = 0;
+			}
+			return result;
 		}
 
 
+		/**
+		 * Returns the sum of all items in the collection.
+		 *
+		 * @param keyOrCallback The parameter can be one of the following:
+		 *        <ul>
+		 *            <li><code>null</code>: The items in the collections are summed up.</li>
+		 *            <li><code>String</code>: The key for the value that is to be summed up.</li>
+		 *            <li><code>Function</code>: Custom callback that returns the value to be summed up.</li>
+		 *        </ul>
+		 * <listing version="3.0">
+		 * var collection:Collection = new Collection( {name: "iPhone 6", price: 549}, {name: "Galaxy S6", price: 399} );
+		 * collection.sum("price"); // 948
+		 * collection.sum(function(item:Object):Number
+		 * {
+		 *    return item.price;
+		 * }); // 948
+		 * </listing>
+		 * @return Sum of all items in the collection.
+		 */
 		public function sum(keyOrCallback:* = null):Number
 		{
-			throw new Error("Not implemented");
+			var length:int = this.length;
+			if(length == 0)
+			{
+				return 0;
+			}
+
+			// Invalid parameter type
+			if(!(keyOrCallback == null || keyOrCallback is Function || keyOrCallback is String))
+			{
+				throw new ArgumentError("Parameter keyOrCallback must be a String, Function or null.");
+			}
+
+			var result:Number = 0;
+
+			// No key or callback, just try to sum the collection elements
+			if(keyOrCallback === null)
+			{
+				for(var i:int = 0; i < length; ++i)
+				{
+					result += this[i];
+				}
+				return result;
+			}
+
+			// Key provided, try to sum on that key
+			if(keyOrCallback is String)
+			{
+				var key:String = keyOrCallback as String;
+				for(i = 0; i < length; ++i)
+				{
+					var element:Object = this[i];
+					result += (key in element) ? element[key] : 0;
+				}
+				return result;
+			}
+
+			// Use the provided callback to retrieve the value
+			var valueRetriever:Function = keyOrCallback as Function;
+			for(i = 0; i < length; ++i)
+			{
+				element = this[i];
+				var ret:Number = valueRetriever(element);
+				if(ret === ret)
+				{
+					result += ret;
+				}
+			}
+			return result;
 		}
 
 	}
