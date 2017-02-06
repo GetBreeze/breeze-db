@@ -412,6 +412,50 @@ package collections
 				return -1;
 			}));
 		}
+
+
+		public function testPluck():void
+		{
+			var empty:Collection = new Collection();
+
+			Assert.isNotNull(empty.pluck("missingKey"));
+			Assert.arrayEquals([], empty.pluck("missingKey").all);
+
+			Assert.isNotNull(_numberCollection.pluck("missingKey"));
+			Assert.arrayEquals([], _numberCollection.pluck("missingKey").all);
+
+			var deviceNames:Collection = _objectCollection.pluck("name");
+			Assert.isNotNull(deviceNames);
+			Assert.arrayEquals(
+					["iPhone 6", "iPhone SE", "Apple Watch", "Galaxy S6", "Galaxy Gear"],
+					deviceNames.all
+			);
+
+			var plucked:Collection = _objectCollection.pluck("price", "name");
+
+			Assert.isNotNull(plucked);
+			Assert.notSame(_objectCollection, plucked);
+			Assert.equals(5, plucked.all.length);
+
+			var deviceToPrice:Collection = new Collection(
+					{"iPhone 6": 549},
+					{"iPhone SE": 399},
+					{"Apple Watch": 299},
+					{"Galaxy S6": 399},
+					{"Galaxy Gear": 199}
+			);
+			for each(var deviceName:String in deviceNames)
+			{
+				Assert.isNotNull(plucked.get(deviceName));
+				Assert.equals(plucked.get(deviceName), deviceToPrice.get(deviceName));
+			}
+
+			Assert.throwsError(function():void
+			{
+				// Invalid argument
+				empty.pluck(null);
+			}, ArgumentError);
+		}
 		
 	}
 	

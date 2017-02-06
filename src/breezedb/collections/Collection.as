@@ -559,6 +559,55 @@ package breezedb.collections
 			}
 			return false;
 		}
+		
+
+		/**
+		 * Retrieves all values for the given key. This method does not modify the original collection.
+		 *
+		 * @param key Key for which the values are to be retrieved.
+		 * @param keyBy Specifies how the resulting collection will be keyed.
+		 * <listing version="3.0">
+		 * var devices:Collection = new Collection(
+		 *	 {name: "iPhone 6",    brand: "Apple",   price: 549},
+		 *	 {name: "iPhone SE",   brand: "Apple",   price: 399},
+		 *	 {name: "Galaxy S6",   brand: "Samsung", price: 399}
+		 * );
+		 * device.pluck("name").all; // ["iPhone 6", "iPhone SE", "Galaxy S6"]
+		 * device.pluck("price", "name").all; // [{"iPhone 6": 549}, {"iPhone SE": 399}, {"Galaxy S6": 399}]
+		 * </listing>
+		 * @return New <code>Collection</code> with all the values for the given key.
+		 */
+		public function pluck(key:String, keyBy:String = null):Collection
+		{
+			if(key == null)
+			{
+				throw new ArgumentError( "Parameter key cannot be null." );
+			}
+
+			var result:Collection = new Collection();
+
+			for each(var elem:* in this)
+			{
+				var value:* = null;
+				if(key in elem)
+				{
+					value = elem[key];
+				}
+				if(value != null && keyBy != null)
+				{
+					var pluckedKey:String = (keyBy in elem && elem[keyBy] is String) ? elem[keyBy] : keyBy;
+					var plucked:Object = {};
+					plucked[pluckedKey] = value;
+					value = plucked;
+				}
+				if(value != null)
+				{
+					result.add(value);
+				}
+			}
+
+			return result;
+		}
 
 
 		/**
