@@ -62,7 +62,7 @@ package breezedb.collections
 		 *
 		 * @return Underlying array (a shallow copy) represented by the collection.
 		 */
-		public function all():Array
+		public function get all():Array
 		{
 			var result:Array = [];
 			var length:int = this.length;
@@ -354,6 +354,219 @@ package breezedb.collections
 				}
 			}
 			return result;
+		}
+		
+
+		/**
+		 * Reduces the collection to a single value, passing the result of each iteration into the subsequent iteration.
+		 *
+		 * @param callback Function with the following signature:
+		 * <listing version="3.0">
+		 * function reduceCallback(carry:*, item:*):* {
+		 *    return carry + item; // Creates sum of the collection items
+		 * };
+		 * </listing>
+		 * @param initial Initial value for the callback's <code>carry</code> parameter.
+		 */
+		public function reduce(callback:Function, initial:* = null):*
+		{
+			if(callback == null)
+			{
+				throw new ArgumentError( "Parameter callback cannot be null." );
+			}
+
+			var next:* = initial;
+			var length:int = this.length;
+			for(var i:int = 0; i < length; ++i)
+			{
+				next = callback(next, this[i]);
+			}
+			return next;
+		}
+
+
+		/**
+		 * Returns the first item in the collection that passes the given test. If truth test is not provided then the
+		 * first item is returned. If the collection is empty then <code>null</code> is returned.
+		 *
+		 * @param truthTest Optional truth test:
+		 * <listing version="3.0">
+		 * var companies:Collection = new Collection(
+		 *    { name: "Microsoft", ceo: "Satya Nadella" },
+		 *    { name: "Apple",     ceo: "Tim Cook" },
+		 *    { name: "Google",    ceo: "Sundar Pichai" },
+		 * );
+		 * companies.first(truthTest); // { name: "Apple", ceo: "Tim Cook" };
+		 * function truthTest(company:Object):Boolean {
+		 *    return company.name == "Apple";
+		 * };
+		 * </listing>
+		 * @return The first item in the collection that passes the given test. If truth test is not provided then the
+		 * first item is returned. If the collection is empty then <code>null</code> is returned.
+		 */
+		public function first(truthTest:Function = null):*
+		{
+			for each(var item:* in this)
+			{
+				// No truth test, return the first item
+				if(truthTest == null)
+				{
+					return item;
+				}
+
+				// Perform truth test
+				var passesTest:Boolean = truthTest(item);
+				if(passesTest)
+				{
+					return item;
+				}
+			}
+			return null;
+		}
+
+
+		/**
+		 * Returns the last item in the collection that passes the given test. If truth test is not provided then the
+		 * last item is returned. If the collection is empty then <code>null</code> is returned.
+		 *
+		 * @param truthTest Optional truth test:
+		 * <listing version="3.0">
+		 * var numbers:Collection = new Collection(-3, -2, -1, 0, 1, 2, 3, 4, 5);
+		 * numbers.last(truthTest); // -1
+		 * function truthTest(n:Number):Boolean {
+		 *    return n &lt; 0;
+		 * };
+		 * </listing>
+		 * @return The last item in the collection that passes the given test. If truth test is not provided then the
+		 * last item is returned. If the collection is empty then <code>null</code> is returned.
+		 */
+		public function last(truthTest:Function = null):*
+		{
+			for(var i:int = length - 1; i >= 0; --i)
+			{
+				var item:* = this[i];
+
+				// No truth test, return the last item
+				if(truthTest == null)
+				{
+					return item;
+				}
+
+				// Perform truth test
+				var passesTest:Boolean = truthTest(item);
+				if(passesTest)
+				{
+					return item;
+				}
+			}
+			return null;
+		}
+
+
+		/**
+		 * Returns <code>true</code> if the collection contains the given item. Strict equality
+		 * operator (<code>===</code>) is used to compare the collection items or their keys.
+		 *
+		 * @param searchElement The item to find.
+		 * @param searchKey The key to perform the search on.
+		 * <listing version="3.0">
+		 * var devices:Collection = new Collection(
+		 *	 {name: "iPhone 6",    brand: "Apple",   price: 549},
+		 *	 {name: "iPhone SE",   brand: "Apple",   price: 399},
+		 *	 {name: "Galaxy S6",   brand: "Samsung", price: 399}
+		 * );
+		 * devices.contains("iPhone 6"); // false
+		 * devices.contains("iPhone 6", "name"); // true
+		 * </listing>
+		 * @return <code>true</code> if the collection contains the given item, <code>false</code> otherwise.
+		 */
+		public function contains(searchElement:*, searchKey:String = null):Boolean
+		{
+			if(searchElement == null)
+			{
+				throw new ArgumentError("Parameter searchElement cannot be null.");
+			}
+
+			for each(var item:* in this)
+			{
+				if(searchKey == null)
+				{
+					if(item === searchElement)
+					{
+						return true;
+					}
+				}
+				else
+				{
+					if(searchKey in item && item[searchKey] === searchElement)
+					{
+						return true;
+					}
+				}
+			}
+
+			return false;
+		}
+
+
+		/**
+		 * Returns the value at a given key, or <code>null<code> if the key does not exist.
+		 *
+		 * @param key Key for which to find the value.
+		 * @param defaultValue Default value in case the key is not found, or <code>Function</code> that returns
+		 *        the default value.
+		 * @return The value at a given key, or <code>null<code> if the key does not exist.
+		 */
+		public function get(key:String, defaultValue:* = null):*
+		{
+			if(key == null)
+			{
+				throw new ArgumentError( "Parameter key cannot be null." );
+			}
+
+			for each( var item:* in this ) {
+			    if(key in item)
+			    {
+				    return item[key];
+			    }
+			}
+
+			return (defaultValue is Function) ? defaultValue() : defaultValue;
+		}
+		
+
+		/**
+		 * Returns <code>true</code> if any item in the collection has the given key.
+		 *
+		 * @param key Key to find.
+		 * @return <code>true</code> if any item in the collection has the given key, <code>false</code> otherwise.
+		 */
+		public function has(key:String):Boolean
+		{
+			if(key == null)
+			{
+				throw new ArgumentError( "Parameter key cannot be null." );
+			}
+
+			for each(var item:* in this)
+			{
+				for( var itemKey:String in item ) {
+				    if(itemKey == key)
+				    {
+					    return true;
+				    }
+				}
+			}
+			return false;
+		}
+
+
+		/**
+		 * Returns <code>true</code> if the collection has no items, <code>false</code> otherwise.
+		 */
+		public function get isEmpty():Boolean
+		{
+			return length == 0;
 		}
 
 	}
