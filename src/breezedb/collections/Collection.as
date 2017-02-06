@@ -510,12 +510,12 @@ package breezedb.collections
 
 
 		/**
-		 * Returns the value at a given key, or <code>null<code> if the key does not exist.
+		 * Returns the value at a given key, or <code>null</code> if the key does not exist.
 		 *
 		 * @param key Key for which to find the value.
 		 * @param defaultValue Default value in case the key is not found, or <code>Function</code> that returns
 		 *        the default value.
-		 * @return The value at a given key, or <code>null<code> if the key does not exist.
+		 * @return The value at a given key, or <code>null</code> if the key does not exist.
 		 */
 		public function get(key:String, defaultValue:* = null):*
 		{
