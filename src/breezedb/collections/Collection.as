@@ -524,11 +524,12 @@ package breezedb.collections
 				throw new ArgumentError( "Parameter key cannot be null." );
 			}
 
-			for each( var item:* in this ) {
-			    if(key in item)
-			    {
-				    return item[key];
-			    }
+			for each(var item:* in this)
+			{
+				if(key in item)
+				{
+					return item[key];
+				}
 			}
 
 			return (defaultValue is Function) ? defaultValue() : defaultValue;
@@ -550,11 +551,12 @@ package breezedb.collections
 
 			for each(var item:* in this)
 			{
-				for( var itemKey:String in item ) {
-				    if(itemKey == key)
-				    {
-					    return true;
-				    }
+				for( var itemKey:String in item)
+				{
+					if(itemKey == key)
+					{
+						return true;
+					}
 				}
 			}
 			return false;
