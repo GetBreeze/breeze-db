@@ -33,6 +33,7 @@ package collections
 	{
 		private var _numberCollection:Collection;
 		private var _objectCollection:Collection;
+		private var _emptyCollection:Collection;
 
 
 		public function setup():void
@@ -45,27 +46,25 @@ package collections
 					{name: "Galaxy S6",   brand: "Samsung", type: "phone", price: 399},
 					{name: "Galaxy Gear", brand: "Samsung", type: "watch", price: 199}
 			);
+			_emptyCollection = new Collection();
 		}
 
 
 		public function testAdd():void
 		{
-			var emptyCollection:Collection = new Collection();
+			Assert.equals(0, _emptyCollection.length);
 
-			Assert.equals(0, emptyCollection.length);
+			_emptyCollection.add("Element");
 
-			emptyCollection.add("Element");
+			Assert.equals(1, _emptyCollection.length);
 
-			Assert.equals(1, emptyCollection.length);
-
-			Assert.arrayEquals(["Element"], emptyCollection.all);
+			Assert.arrayEquals(["Element"], _emptyCollection.all);
 		}
 		
 
 		public function testAll():void
 		{
-			var emptyCollection:Collection = new Collection();
-			var emptyAll:Array = emptyCollection.all;
+			var emptyAll:Array = _emptyCollection.all;
 
 			Assert.isNotNull(emptyAll);
 			Assert.equals(0, emptyAll.length);
@@ -89,7 +88,7 @@ package collections
 
 			Assert.equals(0, avgMissingKey);
 
-			var avgEmpty:Number = new Collection().avg();
+			var avgEmpty:Number = _emptyCollection.avg();
 
 			Assert.equals(0, avgEmpty);
 
@@ -129,7 +128,7 @@ package collections
 
 			Assert.equals(0, maxMissingKey);
 
-			var maxEmpty:Number = new Collection().max();
+			var maxEmpty:Number = _emptyCollection.max();
 
 			Assert.equals(0, maxEmpty);
 
@@ -169,7 +168,7 @@ package collections
 
 			Assert.equals(0, minMissingKey);
 
-			var minEmpty:Number = new Collection().min();
+			var minEmpty:Number = _emptyCollection.min();
 
 			Assert.equals(0, minEmpty);
 
@@ -209,7 +208,7 @@ package collections
 
 			Assert.equals(0, sumMissingKey);
 
-			var sumEmpty:Number = new Collection().sum();
+			var sumEmpty:Number = _emptyCollection.sum();
 
 			Assert.equals(0, sumEmpty);
 
@@ -242,14 +241,13 @@ package collections
 		public function testReduce():void
 		{
 			var initial:int = 0;
-			var empty:Collection = new Collection();
 
-			Assert.equals(initial, empty.reduce(reduceToSum, initial));
+			Assert.equals(initial, _emptyCollection.reduce(reduceToSum, initial));
 			Assert.equals(9, _numberCollection.reduce(reduceToSum, initial));
 			Assert.throwsError(function():void
 			{
 				// Invalid callback
-				empty.reduce(null);
+				_emptyCollection.reduce(null);
 			}, ArgumentError);
 
 			function reduceToSum(carry:*, item:*):*
@@ -261,8 +259,7 @@ package collections
 		
 		public function testFirst():void
 		{
-			var empty:Collection = new Collection();
-			Assert.isNull(empty.first());
+			Assert.isNull(_emptyCollection.first());
 
 			// First object in the collection
 			var iPhone6:Object = {name: "iPhone 6", brand: "Apple", type: "phone", price: 549};
@@ -295,9 +292,7 @@ package collections
 
 		public function testLast():void
 		{
-			var empty:Collection = new Collection();
-
-			Assert.isNull(empty.last());
+			Assert.isNull(_emptyCollection.last());
 
 			// Last object in the collection
 			var device:Object = {name: "Galaxy Gear", brand: "Samsung", type: "watch", price: 199};
@@ -332,13 +327,11 @@ package collections
 		
 		public function testIsEmpty():void
 		{
-			var empty:Collection = new Collection();
+			Assert.isTrue(_emptyCollection.isEmpty);
 
-			Assert.isTrue(empty.isEmpty);
+			_emptyCollection.add(1);
 
-			empty.add(1);
-
-			Assert.isFalse(empty.isEmpty);
+			Assert.isFalse(_emptyCollection.isEmpty);
 
 			Assert.isFalse(_objectCollection.isEmpty);
 			Assert.isFalse(_numberCollection.isEmpty);
@@ -347,9 +340,7 @@ package collections
 		
 		public function testContains():void
 		{
-			var empty:Collection = new Collection();
-
-			Assert.isFalse(empty.contains(1));
+			Assert.isFalse(_emptyCollection.contains(1));
 
 			Assert.isTrue(_numberCollection.contains(-1));
 			Assert.isTrue(_numberCollection.contains(0));
@@ -367,16 +358,14 @@ package collections
 			Assert.throwsError(function():void
 			{
 				// Invalid argument
-				empty.contains(null);
+				_emptyCollection.contains(null);
 			}, ArgumentError);
 		}
 
 
 		public function testHas():void
 		{
-			var empty:Collection = new Collection();
-
-			Assert.isFalse(empty.has("missingKey"));
+			Assert.isFalse(_emptyCollection.has("missingKey"));
 
 			Assert.isTrue(_objectCollection.has("name"));
 			Assert.isFalse(_objectCollection.has("year"));
@@ -385,17 +374,15 @@ package collections
 			Assert.throwsError(function():void
 			{
 				// Invalid argument
-				empty.has(null);
+				_emptyCollection.has(null);
 			}, ArgumentError);
 		}
 
 
 		public function testGet():void
 		{
-			var empty:Collection = new Collection();
-
-			Assert.isNull(empty.get("missingKey"));
-			Assert.equals("defaultValue", empty.get("missingKey", "defaultValue"));
+			Assert.isNull(_emptyCollection.get("missingKey"));
+			Assert.equals("defaultValue", _emptyCollection.get("missingKey", "defaultValue"));
 
 			var deviceToPrice:Collection = new Collection(
 				{"iPhone 6": 549},
@@ -416,10 +403,8 @@ package collections
 
 		public function testPluck():void
 		{
-			var empty:Collection = new Collection();
-
-			Assert.isNotNull(empty.pluck("missingKey"));
-			Assert.arrayEquals([], empty.pluck("missingKey").all);
+			Assert.isNotNull(_emptyCollection.pluck("missingKey"));
+			Assert.arrayEquals([], _emptyCollection.pluck("missingKey").all);
 
 			Assert.isNotNull(_numberCollection.pluck("missingKey"));
 			Assert.arrayEquals([], _numberCollection.pluck("missingKey").all);
@@ -453,7 +438,7 @@ package collections
 			Assert.throwsError(function():void
 			{
 				// Invalid argument
-				empty.pluck(null);
+				_emptyCollection.pluck(null);
 			}, ArgumentError);
 		}
 		
