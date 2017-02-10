@@ -613,6 +613,222 @@ package breezedb.collections
 
 
 		/**
+		 * Adds an item to the beginning of the collection. If inserting a single element then this method is
+		 * preferred to <code>unshift</code> where new allocation is made due to the <code>rest</code> parameter.
+		 *
+		 * @param item Item to be added to the beginning of the collection.
+		 * @return Reference to the modified collection, allowing method chaining.
+		 */
+		public function prepend(item:*):Collection
+		{
+			if(item === null)
+			{
+				throw new ArgumentError("Parameter item cannot be null.");
+			}
+
+			for(var i:int = length - 1; i >= 0; --i)
+			{
+				var oldItem:* = this[i];
+				this[i + 1] = oldItem;
+			}
+
+			this[0] = item;
+
+			return this;
+		}
+
+
+		/**
+		 * Removes and returns an item from the collection by its key
+		 *
+		 * @param key The key used to find the item.
+		 * @return The removed item, or <code>null</code> if it was not found.
+		 */
+		public function pull(key:String):*
+		{
+			if(key === null)
+			{
+				throw new ArgumentError("Parameter key cannot be null.");
+			}
+
+			var index:int = 0;
+			for each(var item:* in this)
+			{
+				if(key in item)
+				{
+					this.removeAt(index);
+					return item;
+				}
+				index++;
+			}
+
+			return null;
+		}
+		
+
+		/**
+		 * Filters the collection by the given key / value pair. Uses equality operator (<code>==</code>)
+		 * to compare item values.
+		 *
+		 * @param key The key used to find the value.
+		 * @param value The value to compare against.
+		 * 
+		 * <listing version="3.0">
+		 * var devices:Collection = new Collection(
+		 *	 {name: "iPhone 6",    brand: "Apple",   price: 549},
+		 *	 {name: "iPhone SE",   brand: "Apple",   price: 399},
+		 *	 {name: "Galaxy S6",   brand: "Samsung", price: 399}
+		 * );
+		 * var filtered:Collection = devices.where("brand", "Apple");
+		 * trace(filtered.all); // [{name: "iPhone 6", brand: "Apple", price: 549}, {name: "iPhone SE", brand: "Apple", price: 399}]
+		 * </listing>
+		 * 
+		 * @return New <code>Collection</code> with the filtered values.
+		 *
+		 * @see #whereStrict()
+		 * @see #whereIn()
+		 * @see #whereInStrict()
+		 */
+		public function where(key:String, value:*):Collection
+		{
+			return whereInternal(key, value);
+		}
+
+
+		/**
+		 * Filters the collection by the given key / value pair. Uses strict equality operator (<code>===</code>)
+		 * to compare item values.
+		 *
+		 * @param key The key used to find the value.
+		 * @param value The value to compare against.
+		 *
+		 * <listing version="3.0">
+		 * var devices:Collection = new Collection(
+		 *	 {name: "iPhone 6",    brand: "Apple",   price: 549},
+		 *	 {name: "iPhone SE",   brand: "Apple",   price: 399},
+		 *	 {name: "Galaxy S6",   brand: "Samsung", price: 399}
+		 * );
+		 * var filtered:Collection = devices.whereStrict("price", 399);
+		 * trace(filtered.all); // [{name: "iPhone SE", brand: "Apple", price: 399}, {name: "Galaxy S6", brand: "Samsung", price: 399}]
+		 * filtered = devices.whereStrict("price", "399");
+		 * trace(filtered.all); // []
+		 * </listing>
+		 *
+		 * @return New <code>Collection</code> with the filtered values.
+		 *
+		 * @see #where()
+		 * @see #whereIn()
+		 * @see #whereInStrict()
+		 */
+		public function whereStrict(key:String, value:*):Collection
+		{
+			return whereInternal(key, value, true);
+		}
+
+
+		/**
+		 * Filters the collection by the given key / value contained within the given array.
+		 * Uses equality operator (<code>==</code>) to compare item values.
+		 *
+		 * @param key The key used to find the value.
+		 * @param value List of values to compare against.
+		 *
+		 * <listing version="3.0">
+		 * var devices:Collection = new Collection(
+		 *	 {name: "iPhone 6",    brand: "Apple",   price: 549},
+		 *	 {name: "Lumia 800",   brand: "Nokia",   price: 199},
+		 *	 {name: "Galaxy S6",   brand: "Samsung", price: 399}
+		 * );
+		 * var filtered:Collection = devices.whereIn("brand", ["Apple", "Samsung"]);
+		 * trace(filtered.all); // [{name: "iPhone 6", brand: "Apple", price: 549}, {name: "Galaxy S6", brand: "Samsung", price: 399}]
+		 * </listing>
+		 *
+		 * @return New <code>Collection</code> with the filtered values.
+		 *
+		 * @see #where()
+		 * @see #whereStrict()
+		 * @see #whereInStrict()
+		 */
+		public function whereIn(key:String, value:Array):Collection
+		{
+			return whereInternal(key, value);
+		}
+
+
+		/**
+		 * Filters the collection by the given key / value contained within the given array.
+		 * Uses strict equality operator (<code>===</code>) to compare item values.
+		 *
+		 * @param key The key used to find the value.
+		 * @param value List of values to compare against.
+		 *
+		 * <listing version="3.0">
+		 * var devices:Collection = new Collection(
+		 *	 {name: "iPhone 6",    brand: "Apple",   price: 549},
+		 *	 {name: "iPhone SE",   brand: "Apple",   price: 399},
+		 *	 {name: "Galaxy Gear", brand: "Samsung", price: 199}
+		 * );
+		 * var filtered:Collection = devices.whereInStrict("price", ["199", 399, 549]);
+		 * trace(filtered.all); // [{name: "iPhone 6", brand: "Apple", price: 549}, {name: "iPhone SE", brand: "Apple", price: 399}]
+		 * </listing>
+		 *
+		 * @return New <code>Collection</code> with the filtered values.
+		 *
+		 * @see #where()
+		 * @see #whereStrict()
+		 * @see #whereIn()
+		 */
+		public function whereInStrict(key:String, value:Array):Collection
+		{
+			return whereInternal(key, value, true);
+		}
+
+
+		/**
+		 * Internal implementation of <code>where</code> and <code>whereStrict</code>.
+		 *
+		 * @param key The key used to find the value.
+		 * @param value The value to compare against.
+		 * @param strict <code>true</code> if strict comparison (<code>===</code>) should be used.
+		 * @return New <code>Collection</code> with the filtered values.
+		 */
+		private function whereInternal(key:String, value:*, strict:Boolean = false):Collection
+		{
+			if(key === null)
+			{
+				throw new ArgumentError("Parameter key cannot be null.");
+			}
+			if(value === null)
+			{
+				throw new ArgumentError("Parameter value cannot be null.");
+			}
+
+			var result:Collection = new Collection();
+			for each(var item:* in this)
+			{
+				if(key in item)
+				{
+					if(value is Array)
+					{
+						for each(var arrValue:* in value)
+						{
+							if((strict && item[key] === arrValue) || (!strict && item[key] == arrValue))
+							{
+								result.add(item);
+							}
+						}
+					}
+					else if((strict && item[key] === value) || (!strict && item[key] == value))
+					{
+						result.add(item);
+					}
+				}
+			}
+			return result;
+		}
+
+
+		/**
 		 * Returns <code>true</code> if the collection has no items, <code>false</code> otherwise.
 		 */
 		public function get isEmpty():Boolean

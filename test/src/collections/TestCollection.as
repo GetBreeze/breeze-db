@@ -398,6 +398,12 @@ package collections
 			{
 				return -1;
 			}));
+
+			Assert.throwsError(function():void
+			{
+				// Invalid argument
+				_emptyCollection.get(null);
+			}, ArgumentError);
 		}
 
 
@@ -439,6 +445,220 @@ package collections
 			{
 				// Invalid argument
 				_emptyCollection.pluck(null);
+			}, ArgumentError);
+		}
+
+
+		public function testPrepend():void
+		{
+			Assert.isNull(_emptyCollection.first());
+
+			_emptyCollection.prepend("prepend");
+
+			Assert.equals("prepend", _emptyCollection.first());
+			Assert.equals("prepend", _emptyCollection[0]);
+
+			_emptyCollection.prepend("prepend2");
+
+			Assert.equals("prepend2", _emptyCollection.first());
+			Assert.equals("prepend2", _emptyCollection[0]);
+			Assert.equals("prepend", _emptyCollection.last());
+
+			Assert.throwsError(function():void
+			{
+				// Invalid argument
+				_emptyCollection.prepend(null);
+			}, ArgumentError);
+		}
+
+
+		public function testPull():void
+		{
+			Assert.isNull(_emptyCollection.pull("missingKey"));
+			Assert.isNull(_numberCollection.pull("missingKey"));
+
+			var deviceToPrice:Collection = new Collection(
+					{"iPhone 6": 549},
+					{"iPhone SE": 399},
+					{"Apple Watch": 299},
+					{"Galaxy S6": 399},
+					{"Galaxy Gear": 199}
+			);
+
+			Assert.equals(5, deviceToPrice.length);
+			Assert.isTrue(deviceToPrice.contains(299, "Apple Watch"));
+
+			var pulled:Object = deviceToPrice.pull("Apple Watch");
+
+			Assert.isNotNull(pulled);
+			Assert.isTrue("Apple Watch" in pulled);
+			Assert.equals(299, pulled["Apple Watch"]);
+			Assert.equals(4, deviceToPrice.length);
+			Assert.isFalse(deviceToPrice.contains(299, "Apple Watch"));
+
+			Assert.throwsError(function():void
+			{
+				// Invalid argument
+				_emptyCollection.pull(null);
+			}, ArgumentError);
+		}
+
+
+		public function testWhere():void
+		{
+			var filtered:Collection = _emptyCollection.where("empty", "empty");
+
+			Assert.isNotNull(filtered);
+			Assert.notSame(filtered, _emptyCollection);
+			Assert.isTrue(filtered.isEmpty);
+
+			filtered = _objectCollection.where("brand", "Samsung");
+
+			Assert.isNotNull(filtered);
+			Assert.notSame(filtered, _objectCollection);
+			Assert.equals(2, filtered.length);
+			Assert.equals("Galaxy S6", filtered.first().name);
+			Assert.equals("Galaxy Gear", filtered.last().name);
+
+			// Non-strict filtering of int price values using String
+			filtered = _objectCollection.where("price", "399");
+
+			Assert.isNotNull(filtered);
+			Assert.notSame(filtered, _objectCollection);
+			Assert.equals(2, filtered.length);
+			Assert.equals("iPhone SE", filtered.first().name);
+			Assert.equals("Galaxy S6", filtered.last().name);
+
+			Assert.throwsError(function():void
+			{
+				// Invalid argument
+				_emptyCollection.where(null, "");
+			}, ArgumentError);
+
+			Assert.throwsError(function():void
+			{
+				// Invalid argument
+				_emptyCollection.where("", null);
+			}, ArgumentError);
+		}
+
+
+		public function testWhereStrict():void
+		{
+			var filtered:Collection = _emptyCollection.whereStrict("empty", "empty");
+
+			Assert.isNotNull(filtered);
+			Assert.notSame(filtered, _emptyCollection);
+			Assert.isTrue(filtered.isEmpty);
+
+			filtered = _objectCollection.whereStrict("brand", "Samsung");
+
+			Assert.isNotNull(filtered);
+			Assert.notSame(filtered, _objectCollection);
+			Assert.equals(2, filtered.length);
+			Assert.equals("Galaxy S6", filtered.first().name);
+			Assert.equals("Galaxy Gear", filtered.last().name);
+
+			// Strict filtering of int price values using String (i.e. no match)
+			filtered = _objectCollection.whereStrict("price", "399");
+
+			Assert.isNotNull(filtered);
+			Assert.notSame(filtered, _objectCollection);
+			Assert.isTrue(filtered.isEmpty);
+
+			Assert.throwsError(function():void
+			{
+				// Invalid argument
+				_emptyCollection.whereStrict(null, "");
+			}, ArgumentError);
+
+			Assert.throwsError(function():void
+			{
+				// Invalid argument
+				_emptyCollection.whereStrict("", null);
+			}, ArgumentError);
+		}
+
+
+		public function testWhereIn():void
+		{
+			var filtered:Collection = _emptyCollection.whereIn("empty", ["empty"]);
+
+			Assert.isNotNull(filtered);
+			Assert.notSame(filtered, _emptyCollection);
+			Assert.isTrue(filtered.isEmpty);
+
+			filtered = _objectCollection.whereIn("brand", ["Samsung", "Apple"]);
+
+			Assert.isNotNull(filtered);
+			Assert.notSame(filtered, _objectCollection);
+			Assert.equals(5, filtered.length);
+			Assert.equals("iPhone 6", filtered.first().name);
+			Assert.equals("iPhone SE", filtered[1].name);
+			Assert.equals("Apple Watch", filtered[2].name);
+			Assert.equals("Galaxy S6", filtered[3].name);
+			Assert.equals("Galaxy Gear", filtered.last().name);
+
+			// Strict filtering of int price values using String
+			filtered = _objectCollection.whereIn("price", ["199", 299]);
+
+			Assert.isNotNull(filtered);
+			Assert.notSame(filtered, _objectCollection);
+			Assert.equals(2, filtered.length);
+			Assert.equals("Apple Watch", filtered.first().name);
+			Assert.equals("Galaxy Gear", filtered.last().name);
+
+			Assert.throwsError(function():void
+			{
+				// Invalid argument
+				_emptyCollection.whereIn(null, []);
+			}, ArgumentError);
+
+			Assert.throwsError(function():void
+			{
+				// Invalid argument
+				_emptyCollection.whereIn("", null);
+			}, ArgumentError);
+		}
+
+
+		public function testWhereInStrict():void
+		{
+			var filtered:Collection = _emptyCollection.whereInStrict("empty", ["empty"]);
+
+			Assert.isNotNull(filtered);
+			Assert.notSame(filtered, _emptyCollection);
+			Assert.isTrue(filtered.isEmpty);
+
+			filtered = _objectCollection.whereInStrict("brand", ["Samsung", "Apple"]);
+
+			Assert.isNotNull(filtered);
+			Assert.notSame(filtered, _objectCollection);
+			Assert.equals(5, filtered.length);
+			Assert.equals("iPhone 6", filtered.first().name);
+			Assert.equals("iPhone SE", filtered[1].name);
+			Assert.equals("Apple Watch", filtered[2].name);
+			Assert.equals("Galaxy S6", filtered[3].name);
+			Assert.equals("Galaxy Gear", filtered.last().name);
+
+			// Strict filtering of int price values using String (i.e. no match)
+			filtered = _objectCollection.whereInStrict("price", ["399", 299]);
+
+			Assert.isNotNull(filtered);
+			Assert.notSame(filtered, _objectCollection);
+			Assert.equals(1, filtered.length);
+			Assert.equals("Apple Watch", filtered.first().name);
+
+			Assert.throwsError(function():void
+			{
+				// Invalid argument
+				_emptyCollection.whereInStrict(null, []);
+			}, ArgumentError);
+
+			Assert.throwsError(function():void
+			{
+				// Invalid argument
+				_emptyCollection.whereInStrict("", null);
 			}, ArgumentError);
 		}
 		
