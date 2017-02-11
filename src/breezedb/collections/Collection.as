@@ -362,7 +362,7 @@ package breezedb.collections
 		 *
 		 * @param callback Function with the following signature:
 		 * <listing version="3.0">
-		 * function reduceCallback(carry:*, item:*):* {
+		 * function reduceCallback(carry:&#42;, item:&#42;):&#42; {
 		 *    return carry + item; // Creates sum of the collection items
 		 * };
 		 * </listing>
@@ -823,6 +823,122 @@ package breezedb.collections
 						result.add(item);
 					}
 				}
+			}
+			return result;
+		}
+
+
+		/**
+		 * Similar to <code>indexOf</code> method, this method can be used to find the index for the given value.
+		 * Additionally, the <code>value</code> parameter can be a <code>Function</code> that is used as a truth test.
+		 *
+		 * @param value The value to find or <code>Function</code> to be used as a truth test:
+		 * <listing version="3.0">
+		 * var companies:Collection = new Collection(
+		 *    { name: "Microsoft", ceo: "Satya Nadella" },
+		 *    { name: "Apple",     ceo: "Tim Cook" },
+		 *    { name: "Google",    ceo: "Sundar Pichai" }
+		 * );
+		 * companies.search(truthTest); // 1
+		 * function truthTest(company:Object):Boolean {
+		 *    return company.name == "Apple";
+		 * };
+		 * </listing>
+		 * @param strict Pass in <code>true</code> to use strict equality operator for comparison.
+		 * @return A zero-based index position of the item in the array. If it is not found, the return value is -1.
+		 */
+		public function search(value:*, strict:Boolean = false):int
+		{
+			if(value === null)
+			{
+				throw new ArgumentError("Parameter value cannot be null.");
+			}
+
+			var i:int;
+			var length:uint = this.length;
+			if(value is Function)
+			{
+				for(i = 0; i < length; ++i)
+				{
+					if(value(this[i]))
+					{
+						return i;
+					}
+				}
+			}
+			else
+			{
+				for(i = 0; i < length; ++i)
+				{
+					if((strict && this[i] === value) || (!strict && this[i] == value))
+					{
+						return i;
+					}
+				}
+			}
+			return -1;
+		}
+
+
+		/**
+		 * Returns all of the unique items in the collection.
+		 *
+		 * @param keyOrCallback The parameter can be one of the following:
+		 *        <ul>
+		 *            <li><code>null</code>: The items are used to determine uniqueness (useful for collection of numbers).</li>
+		 *            <li><code>String</code>: The key whose value is used to determine uniqueness.</li>
+		 *            <li><code>Function</code>: Custom callback that returns the value to use for determining uniqueness.</li>
+		 *        </ul>
+		 * <listing version="3.0">
+		 * var devices:Collection = new Collection(
+		 *	 {name: "iPhone 6",    brand: "Apple",   price: 549},
+		 *	 {name: "iPhone SE",   brand: "Apple",   price: 399},
+		 *	 {name: "Galaxy Gear", brand: "Samsung", price: 199}
+		 * );
+		 * devices.unique("brand"); // [{name: "iPhone 6", brand: "Apple", price: 549}, {name: "Galaxy Gear", brand: "Samsung", price: 199}]
+		 * devices.unique(uniqueBrandPrice); // [{name: "iPhone 6", brand: "Apple", price: 549}, {name: "iPhone SE", brand: "Apple", price: 399}, {name: "Galaxy Gear", brand: "Samsung", price: 199}]
+		 * function uniqueBrandPrice(device:Object):Boolean {
+		 *    // Concatenated brand and price to be used for determining uniqueness
+		 *    return device.brand + device.price;
+		 * };
+		 * </listing>
+		 *
+		 * @return New <code>Collection</code> with the unique values.
+		 */
+		public function unique(keyOrCallback:* = null):Collection
+		{
+			// Invalid parameter type
+			if(!(keyOrCallback == null || keyOrCallback is Function || keyOrCallback is String))
+			{
+				throw new ArgumentError("Parameter keyOrCallback must be a String, Function or null.");
+			}
+
+			var uniques:Object = {};
+
+			var result:Collection = new Collection();
+			for each(var value:* in this)
+			{
+				var hash:* = value;
+				if(keyOrCallback is String)
+				{
+					if(!(keyOrCallback in value))
+					{
+						continue;
+					}
+					hash = value[keyOrCallback];
+				}
+				else if(keyOrCallback is Function)
+				{
+					hash = keyOrCallback(value);
+				}
+
+				if(uniques[hash] === true)
+				{
+					continue;
+				}
+
+				uniques[hash] = true;
+				result.add(value);
 			}
 			return result;
 		}

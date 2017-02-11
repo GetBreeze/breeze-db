@@ -661,6 +661,81 @@ package collections
 				_emptyCollection.whereInStrict("", null);
 			}, ArgumentError);
 		}
+
+
+		public function testSearch():void
+		{
+			Assert.equals(-1, _emptyCollection.search("missing"));
+
+			Assert.equals(2, _objectCollection.search(findAppleWatch));
+			Assert.equals(-1, _objectCollection.search(findUnknownDevice));
+
+			Assert.equals(3, _numberCollection.search(0));
+			Assert.equals(3, _numberCollection.search("0"));
+			Assert.equals(-1, _numberCollection.search("0", true));
+			Assert.equals(7, _numberCollection.search(findGreaterThan3));
+
+			Assert.throwsError(function():void
+			{
+				// Invalid argument
+				_emptyCollection.search(null);
+			}, ArgumentError);
+
+			function findAppleWatch(device:Object):Boolean
+			{
+				return device.name == "Apple Watch";
+			}
+
+			function findUnknownDevice(device:Object):Boolean
+			{
+				return device.name == "Unknown";
+			}
+
+			function findGreaterThan3(num:int):Boolean
+			{
+				return num > 3;
+			}
+		}
+
+
+		public function testUnique():void
+		{
+			var emptyUnique:Collection = _emptyCollection.unique();
+
+			Assert.isNotNull(emptyUnique);
+			Assert.notSame(emptyUnique, _emptyCollection);
+			Assert.isTrue(emptyUnique.isEmpty);
+
+			var duplicateNums:Collection = new Collection(1, 3, 4, 1, 3, 1, 3, 4, 2, 2, 1, 2, 3, 4, 5);
+			var uniqueNums:Collection = duplicateNums.unique();
+
+			Assert.isNotNull(uniqueNums);
+			Assert.notSame(uniqueNums, duplicateNums);
+			Assert.equals(15, duplicateNums.length);
+			Assert.equals(5, uniqueNums.length);
+			Assert.arrayEquals([1, 3, 4, 2, 5], uniqueNums.all);
+
+			var uniqueBrand:Collection = _objectCollection.unique("brand");
+
+			Assert.isNotNull(uniqueBrand);
+			Assert.notSame(uniqueBrand, _objectCollection);
+			Assert.equals(2, uniqueBrand.length);
+			Assert.equals("iPhone 6", uniqueBrand.first().name);
+			Assert.equals("Galaxy S6", uniqueBrand.last().name);
+
+			var uniqueBrandType:Collection = _objectCollection.unique(function(device:Object):String
+			{
+				return device.brand + device.type;
+			});
+
+			Assert.isNotNull(uniqueBrandType);
+			Assert.notSame(uniqueBrandType, _objectCollection);
+			Assert.equals(4, uniqueBrandType.length);
+			Assert.equals("iPhone 6", uniqueBrandType[0].name);
+			Assert.equals("Apple Watch", uniqueBrandType[1].name);
+			Assert.equals("Galaxy S6", uniqueBrandType[2].name);
+			Assert.equals("Galaxy Gear", uniqueBrandType[3].name);
+		}
 		
 	}
 	
