@@ -25,8 +25,120 @@
 
 package breezedb
 {
+	import flash.filesystem.File;
+	import flash.utils.Dictionary;
+
+	/**
+	 * Class providing API that allows access to databases.
+	 */
 	public class BreezeDb
 	{
-		
+		private static const DEFAULT_DB:String = "database";
+
+		private static var _databases:Dictionary;
+		private static var _fileExtension:String = ".sqlite";
+		private static var _storageDirectory:File = File.applicationStorageDirectory;
+
+
+		/**
+		 * Retrieves the default database object.
+		 */
+		public static function get db():IDatabase
+		{
+			return getDb(DEFAULT_DB);
+		}
+
+
+		/**
+		 * Retrieves reference to database of given name. The name <code>database</code> is reserved
+		 * for the default database accessed using <code>BreezeDb.db</code> or the <code>DB</code>
+		 * facade class.
+		 *
+		 * @param databaseName The name of the database to retrieve. It will be created if it does not exist.
+		 * @return Reference to the database.
+		 *
+		 * @see #db
+		 */
+		public static function getDb(databaseName:String):IDatabase
+		{
+			if(_databases == null)
+			{
+				_databases = new Dictionary();
+			}
+
+			// Create new database
+			if(!(databaseName in _databases))
+			{
+				_databases[databaseName] = new BreezeDbInstance(databaseName);
+			}
+			return _databases[databaseName];
+		}
+
+
+		/**
+		 * The directory where the database files are created.
+		 *
+		 * @default File.applicationStorageDirectory
+		 */
+		public static function get storageDirectory():File
+		{
+			return _storageDirectory;
+		}
+
+
+		/**
+		 * @private
+		 */
+		public static function set storageDirectory(value:File):void
+		{
+			if(value == null)
+			{
+				throw new ArgumentError("Storage directory cannot be null.");
+			}
+
+			if(!value.exists || !value.isDirectory)
+			{
+				throw new Error("Storage directory must point to an existing directory.");
+			}
+
+			_storageDirectory = value;
+		}
+
+
+		/**
+		 * File extension for the database files. It must contain a dot followed by at least one character,
+		 * without spaces.
+		 *
+		 * @default .sqlite
+		 */
+		public static function get fileExtension():String
+		{
+			return _fileExtension;
+		}
+
+
+		/**
+		 * @private
+		 */
+		public static function set fileExtension(value:String):void
+		{
+			if(value == null)
+			{
+				throw new ArgumentError("File extension cannot be null.");
+			}
+
+			if(value.indexOf(" ") >= 0)
+			{
+				throw new ArgumentError("Extension cannot contain spaces");
+			}
+
+			var dotIndex:int = value.lastIndexOf(".");
+			if(!(dotIndex >= 0 && dotIndex != value.length - 1))
+			{
+				throw new ArgumentError("Extension must contain a dot followed by at least one character.");
+			}
+
+			_fileExtension = value;
+		}
 	}
 }
