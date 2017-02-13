@@ -24,6 +24,7 @@
 
 		<exec executable="${flex.sdk.compc}" failonerror="true">
 			<arg line='-include-sources ../src/'/>
+			<arg line='-external-library-path+="${flex.sdk}/frameworks/libs/air/airglobal.swc"'/>
 			<arg line='-output ../bin/${name}.swc'/>
 			<arg line='-swf-version=${swf.version}'/>
 		</exec>
