@@ -25,13 +25,16 @@
 
 package breezedb
 {
+	import breezedb.queries.BreezeQueryBuilder;
+	import breezedb.queries.IRawQuery;
+	
 	import flash.events.IEventDispatcher;
 	import flash.filesystem.File;
 
 	/**
 	 * Interface that defines API to interact with the database.
 	 */
-	public interface IDatabase extends IEventDispatcher
+	public interface IDatabase extends IEventDispatcher, IRawQuery
 	{
 		/**
 		 * Sets up the database by creating SQL connection and database file, if it does not exist.
@@ -63,7 +66,7 @@ package breezedb
 		 * @param tableName The table that will be associated with the returned query builder.
 		 * @return Query builder associated with the given table.
 		 */
-		function table(tableName:String):IQueryBuilder;
+		function table(tableName:String):BreezeQueryBuilder;
 
 
 		/**

@@ -25,6 +25,10 @@
 
 package breezedb
 {
+	import breezedb.queries.BreezeQueryBuilder;
+	import breezedb.queries.BreezeQueryReference;
+	import breezedb.queries.BreezeRawQuery;
+
 	import flash.data.SQLConnection;
 	import flash.data.SQLMode;
 	import flash.errors.IllegalOperationError;
@@ -107,7 +111,7 @@ package breezedb
 		/**
 		 * @inheritDoc
 		 */
-		public function table(tableName:String):IQueryBuilder
+		public function table(tableName:String):BreezeQueryBuilder
 		{
 			return new BreezeQueryBuilder(this, tableName);
 		}
@@ -158,6 +162,51 @@ package breezedb
 			_sqlConnection.addEventListener(SQLEvent.CLOSE, onDatabaseCloseSuccess);
 			_sqlConnection.addEventListener(SQLErrorEvent.ERROR, onDatabaseCloseError);
 			_sqlConnection.close();
+		}
+
+
+		/**
+		 * @inheritDoc
+		 */
+		public function query(rawQuery:String, params:*, callback:Function = null):BreezeQueryReference
+		{
+			return null;
+		}
+
+
+		/**
+		 * @inheritDoc
+		 */
+		public function select(rawQuery:String, params:*, callback:Function = null):BreezeQueryReference
+		{
+			return null;
+		}
+
+
+		/**
+		 * @inheritDoc
+		 */
+		public function insert(rawQuery:String, params:*, callback:Function = null):BreezeQueryReference
+		{
+			return null;
+		}
+
+
+		/**
+		 * @inheritDoc
+		 */
+		public function update(rawQuery:String, params:*, callback:Function = null):BreezeQueryReference
+		{
+			return null;
+		}
+
+
+		/**
+		 * @inheritDoc
+		 */
+		public function remove(rawQuery:String, params:*, callback:Function = null):BreezeQueryReference
+		{
+			return null;
 		}
 
 
@@ -319,7 +368,7 @@ package breezedb
 		 */
 		public function get isSetup():Boolean
 		{
-			return _isSetup;
+			return _isSetup && _sqlConnection != null && _sqlConnection.connected;
 		}
 	}
 	

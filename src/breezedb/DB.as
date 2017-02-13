@@ -25,6 +25,8 @@
 
 package breezedb
 {
+	import breezedb.queries.BreezeQueryBuilder;
+
 	import flash.events.EventDispatcher;
 	import flash.filesystem.File;
 
@@ -84,7 +86,7 @@ package breezedb
 		 * @param tableName The table that will be associated with the returned query builder.
 		 * @return Query builder associated with the given table.
 		 */
-		public static function table(tableName:String):IQueryBuilder
+		public static function table(tableName:String):BreezeQueryBuilder
 		{
 			return BreezeDb.db.table(tableName);
 		}

@@ -23,13 +23,14 @@
  *
  */
 
-package breezedb
+package breezedb.queries
 {
+	import breezedb.IDatabase;
 
 	/**
 	 * Class providing API to run queries on associated database and table.
 	 */
-	public class BreezeQueryBuilder implements IQueryBuilder
+	public class BreezeQueryBuilder
 	{
 		
 		public function BreezeQueryBuilder(database:IDatabase, tableName:String)

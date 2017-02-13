@@ -23,15 +23,43 @@
  *
  */
 
-package breezedb
+package breezedb.queries
 {
-	
-	/**
-	 * Interface that defines API to run queries on associated database and table.
-	 */
-	public interface IQueryBuilder
+	public class BreezeQueryReference
 	{
-		
+		private var _rawQuery:ICancellableRawQuery;
+
+		public function BreezeQueryReference(rawQuery:ICancellableRawQuery)
+		{
+			_rawQuery = rawQuery;
+		}
+
+
+		/**
+		 * @inheritDoc
+		 */
+		public function cancel():void
+		{
+			_rawQuery.cancel();
+		}
+
+
+		/**
+		 * @inheritDoc
+		 */
+		public function get isCompleted():Boolean
+		{
+			return _rawQuery.isCompleted;
+		}
+
+
+		/**
+		 * @inheritDoc
+		 */
+		public function get isCancelled():Boolean
+		{
+			return _rawQuery.isCancelled;
+		}
 	}
 	
 }
