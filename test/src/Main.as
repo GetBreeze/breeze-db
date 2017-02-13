@@ -47,7 +47,7 @@ package
 
 			_breezeTest = new BreezeTest(this);
 			_breezeTest.addEventListener(BreezeTestEvent.TESTS_COMPLETE, onTestsComplete);
-			_breezeTest.add([TestCollection]);
+			_breezeTest.add([TestCollection, TestDatabase]);
 			_breezeTest.run();
 		}
 
