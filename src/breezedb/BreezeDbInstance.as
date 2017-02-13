@@ -25,8 +25,14 @@
 
 package breezedb
 {
+	import flash.data.SQLConnection;
+	import flash.data.SQLMode;
+	import flash.errors.IllegalOperationError;
 	import flash.events.EventDispatcher;
+	import flash.events.SQLErrorEvent;
+	import flash.events.SQLEvent;
 	import flash.filesystem.File;
+	import flash.utils.ByteArray;
 
 	internal class BreezeDbInstance extends EventDispatcher implements IDatabase
 	{
@@ -34,7 +40,11 @@ package breezedb
 		private var _name:String;
 		private var _file:File;
 		private var _encryptionKey:String;
-		
+
+		private var _setupCallback:Function;
+		private var _closeCallback:Function;
+		private var _sqlConnection:SQLConnection;
+
 		public function BreezeDbInstance(name:String)
 		{
 			if(name == null)
@@ -60,7 +70,37 @@ package breezedb
 		 */
 		public function setup(callback:Function, databaseFile:File = null):void
 		{
+			if(callback === null)
+			{
+				throw new ArgumentError("Parameter callback cannot be null.");
+			}
 
+			if(databaseFile == null)
+			{
+				databaseFile = BreezeDb.storageDirectory.resolvePath(name + BreezeDb.fileExtension);
+			}
+
+			if(databaseFile.isDirectory)
+			{
+				throw new ArgumentError("Parameter databaseFile must point to a file, not a directory.");
+			}
+
+			_file = databaseFile;
+			_setupCallback = callback;
+
+			_sqlConnection = new SQLConnection();
+			_sqlConnection.addEventListener(SQLEvent.OPEN, onDatabaseOpenSuccess);
+			_sqlConnection.addEventListener(SQLErrorEvent.ERROR, onDatabaseOpenError);
+
+			try
+			{
+				_sqlConnection.openAsync(_file, SQLMode.CREATE, null, false, 1024, generateEncryptionKey());
+			}
+			catch(e:Error)
+			{
+				_setupCallback = null;
+				callback(e);
+			}
 		}
 
 
@@ -102,7 +142,22 @@ package breezedb
 		 */
 		public function close(callback:Function):void
 		{
+			if(callback === null)
+			{
+				throw new ArgumentError("Parameter callback cannot be null.");
+			}
 
+			if(_sqlConnection == null || !_sqlConnection.connected)
+			{
+				callback(new Error("There is no active database connection."));
+				return;
+			}
+
+			_closeCallback = callback;
+
+			_sqlConnection.addEventListener(SQLEvent.CLOSE, onDatabaseCloseSuccess);
+			_sqlConnection.addEventListener(SQLErrorEvent.ERROR, onDatabaseCloseError);
+			_sqlConnection.close();
 		}
 
 
@@ -113,6 +168,100 @@ package breezedb
 		 *
 		 *
 		 */
+
+
+		private function onDatabaseOpenSuccess(event:SQLEvent):void
+		{
+			_sqlConnection.removeEventListener(SQLEvent.OPEN, onDatabaseOpenSuccess);
+			_sqlConnection.removeEventListener(SQLErrorEvent.ERROR, onDatabaseOpenError);
+
+			_isSetup = true;
+
+			var callback:Function = _setupCallback;
+			_setupCallback = null;
+			callback(null);
+		}
+
+
+		private function onDatabaseOpenError(event:SQLErrorEvent):void
+		{
+			_sqlConnection.removeEventListener(SQLEvent.OPEN, onDatabaseOpenSuccess);
+			_sqlConnection.removeEventListener(SQLErrorEvent.ERROR, onDatabaseOpenError);
+
+			_isSetup = false;
+
+			var callback:Function = _setupCallback;
+			_setupCallback = null;
+			callback(event.error);
+		}
+
+
+		private function onDatabaseCloseSuccess(event:SQLEvent):void
+		{
+			_sqlConnection.removeEventListener(SQLEvent.OPEN, onDatabaseCloseSuccess);
+			_sqlConnection.removeEventListener(SQLErrorEvent.ERROR, onDatabaseCloseError);
+
+			_isSetup = false;
+
+			var callback:Function = _closeCallback;
+			_closeCallback = null;
+			callback(null);
+		}
+
+
+		private function onDatabaseCloseError(event:SQLErrorEvent):void
+		{
+			_sqlConnection.removeEventListener(SQLEvent.OPEN, onDatabaseCloseSuccess);
+			_sqlConnection.removeEventListener(SQLErrorEvent.ERROR, onDatabaseCloseError);
+
+			var callback:Function = _closeCallback;
+			_closeCallback = null;
+			callback(event.error);
+		}
+
+
+		private function generateEncryptionKey():ByteArray
+		{
+			if(encryptionKey == null)
+			{
+				return null;
+			}
+
+			var key:String = encryptionKey;
+			while(key.length < 16)
+			{
+				key += encryptionKey;
+			}
+
+			var result:ByteArray = new ByteArray();
+			var mod:int = key.length % 16;
+			if(mod != 0)
+			{
+				key += key.substr(key.length - 16 + mod);
+			}
+			var length:uint = key.length;
+			var groups:int = length / 16;
+			var bytes:int = 0;
+			for(var i:int = 0; i < length; i += groups)
+			{
+				var over:Boolean = i + groups >= length;
+				var hex:String = key.substr(i, over ? 0x7fffffff : groups);
+				var byte:int = 0;
+				for(var j:int = 0; j < hex.length; ++j)
+				{
+					var char:String = hex.charAt(j);
+					byte += char.charCodeAt(0);
+				}
+				byte = byte % 255;
+				result.writeByte(byte);
+				bytes++;
+				if(over)
+				{
+					break;
+				}
+			}
+			return result;
+		}
 
 
 		/**
