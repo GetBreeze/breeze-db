@@ -23,7 +23,7 @@
  *
  */
 
-package
+package tests
 {
 	import breezedb.BreezeDb;
 	import breezedb.IDatabase;

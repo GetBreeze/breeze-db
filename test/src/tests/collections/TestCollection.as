@@ -23,7 +23,7 @@
  *
  */
 
-package collections
+package tests.collections
 {
 	import breezedb.collections.Collection;
 

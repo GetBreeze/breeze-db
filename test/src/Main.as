@@ -29,13 +29,14 @@ package
 	import breezetest.BreezeTest;
 	import breezetest.BreezeTestEvent;
 
-	import collections.TestCollection;
-
 	import flash.desktop.NativeApplication;
 
 	import flash.display.Sprite;
 	import flash.text.TextField;
-
+	
+	import tests.TestDatabase;
+	import tests.collections.TestCollection;
+	
 	public class Main extends Sprite
 	{
 		private var _breezeTest:BreezeTest;
