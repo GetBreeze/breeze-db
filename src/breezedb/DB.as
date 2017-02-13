@@ -57,7 +57,7 @@ package breezedb
 		 *
 		 * @param callback Function called once the setup finishes. It must have the following signature:
 		 * <listing version="3.0">
-		 * function callback(error:SQLError):void {
+		 * function callback(error:Error):void {
 		 *    if(error == null)
 		 *    {
 		 *        // setup completed successfully
@@ -133,7 +133,7 @@ package breezedb
 		 *
 		 * @param callback Function called once the operation finishes. It must have the following signature:
 		 * <listing version="3.0">
-		 * function callback(error:SQLError):void {
+		 * function callback(error:Error):void {
 		 *    if(error == null)
 		 *    {
 		 *        // connection closed successfully
