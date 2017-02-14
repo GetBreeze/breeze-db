@@ -27,6 +27,8 @@ package breezedb
 {
 	import breezedb.queries.BreezeQueryBuilder;
 	import breezedb.queries.IRawQuery;
+
+	import flash.data.SQLConnection;
 	
 	import flash.events.IEventDispatcher;
 	import flash.filesystem.File;
@@ -144,6 +146,12 @@ package breezedb
 		 * @private
 		 */
 		function get encryptionKey():String;
+
+
+		/**
+		 * The SQL connection for this database.
+		 */
+		function get connection():SQLConnection;
 	}
 	
 }

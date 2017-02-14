@@ -376,6 +376,15 @@ package breezedb
 		{
 			return _isSetup && _sqlConnection != null && _sqlConnection.connected;
 		}
+
+
+		/**
+		 * @inheritDoc
+		 */
+		public function get connection():SQLConnection
+		{
+			return _sqlConnection;
+		}
 	}
 	
 }
