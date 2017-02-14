@@ -42,6 +42,8 @@ package breezedb
 	internal class BreezeDbInstance extends EventDispatcher implements IBreezeDatabase
 	{
 		private var _isSetup:Boolean;
+		private var _isSettingUp:Boolean;
+		private var _isClosing:Boolean;
 		private var _name:String;
 		private var _file:File;
 		private var _encryptionKey:String;
@@ -96,6 +98,19 @@ package breezedb
 				return;
 			}
 
+			if(_isSettingUp)
+			{
+				callback(new IllegalOperationError("Database setup is currently in progress."));
+				return;
+			}
+
+			if(_isClosing)
+			{
+				callback(new IllegalOperationError("Database is currently being closed."));
+				return;
+			}
+
+			_isSettingUp = true;
 			_file = databaseFile;
 			_setupCallback = callback;
 
@@ -109,6 +124,7 @@ package breezedb
 			}
 			catch(e:Error)
 			{
+				_isSettingUp = false;
 				_setupCallback = null;
 				callback(e);
 			}
@@ -164,6 +180,19 @@ package breezedb
 				return;
 			}
 
+			if(_isSettingUp)
+			{
+				callback(new IllegalOperationError("Database setup is currently in progress."));
+				return;
+			}
+
+			if(_isClosing)
+			{
+				callback(new IllegalOperationError("Database is currently being closed."));
+				return;
+			}
+
+			_isClosing = true;
 			_closeCallback = callback;
 
 			_sqlConnection.addEventListener(SQLEvent.CLOSE, onDatabaseCloseSuccess);
@@ -232,6 +261,7 @@ package breezedb
 			_sqlConnection.removeEventListener(SQLErrorEvent.ERROR, onDatabaseOpenError);
 
 			_isSetup = true;
+			_isSettingUp = false;
 
 			var callback:Function = _setupCallback;
 			_setupCallback = null;
@@ -245,6 +275,7 @@ package breezedb
 			_sqlConnection.removeEventListener(SQLErrorEvent.ERROR, onDatabaseOpenError);
 
 			_isSetup = false;
+			_isSettingUp = false;
 
 			var callback:Function = _setupCallback;
 			_setupCallback = null;
@@ -258,6 +289,7 @@ package breezedb
 			_sqlConnection.removeEventListener(SQLErrorEvent.ERROR, onDatabaseCloseError);
 
 			_isSetup = false;
+			_isClosing = false;
 
 			var callback:Function = _closeCallback;
 			_closeCallback = null;
@@ -269,6 +301,8 @@ package breezedb
 		{
 			_sqlConnection.removeEventListener(SQLEvent.OPEN, onDatabaseCloseSuccess);
 			_sqlConnection.removeEventListener(SQLErrorEvent.ERROR, onDatabaseCloseError);
+
+			_isClosing = false;
 
 			var callback:Function = _closeCallback;
 			_closeCallback = null;

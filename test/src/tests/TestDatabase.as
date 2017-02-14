@@ -31,6 +31,8 @@ package tests
 	import breezetest.Assert;
 	import breezetest.async.Async;
 
+	import flash.errors.IllegalOperationError;
+
 	import flash.filesystem.File;
 	
 	public class TestDatabase
@@ -45,6 +47,13 @@ package tests
 			// Setup db in the default storage directory
 			Assert.isFalse(BreezeDb.db.isSetup);
 			BreezeDb.db.setup(onDefaultDbSetup);
+
+			// Cannot setup while another setup is in progress
+			BreezeDb.db.setup(function(error:Error):void
+			{
+				Assert.isNotNull(error);
+				Assert.isType(error, IllegalOperationError);
+			});
 		}
 
 
@@ -56,6 +65,13 @@ package tests
 			Assert.isTrue(BreezeDb.db.file.exists);
 
 			BreezeDb.db.close(onDefaultDbClosed);
+
+			// Cannot close while another close is in progress
+			BreezeDb.db.close(function(error:Error):void
+			{
+				Assert.isNotNull(error);
+				Assert.isType(error, IllegalOperationError);
+			});
 		}
 
 
