@@ -39,14 +39,8 @@ package breezedb.utils
 				return false;
 			}
 
-			try
-			{
-				fn.apply(fn, params.slice(0, fn.length));
-			}
-			catch(error:Error)
-			{
-				return false;
-			}
+			params = (params == null) ? null : params.slice(0, fn.length);
+			fn.apply(fn, params);
 
 			return true;
 		}
