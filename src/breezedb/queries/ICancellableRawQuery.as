@@ -25,7 +25,7 @@
 
 package breezedb.queries
 {
-	public interface ICancellableRawQuery
+	public interface ICancellableRawQuery extends IRawQuery
 	{
 		function cancel():void;
 
