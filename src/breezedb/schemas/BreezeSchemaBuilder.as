@@ -45,43 +45,43 @@ package breezedb.schemas
 		}
 		
 		
-		public function createTable(tableName:String, blueprint:Function, callback:Function):BreezeQueryReference
+		public function createTable(tableName:String, blueprint:Function, callback:Function = null):BreezeQueryReference
 		{
 			return null;
 		}
 		
 		
-		public function editTable(tableName:String, blueprint:Function, callback:Function):BreezeQueryReference
+		public function editTable(tableName:String, blueprint:Function, callback:Function = null):BreezeQueryReference
 		{
 			return null;
 		}
 
 
-		public function dropTable(tableName:String, callback:Function):BreezeQueryReference
+		public function dropTable(tableName:String, callback:Function = null):BreezeQueryReference
 		{
 			return null;
 		}
 
 
-		public function dropTableIfExists(tableName:String, callback:Function):BreezeQueryReference
+		public function dropTableIfExists(tableName:String, callback:Function = null):BreezeQueryReference
 		{
 			return null;
 		}
 
 
-		public function renameTable(oldTableName:String, newTableName:String, callback:Function):BreezeQueryReference
+		public function renameTable(oldTableName:String, newTableName:String, callback:Function = null):BreezeQueryReference
 		{
 			return null;
 		}
 
 
-		public function hasTable(tableName:String, callback:Function):BreezeQueryReference
+		public function hasTable(tableName:String, callback:Function = null):BreezeQueryReference
 		{
 			return null;
 		}
 
 
-		public function hasColumn(tableName:String, columnName:String, callback:Function):BreezeQueryReference
+		public function hasColumn(tableName:String, columnName:String, callback:Function = null):BreezeQueryReference
 		{
 			return null;
 		}
