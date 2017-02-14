@@ -177,7 +177,7 @@ package breezedb
 		 */
 		public function query(rawQuery:String, params:*, callback:Function = null):BreezeQueryReference
 		{
-			return null;
+			return new BreezeRawQuery(this).query(rawQuery, params, callback);
 		}
 
 
@@ -186,7 +186,7 @@ package breezedb
 		 */
 		public function select(rawQuery:String, params:*, callback:Function = null):BreezeQueryReference
 		{
-			return null;
+			return new BreezeRawQuery(this).select(rawQuery, params, callback);
 		}
 
 
@@ -195,7 +195,7 @@ package breezedb
 		 */
 		public function insert(rawQuery:String, params:*, callback:Function = null):BreezeQueryReference
 		{
-			return null;
+			return new BreezeRawQuery(this).insert(rawQuery, params, callback);
 		}
 
 
@@ -204,7 +204,7 @@ package breezedb
 		 */
 		public function update(rawQuery:String, params:*, callback:Function = null):BreezeQueryReference
 		{
-			return null;
+			return new BreezeRawQuery(this).update(rawQuery, params, callback);
 		}
 
 
@@ -213,7 +213,7 @@ package breezedb
 		 */
 		public function remove(rawQuery:String, params:*, callback:Function = null):BreezeQueryReference
 		{
-			return null;
+			return new BreezeRawQuery(this).remove(rawQuery, params, callback);
 		}
 
 
