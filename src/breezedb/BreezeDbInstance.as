@@ -89,6 +89,12 @@ package breezedb
 				throw new ArgumentError("Parameter databaseFile must point to a file, not a directory.");
 			}
 
+			if(isSetup)
+			{
+				callback(null);
+				return;
+			}
+
 			_file = databaseFile;
 			_setupCallback = callback;
 
