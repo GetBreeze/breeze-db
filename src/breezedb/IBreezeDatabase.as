@@ -27,6 +27,7 @@ package breezedb
 {
 	import breezedb.queries.BreezeQueryBuilder;
 	import breezedb.queries.IRawQuery;
+	import breezedb.schemas.BreezeSchemaBuilder;
 
 	import flash.data.SQLConnection;
 	
@@ -116,6 +117,12 @@ package breezedb
 		 * @see #setup()
 		 */
 		function close(callback:Function):void;
+
+
+		/**
+		 * Returns schema builder associated with the database.
+		 */
+		function get schema():BreezeSchemaBuilder;
 
 
 		/**

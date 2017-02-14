@@ -26,6 +26,7 @@
 package breezedb
 {
 	import breezedb.queries.BreezeQueryBuilder;
+	import breezedb.schemas.BreezeSchemaBuilder;
 
 	import flash.events.EventDispatcher;
 	import flash.filesystem.File;
@@ -158,6 +159,15 @@ package breezedb
 		 *
 		 *
 		 */
+
+
+		/**
+		 * Returns schema builder associated with the database.
+		 */
+		public static function get schema():BreezeSchemaBuilder
+		{
+			return BreezeDb.db.schema;
+		}
 
 
 		/**

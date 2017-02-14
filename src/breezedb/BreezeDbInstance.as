@@ -28,6 +28,7 @@ package breezedb
 	import breezedb.queries.BreezeQueryBuilder;
 	import breezedb.queries.BreezeQueryReference;
 	import breezedb.queries.BreezeRawQuery;
+	import breezedb.schemas.BreezeSchemaBuilder;
 
 	import flash.data.SQLConnection;
 	import flash.data.SQLMode;
@@ -348,6 +349,15 @@ package breezedb
 		public function get encryptionKey():String
 		{
 			return _encryptionKey;
+		}
+
+
+		/**
+		 * @inheritDoc
+		 */
+		public function get schema():BreezeSchemaBuilder
+		{
+			return new BreezeSchemaBuilder(this);
 		}
 
 
