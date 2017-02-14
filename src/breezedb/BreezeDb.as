@@ -43,7 +43,7 @@ package breezedb
 		/**
 		 * Retrieves the default database object.
 		 */
-		public static function get db():IDatabase
+		public static function get db():IBreezeDatabase
 		{
 			return getDb(DEFAULT_DB);
 		}
@@ -59,7 +59,7 @@ package breezedb
 		 *
 		 * @see #db
 		 */
-		public static function getDb(databaseName:String):IDatabase
+		public static function getDb(databaseName:String):IBreezeDatabase
 		{
 			if(_databases == null)
 			{

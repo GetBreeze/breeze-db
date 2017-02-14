@@ -25,7 +25,7 @@
 
 package breezedb.queries
 {
-	import breezedb.IDatabase;
+	import breezedb.IBreezeDatabase;
 
 	/**
 	 * Class providing API to run queries on associated database and table.
@@ -33,7 +33,7 @@ package breezedb.queries
 	public class BreezeQueryBuilder
 	{
 		
-		public function BreezeQueryBuilder(database:IDatabase, tableName:String)
+		public function BreezeQueryBuilder(database:IBreezeDatabase, tableName:String)
 		{
 		}
 		

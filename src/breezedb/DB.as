@@ -47,7 +47,7 @@ package breezedb
 		 *
 		 * @see breezedb.BreezeDb#db
 		 */
-		public static function get instance():IDatabase
+		public static function get instance():IBreezeDatabase
 		{
 			return BreezeDb.db;
 		}

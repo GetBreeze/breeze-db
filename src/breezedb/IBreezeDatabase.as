@@ -34,7 +34,7 @@ package breezedb
 	/**
 	 * Interface that defines API to interact with the database.
 	 */
-	public interface IDatabase extends IEventDispatcher, IRawQuery
+	public interface IBreezeDatabase extends IEventDispatcher, IRawQuery
 	{
 		/**
 		 * Sets up the database by creating SQL connection and database file, if it does not exist.

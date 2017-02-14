@@ -26,7 +26,7 @@
 package tests
 {
 	import breezedb.BreezeDb;
-	import breezedb.IDatabase;
+	import breezedb.IBreezeDatabase;
 
 	import breezetest.Assert;
 	import breezetest.async.Async;
@@ -68,7 +68,7 @@ package tests
 
 			// Setup db in custom file
 			var file:File = File.applicationStorageDirectory.resolvePath("custom-db-file.sqlite");
-			var customDb:IDatabase = BreezeDb.getDb("custom-db");
+			var customDb:IBreezeDatabase = BreezeDb.getDb("custom-db");
 			customDb.encryptionKey = "fDIOeVLyhh";
 
 			Assert.notSame(customDb, BreezeDb.db);
@@ -81,7 +81,7 @@ package tests
 		{
 			Assert.isNull(error);
 
-			var customDb:IDatabase = BreezeDb.getDb("custom-db");
+			var customDb:IBreezeDatabase = BreezeDb.getDb("custom-db");
 			Assert.isTrue(customDb.isSetup);
 			Assert.isNotNull(customDb.file);
 			var file:File = File.applicationStorageDirectory.resolvePath("custom-db-file.sqlite");
@@ -102,7 +102,7 @@ package tests
 		{
 			Assert.isNull(error);
 
-			var customDb:IDatabase = BreezeDb.getDb("custom-db");
+			var customDb:IBreezeDatabase = BreezeDb.getDb("custom-db");
 			Assert.isFalse(customDb.isSetup);
 
 			customDb.file.deleteFile();

@@ -38,7 +38,7 @@ package breezedb
 	import flash.filesystem.File;
 	import flash.utils.ByteArray;
 
-	internal class BreezeDbInstance extends EventDispatcher implements IDatabase
+	internal class BreezeDbInstance extends EventDispatcher implements IBreezeDatabase
 	{
 		private var _isSetup:Boolean;
 		private var _name:String;
