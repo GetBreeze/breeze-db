@@ -73,6 +73,12 @@ package tests
 				table.integer("views").defaultTo(0);
 				table.timestamp("created_at").defaultTo(0);
 				table.index("name");
+
+				// Cannot drop index during table creation
+				Assert.throwsError(function():void
+				{
+					table.dropIndex("views");
+				}, IllegalOperationError);
 			}, onPhotosTableCreated);
 		}
 
