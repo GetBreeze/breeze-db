@@ -199,13 +199,10 @@ package tests
 
 			_db.schema.editTable("photos", function (table:TableBlueprint):void
 			{
-				Assert.throwsError(function():void
-				{
-					// cannot edit existing column
-					table.integer("name").notNull();
-				}, IllegalOperationError);
-
-				table.string("newColumn");
+				// Adding multiple new columns is not possible using standard SQLite syntax
+				// but the library should handle it automatically under the hood
+				table.string("newColumn1").defaultNull();
+				table.number("newColumn2").defaultTo(3.14);
 			}, onPhotosTableEdited);
 		}
 
@@ -214,15 +211,135 @@ package tests
 		{
 			Assert.isNull(error);
 
-			_db.schema.hasColumn("photos", "newColumn", function(error:Error, hasTable:Boolean):void
+			_db.schema.hasColumn("photos", "newColumn1", newColumn1Exists);
+		}
+
+
+		private function newColumn1Exists(error:Error, hasColumn:Boolean):void
+		{
+			Assert.isNull(error);
+			Assert.isTrue(hasColumn);
+
+			_db.schema.hasColumn("photos", "newColumn2", newColumn2Exists);
+		}
+
+
+		private function newColumn2Exists(error:Error, hasColumn:Boolean):void
+		{
+			Assert.isNull(error);
+			Assert.isTrue(hasColumn);
+
+			testEditExistingColumn();
+		}
+
+
+		private function testEditExistingColumn():void
+		{
+			_db.schema.editTable("photos", function(table:TableBlueprint):void
 			{
-				Assert.isNull(error);
-				Assert.isTrue(hasTable);
+				// Cannot modify primary key
+				Assert.throwsError(function():void
+				{
+					table.integer("newKey").primary();
+				}, IllegalOperationError);
 
-				_db.file.deleteFile();
+				// Should not be able to edit existing column
+				table.integer("name").notNull();
+			}, onExistingColumnEdited);
+		}
 
-				currentAsync.complete();
-			});
+
+		private function onExistingColumnEdited(error:Error):void
+		{
+			Assert.isNotNull(error);
+
+			renameTable();
+		}
+
+
+		private function renameTable():void
+		{
+			Assert.throwsError(function():void
+			{
+				_db.schema.renameTable(null, "");
+			}, ArgumentError);
+
+			Assert.throwsError(function():void
+			{
+				_db.schema.renameTable("", null);
+			}, ArgumentError);
+
+			_db.schema.renameTable("photos", "pictures", onTableRenamed);
+		}
+
+
+		private function onTableRenamed(error:Error):void
+		{
+			Assert.isNull(error);
+			
+			_db.schema.hasTable("photos", hasOldTableName);
+		}
+		
+		
+		private function hasOldTableName(error:Error, hasTable:Boolean):void
+		{
+			Assert.isNotNull(error);
+			Assert.isFalse(hasTable);
+
+			_db.schema.hasTable("pictures", hasNewTableName);
+		}
+
+
+		private function hasNewTableName(error:Error, hasTable:Boolean):void
+		{
+			Assert.isNull(error);
+			Assert.isTrue(hasTable);
+
+			dropTable();
+		}
+
+
+		private function dropTable():void
+		{
+			Assert.throwsError(function():void
+			{
+				_db.schema.dropTable(null);
+			}, ArgumentError);
+
+			_db.schema.dropTable("pictures", onTableDropped);
+		}
+
+
+		private function onTableDropped(error:Error):void
+		{
+			Assert.isNull(error);
+
+			_db.schema.hasTable("pictures", hasDroppedTable)
+		}
+
+
+		private function hasDroppedTable(error:Error, hasTable:Boolean):void
+		{
+			Assert.isNotNull(error);
+			Assert.isFalse(hasTable);
+
+			_db.schema.dropTable("pictures", onNonExistingTableDropped);
+		}
+
+
+		private function onNonExistingTableDropped(error:Error):void
+		{
+			Assert.isNotNull(error);
+
+			_db.schema.dropTableIfExists("pictures", onNonExistingTableDroppedSilently);
+		}
+
+
+		private function onNonExistingTableDroppedSilently(error:Error):void
+		{
+			Assert.isNull(error);
+
+			currentAsync.complete();
 		}
 
 
