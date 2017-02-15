@@ -25,6 +25,7 @@
 
 package breezedb.schemas
 {
+	import flash.errors.IllegalOperationError;
 	
 	internal class TableColumn implements IColumnConstraint
 	{
@@ -111,6 +112,11 @@ package breezedb.schemas
 		 */
 		public function primary():IColumnConstraint
 		{
+			if(!_creationMode)
+			{
+				throw new IllegalOperationError("Primary key cannot be changed after the table is created.");
+			}
+
 			_primaryKey = true;
 			return this;
 		}
