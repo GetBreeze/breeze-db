@@ -26,62 +26,56 @@
 package breezedb.schemas
 {
 	import breezedb.IBreezeDatabase;
-	import breezedb.queries.BreezeQueryReference;
-
-	import flash.data.SQLConnection;
+	import breezedb.queries.BreezeQueryRunner;
 
 	/**
 	 * Class providing API to run table queries on associated database.
 	 */
-	public class BreezeSchemaBuilder
+	public class BreezeSchemaBuilder extends BreezeQueryRunner
 	{
-		private var _db:IBreezeDatabase;
-		private var _sqlConnection:SQLConnection;
-		
 		public function BreezeSchemaBuilder(db:IBreezeDatabase)
 		{
-			_db = db;
-			_sqlConnection = db.connection;
+			super(db);
 		}
 		
 		
-		public function createTable(tableName:String, blueprint:Function, callback:Function = null):BreezeQueryReference
+		public function createTable(tableName:String, blueprint:Function, callback:* = null):BreezeQueryRunner
 		{
 			return null;
 		}
 		
 		
-		public function editTable(tableName:String, blueprint:Function, callback:Function = null):BreezeQueryReference
+		public function editTable(tableName:String, blueprint:Function, callback:* = null):BreezeQueryRunner
 		{
 			return null;
 		}
 
 
-		public function dropTable(tableName:String, callback:Function = null):BreezeQueryReference
+		public function dropTable(tableName:String, callback:* = null):BreezeQueryRunner
 		{
 			return null;
 		}
 
 
-		public function dropTableIfExists(tableName:String, callback:Function = null):BreezeQueryReference
+		public function dropTableIfExists(tableName:String, callback:* = null):BreezeQueryRunner
 		{
 			return null;
 		}
 
 
-		public function renameTable(oldTableName:String, newTableName:String, callback:Function = null):BreezeQueryReference
+		public function renameTable(oldTableName:String, newTableName:String, callback:* = null):BreezeQueryRunner
 		{
 			return null;
 		}
 
 
-		public function hasTable(tableName:String, callback:Function = null):BreezeQueryReference
+		public function hasTable(tableName:String, callback:* = null):BreezeQueryRunner
 		{
 			return null;
 		}
 
 
-		public function hasColumn(tableName:String, columnName:String, callback:Function = null):BreezeQueryReference
+		public function hasColumn(tableName:String, columnName:String, callback:* = null):BreezeQueryRunner
 		{
 			return null;
 		}

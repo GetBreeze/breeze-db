@@ -30,11 +30,14 @@ package breezedb.queries
 	/**
 	 * Class providing API to run queries on associated database and table.
 	 */
-	public class BreezeQueryBuilder
+	public class BreezeQueryBuilder extends BreezeQueryRunner
 	{
+		private var _tableName:String;
 		
-		public function BreezeQueryBuilder(database:IBreezeDatabase, tableName:String)
+		public function BreezeQueryBuilder(db:IBreezeDatabase, tableName:String)
 		{
+			super(db);
+			_tableName = tableName;
 		}
 		
 	}
