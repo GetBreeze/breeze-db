@@ -331,20 +331,18 @@ package breezedb
 			}
 			var length:uint = key.length;
 			var groups:int = length / 16;
-			var bytes:int = 0;
 			for(var i:int = 0; i < length; i += groups)
 			{
 				var over:Boolean = i + groups >= length;
-				var hex:String = key.substr(i, over ? 0x7fffffff : groups);
+				var group:String = key.substr(i, over ? 0x7fffffff : groups);
 				var byte:int = 0;
-				for(var j:int = 0; j < hex.length; ++j)
+				for(var j:int = 0; j < group.length; ++j)
 				{
-					var char:String = hex.charAt(j);
+					var char:String = group.charAt(j);
 					byte += char.charCodeAt(0);
 				}
 				byte = byte % 255;
 				result.writeByte(byte);
-				bytes++;
 				if(over)
 				{
 					break;
