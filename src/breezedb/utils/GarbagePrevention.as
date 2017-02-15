@@ -39,7 +39,14 @@ package breezedb.utils
 
 		public function GarbagePrevention()
 		{
-
+			if(!_instance)
+			{
+				_instance = this;
+			}
+			else
+			{
+				throw new Error('GarbagePrevention is a singleton.');
+			}
 		}
 
 
@@ -85,12 +92,7 @@ package breezedb.utils
 
 		public static function get instance():GarbagePrevention
 		{
-			if(_instance == null)
-			{
-				_instance = new GarbagePrevention();
-			}
-
-			return _instance;
+			return _instance ? _instance : new GarbagePrevention();
 		}
 		
 	}
