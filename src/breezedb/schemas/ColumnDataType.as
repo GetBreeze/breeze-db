@@ -36,6 +36,27 @@ package breezedb.schemas
 		public static const DATE:int = 4;
 		public static const DATE_TIME:int = 5;
 
+
+		internal static function toString(value:int):String
+		{
+			switch(value)
+			{
+				case INTEGER:
+					return "INTEGER";
+				case TEXT:
+					return "TEXT";
+				case BLOB:
+					return "BLOB";
+				case NUMERIC:
+					return "NUMERIC";
+				case DATE:
+					return "DATE";
+				case DATE_TIME:
+					return "DATETIME";
+			}
+			throw new ArgumentError("Unknown data type value: " + value);
+		}
+
 	}
 	
 }
