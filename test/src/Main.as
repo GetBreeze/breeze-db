@@ -35,6 +35,7 @@ package
 	import flash.text.TextField;
 	
 	import tests.TestDatabase;
+	import tests.TestSchema;
 	import tests.collections.TestCollection;
 	
 	public class Main extends Sprite
@@ -48,7 +49,7 @@ package
 
 			_breezeTest = new BreezeTest(this);
 			_breezeTest.addEventListener(BreezeTestEvent.TESTS_COMPLETE, onTestsComplete);
-			_breezeTest.add([TestCollection, TestDatabase]);
+			_breezeTest.add([TestCollection, TestDatabase, TestSchema]);
 			_breezeTest.run();
 		}
 
