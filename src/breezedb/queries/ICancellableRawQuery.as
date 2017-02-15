@@ -27,12 +27,22 @@ package breezedb.queries
 {
 	public interface ICancellableRawQuery extends IRawQuery
 	{
+		/**
+		 * Prevents the query callback from being triggered. Note that this <strong>does not stop</strong>
+		 * the actual SQL query from running, it only stops the callback from being called.
+		 */
 		function cancel():void;
 
 
+		/**
+		 * Returns <code>true</code> if the query is completed.
+		 */
 		function get isCompleted():Boolean;
 
 
+		/**
+		 * Returns <code>true</code> if the query is cancelled.
+		 */
 		function get isCancelled():Boolean;
 	}
 	

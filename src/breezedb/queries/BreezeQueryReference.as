@@ -25,10 +25,17 @@
 
 package breezedb.queries
 {
+	/**
+	 * Class providing API that allows cancelling callback of executed query.
+	 */
 	public class BreezeQueryReference
 	{
 		private var _rawQuery:ICancellableRawQuery;
 
+
+		/**
+		 * @private
+		 */
 		public function BreezeQueryReference(rawQuery:ICancellableRawQuery)
 		{
 			_rawQuery = rawQuery;

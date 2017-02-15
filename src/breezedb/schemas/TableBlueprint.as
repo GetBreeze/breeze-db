@@ -27,6 +27,9 @@ package breezedb.schemas
 {
 	import flash.errors.IllegalOperationError;
 
+	/**
+	 * Class providing API to create and edit table structure.
+	 */
 	public class TableBlueprint
 	{
 		internal static const CREATE:int = 0;

@@ -25,7 +25,10 @@
 
 package breezedb.schemas
 {
-	
+
+	/**
+	 * Interface providing API to add constraints on a column.
+	 */
 	public interface IColumnConstraint
 	{
 		/**
