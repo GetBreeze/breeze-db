@@ -29,14 +29,13 @@ package breezedb.queries
 	import breezedb.utils.Callback;
 	import breezedb.utils.GarbagePrevention;
 
-	import flash.data.SQLConnection;
 	import flash.data.SQLStatement;
 	import flash.errors.IllegalOperationError;
 
 	/**
 	 * @private
 	 */
-	public class BreezeRawQuery implements ICancellableRawQuery
+	public class BreezeRawQuery implements IRawQuery
 	{
 		private static const RAW:int = 0;
 		private static const SELECT:int = 1;
@@ -49,13 +48,11 @@ package breezedb.queries
 		private var _isCompleted:Boolean;
 
 		private var _db:IBreezeDatabase;
-		private var _sqlConnection:SQLConnection;
 		private var _callback:Function;
 
 		public function BreezeRawQuery(db:IBreezeDatabase)
 		{
 			_db = db;
-			_sqlConnection = db.connection;
 			_queryType = RAW;
 		}
 
@@ -94,7 +91,7 @@ package breezedb.queries
 			GarbagePrevention.instance.add(this);
 
 			var statement:BreezeSQLStatement = new BreezeSQLStatement(onRawQueryCompleted);
-			statement.sqlConnection = _sqlConnection;
+			statement.sqlConnection = _db.connection;
 			statement.text = rawQuery;
 			if(params)
 			{
@@ -149,19 +146,9 @@ package breezedb.queries
 
 
 		/**
-		 * @inheritDoc
-		 */
-		public function cancel():void
-		{
-			_isCancelled = true;
-			_callback = null;
-		}
-
-
-		/**
 		 *
 		 *
-		 * Private API
+		 * Private / Internal API
 		 *
 		 *
 		 */
@@ -169,17 +156,28 @@ package breezedb.queries
 
 		private function onRawQueryCompleted(statement:SQLStatement, error:Error):void
 		{
-			if(!isCancelled)
-			{
-				_isCompleted = true;
-			}
-
 			GarbagePrevention.instance.remove(this);
 
-			// todo: format response data based on query type
-			var result:BreezeSQLResult = new BreezeSQLResult(statement.getResult());
+			var callback:Function = _callback;
+			_callback = null;
+			if(!_isCancelled)
+			{
+				_isCompleted = true;
+				// todo: format response data based on query type
+				var result:BreezeSQLResult = new BreezeSQLResult(statement.getResult());
 
-			Callback.call(_callback, [error, result]);
+				Callback.call(callback, [error, result]);
+			}
+		}
+
+
+		/**
+		 * @private
+		 */
+		internal function cancel():void
+		{
+			_isCancelled = true;
+			_callback = null;
 		}
 
 
@@ -193,18 +191,18 @@ package breezedb.queries
 		
 
 		/**
-		 * @inheritDoc
+		 * @private
 		 */
-		public function get isCancelled():Boolean
+		internal function get isCancelled():Boolean
 		{
 			return _isCancelled;
 		}
 
 
 		/**
-		 * @inheritDoc
+		 * @private
 		 */
-		public function get isCompleted():Boolean
+		internal function get isCompleted():Boolean
 		{
 			return _isCompleted;
 		}

@@ -30,20 +30,21 @@ package breezedb.queries
 	 */
 	public class BreezeQueryReference
 	{
-		private var _rawQuery:ICancellableRawQuery;
+		private var _rawQuery:BreezeRawQuery;
 
 
 		/**
 		 * @private
 		 */
-		public function BreezeQueryReference(rawQuery:ICancellableRawQuery)
+		public function BreezeQueryReference(rawQuery:BreezeRawQuery)
 		{
 			_rawQuery = rawQuery;
 		}
 
 
 		/**
-		 * @inheritDoc
+		 * Prevents the query callback from being triggered. Note that this <strong>does not stop</strong>
+		 * the actual SQL query from running, it only stops the callback from being called.
 		 */
 		public function cancel():void
 		{
@@ -52,7 +53,7 @@ package breezedb.queries
 
 
 		/**
-		 * @inheritDoc
+		 * Returns <code>true</code> if the query is completed.
 		 */
 		public function get isCompleted():Boolean
 		{
@@ -61,7 +62,7 @@ package breezedb.queries
 
 
 		/**
-		 * @inheritDoc
+		 * Returns <code>true</code> if the query is cancelled.
 		 */
 		public function get isCancelled():Boolean
 		{
