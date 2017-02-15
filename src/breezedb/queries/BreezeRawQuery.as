@@ -29,8 +29,15 @@ package breezedb.queries
 	import breezedb.utils.Callback;
 	import breezedb.utils.GarbagePrevention;
 
+	import flash.data.SQLColumnSchema;
+
+	import flash.data.SQLSchemaResult;
+
 	import flash.data.SQLStatement;
+	import flash.data.SQLTableSchema;
 	import flash.errors.IllegalOperationError;
+	import flash.events.SQLErrorEvent;
+	import flash.events.SQLEvent;
 
 	/**
 	 * @private
@@ -46,6 +53,7 @@ package breezedb.queries
 		private var _queryType:int;
 		private var _isCancelled:Boolean;
 		private var _isCompleted:Boolean;
+		private var _columnName:String;
 
 		private var _db:IBreezeDatabase;
 		private var _callback:Function;
@@ -156,6 +164,16 @@ package breezedb.queries
 
 		private function onRawQueryCompleted(statement:SQLStatement, error:Error):void
 		{
+			var result:BreezeSQLResult = new BreezeSQLResult(statement.getResult());
+
+			// todo: format response data based on query type
+
+			finishQuery([error, result]);
+		}
+
+
+		private function finishQuery(callbackParams:Array):void
+		{
 			GarbagePrevention.instance.remove(this);
 
 			var callback:Function = _callback;
@@ -163,11 +181,52 @@ package breezedb.queries
 			if(!_isCancelled)
 			{
 				_isCompleted = true;
-				// todo: format response data based on query type
-				var result:BreezeSQLResult = new BreezeSQLResult(statement.getResult());
 
-				Callback.call(callback, [error, result]);
+				Callback.call(callback, callbackParams);
 			}
+		}
+		
+		
+		/**
+		 * @private
+		 */
+		breezedb_internal function loadTableSchema(tableName:String, callback:Function):BreezeQueryReference
+		{
+			if(!_db.isSetup)
+			{
+				Callback.call(callback, [new Error("Database connection is not active."), false]);
+				return null;
+			}
+
+			GarbagePrevention.instance.add(this);
+
+			_callback = callback;
+			_db.connection.addEventListener(SQLEvent.SCHEMA, onTableSchemaLoadSuccess);
+			_db.connection.addEventListener(SQLErrorEvent.ERROR, onTableSchemaLoadError);
+			_db.connection.loadSchema(SQLTableSchema, tableName, "main", false);
+			return new BreezeQueryReference(this);
+		}
+
+
+		/**
+		 * @private
+		 */
+		breezedb_internal function loadColumnSchema(tableName:String, columnName:String, callback:Function):BreezeQueryReference
+		{
+			if(!_db.isSetup)
+			{
+				Callback.call(callback, [new Error("Database connection is not active."), false]);
+				return null;
+			}
+
+			GarbagePrevention.instance.add(this);
+
+			_columnName = columnName;
+			_callback = callback;
+			_db.connection.addEventListener(SQLEvent.SCHEMA, onColumnSchemaLoadSuccess);
+			_db.connection.addEventListener(SQLErrorEvent.ERROR, onColumnSchemaLoadError);
+			_db.connection.loadSchema(SQLTableSchema, tableName, "main", true);
+			return new BreezeQueryReference(this);
 		}
 
 
@@ -178,6 +237,58 @@ package breezedb.queries
 		{
 			_isCancelled = true;
 			_callback = null;
+		}
+
+
+		private function onTableSchemaLoadSuccess(event:SQLEvent):void
+		{
+			_db.connection.removeEventListener(SQLEvent.SCHEMA, onTableSchemaLoadSuccess);
+			_db.connection.removeEventListener(SQLErrorEvent.ERROR, onTableSchemaLoadError);
+
+			var schema:SQLSchemaResult = _db.connection.getSchemaResult();
+			finishQuery([null, schema.tables.length > 0]);
+		}
+
+
+		private function onTableSchemaLoadError(event:SQLErrorEvent):void
+		{
+			_db.connection.removeEventListener(SQLEvent.SCHEMA, onTableSchemaLoadSuccess);
+			_db.connection.removeEventListener(SQLErrorEvent.ERROR, onTableSchemaLoadError);
+
+			finishQuery([event.error, false]);
+		}
+
+
+		private function onColumnSchemaLoadSuccess(event:SQLEvent):void
+		{
+			_db.connection.removeEventListener(SQLEvent.SCHEMA, onColumnSchemaLoadSuccess);
+			_db.connection.removeEventListener(SQLErrorEvent.ERROR, onColumnSchemaLoadError);
+
+			var hasColumn:Boolean = false;
+			var schema:SQLSchemaResult = _db.connection.getSchemaResult();
+			for each (var table:SQLTableSchema in schema.tables)
+			{
+				var columns:Array = table.columns;
+				for each(var column:SQLColumnSchema in columns)
+				{
+					if(column.name == _columnName)
+					{
+						hasColumn = true;
+						break;
+					}
+				}
+			}
+
+			finishQuery([null, hasColumn]);
+		}
+
+
+		private function onColumnSchemaLoadError(event:SQLErrorEvent):void
+		{
+			_db.connection.removeEventListener(SQLEvent.SCHEMA, onColumnSchemaLoadSuccess);
+			_db.connection.removeEventListener(SQLErrorEvent.ERROR, onColumnSchemaLoadError);
+
+			finishQuery([event.error, false]);
 		}
 
 

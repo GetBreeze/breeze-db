@@ -27,8 +27,10 @@ package breezedb.schemas
 {
 	import breezedb.BreezeDb;
 	import breezedb.IBreezeDatabase;
+	import breezedb.queries.BreezeQueryReference;
 	import breezedb.queries.BreezeQueryRunner;
-
+	import breezedb.queries.BreezeRawQuery;
+	
 	/**
 	 * Class providing API to run table queries on associated database.
 	 */
@@ -130,15 +132,77 @@ package breezedb.schemas
 		}
 
 
-		public function hasTable(tableName:String, callback:* = null):BreezeQueryRunner
+		/**
+		 * Loads the table schema to see if a table with the given name exists.
+		 *
+		 * @param tableName The name of the table to check for existence.
+		 * @param callback Function with the following signature:
+		 * <listing version="3.0">
+		 * function callback(error:Error, hasTable:Boolean):void {
+		 *     if(error == null)
+		 *     {
+		 *         trace(hasTable);
+		 *     }
+		 * };
+		 * </listing>
+		 *
+		 * @return <code>BreezeQueryReference</code> object that allows cancelling the request callback.
+		 */
+		public function hasTable(tableName:String, callback:Function):BreezeQueryReference
 		{
-			return null;
+			if(tableName == null)
+			{
+				throw new ArgumentError("Parameter tableName cannot be null.");
+			}
+
+			if(callback == null)
+			{
+				throw new ArgumentError("Parameter callback cannot be null.");
+			}
+
+			_queryString = "";
+			_queryReference = new BreezeRawQuery(_db).breezedb_internal::loadTableSchema(tableName, callback);
+			return _queryReference;
 		}
 
 
-		public function hasColumn(tableName:String, columnName:String, callback:* = null):BreezeQueryRunner
+		/**
+		 * Loads the table schema to see if a column with the given name exists in a table with the given name.
+		 *
+		 * @param tableName The name of the table where to look for the column.
+		 * @param columnName The name of the column to check for existence.
+		 * @param callback Function with the following signature:
+		 * <listing version="3.0">
+		 * function callback(error:Error, hasColumn:Boolean):void {
+		 *     if(error == null)
+		 *     {
+		 *         trace(hasColumn);
+		 *     }
+		 * };
+		 * </listing>
+		 *
+		 * @return <code>BreezeQueryReference</code> object that allows cancelling the request callback.
+		 */
+		public function hasColumn(tableName:String, columnName:String, callback:Function):BreezeQueryReference
 		{
-			return null;
+			if(tableName == null)
+			{
+				throw new ArgumentError("Parameter tableName cannot be null.");
+			}
+
+			if(columnName == null)
+			{
+				throw new ArgumentError("Parameter columnName cannot be null.");
+			}
+
+			if(callback == null)
+			{
+				throw new ArgumentError("Parameter callback cannot be null.");
+			}
+
+			_queryString = "";
+			_queryReference = new BreezeRawQuery(_db).breezedb_internal::loadColumnSchema(tableName, columnName, callback);
+			return _queryReference;
 		}
 		
 	}
