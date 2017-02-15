@@ -17,3 +17,7 @@ before_script:
 
 script:
   - cd build && ant test
+
+branches:
+  only:
+  - master
