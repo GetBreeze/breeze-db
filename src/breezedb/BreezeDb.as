@@ -39,6 +39,11 @@ package breezedb
 		private static var _fileExtension:String = ".sqlite";
 		private static var _storageDirectory:File = File.applicationStorageDirectory;
 
+		/**
+		 * Constant used in place of a query callback to delay query execution.
+		 */
+		public static const DELAY:Boolean = false;
+
 
 		/**
 		 * Retrieves the default database object.
