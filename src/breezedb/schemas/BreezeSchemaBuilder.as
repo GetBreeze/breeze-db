@@ -76,41 +76,45 @@ package breezedb.schemas
 		 */
 		public function createTable(tableName:String, blueprint:Function, callback:* = null):BreezeQueryRunner
 		{
-			if(tableName == null)
-			{
-				throw new ArgumentError("Parameter tableName cannot be null.");
-			}
-
-			if(blueprint == null)
-			{
-				throw new ArgumentError("Parameter blueprint cannot be null.");
-			}
-
-			if(!(callback == null || callback is Function || callback === BreezeDb.DELAY))
-			{
-				throw new ArgumentError("Parameter callback must be a BreezeDb.DELAY constant, Function or null.");
-			}
-
-			var bp:TableBlueprint = new TableBlueprint();
-			bp.setTable(tableName);
-			bp.setOperation(TableBlueprint.CREATE);
-			blueprint(bp);
-
-			_queryString = bp.query;
-
-			// Execute the query if we do not want it to be delayed
-			if(callback !== BreezeDb.DELAY)
-			{
-				exec(callback);
-			}
-
-			return this;
+			return makeTableQuery(TableBlueprint.CREATE, tableName, blueprint, callback);
 		}
 		
-		
+
+		/**
+		 * Edits a table with the given name. If the table does not exist, the query will fail with an error.
+		 *
+		 * @param tableName The name of the table to edit.
+		 * @param blueprint Function that accepts single <code>TableBlueprint</code> parameter. It is used
+		 *        to edit the table structure. Note existing columns <strong>cannot</strong> be edited,
+		 *        only new ones can be added.
+		 * <listing version="3.0">
+		 * function editTableStructure(table:TableBlueprint):void {
+		 *     // add new column
+		 *     table.string("name").defaultNull();
+		 *     ...
+		 * };
+		 * </listing>
+		 * @param callback <code>Function</code> that is called when the query is completed. If you do not wish
+		 *        to execute the SQL query immediately after calling this method, you can pass in
+		 *        <code>BreezeDb.DELAY</code> instead. If a <code>Function</code> is specified, it should have
+		 *        the following signature:
+		 * <listing version="3.0">
+		 * function onTableCreated(error:Error):void {
+		 *     if(error == null)
+		 *     {
+		 *         // table edited successfully
+		 *     }
+		 * };
+		 * </listing>
+		 *
+		 * @see breezedb.BreezeDb#DELAY
+		 *
+		 * @return <code>BreezeQueryRunner</code> object that allows cancelling the query callback or executing
+		 *         the query if it was delayed.
+		 */
 		public function editTable(tableName:String, blueprint:Function, callback:* = null):BreezeQueryRunner
 		{
-			return null;
+			return makeTableQuery(TableBlueprint.ALTER, tableName, blueprint, callback);
 		}
 
 
@@ -203,6 +207,49 @@ package breezedb.schemas
 			_queryString = "";
 			_queryReference = new BreezeRawQuery(_db).breezedb_internal::loadColumnSchema(tableName, columnName, callback);
 			return _queryReference;
+		}
+
+
+		/**
+		 *
+		 *
+		 * Private API
+		 *
+		 *
+		 */
+
+
+		private function makeTableQuery(statement:int, tableName:String, blueprint:Function, callback:* = null):BreezeQueryRunner
+		{
+			if(tableName == null)
+			{
+				throw new ArgumentError("Parameter tableName cannot be null.");
+			}
+
+			if(blueprint == null)
+			{
+				throw new ArgumentError("Parameter blueprint cannot be null.");
+			}
+
+			if(!(callback == null || callback is Function || callback === BreezeDb.DELAY))
+			{
+				throw new ArgumentError("Parameter callback must be a BreezeDb.DELAY constant, Function or null.");
+			}
+
+			var bp:TableBlueprint = new TableBlueprint();
+			bp.setTable(tableName);
+			bp.setStatement(statement);
+			blueprint(bp);
+
+			_queryString = bp.query;
+
+			// Execute the query if we do not want it to be delayed
+			if(callback !== BreezeDb.DELAY)
+			{
+				exec(callback);
+			}
+
+			return this;
 		}
 		
 	}
