@@ -26,8 +26,12 @@
 package breezedb.queries
 {
 	import breezedb.IBreezeDatabase;
+	import breezedb.utils.Callback;
+	import breezedb.utils.GarbagePrevention;
 
 	import flash.data.SQLConnection;
+	import flash.data.SQLStatement;
+	import flash.errors.IllegalOperationError;
 
 	/**
 	 * @private
@@ -70,6 +74,36 @@ package breezedb.queries
 		 */
 		public function query(rawQuery:String, params:*, callback:Function = null):BreezeQueryReference
 		{
+			if(!_db.isSetup)
+			{
+				throw new IllegalOperationError("Database must be set up before making a query.");
+			}
+
+			if(rawQuery == null)
+			{
+				throw new ArgumentError("Parameter rawQuery cannot be null.");
+			}
+
+			if(params is Function)
+			{
+				callback = params as Function;
+			}
+
+			_callback = callback;
+
+			GarbagePrevention.instance.add(this);
+
+			var statement:BreezeSQLStatement = new BreezeSQLStatement(onRawQueryCompleted);
+			statement.sqlConnection = _sqlConnection;
+			statement.text = rawQuery;
+			if(params)
+			{
+				for(var key:String in params)
+				{
+					statement.parameters[key] = params[key];
+				}
+			}
+			statement.execute();
 			return new BreezeQueryReference(this);
 		}
 
@@ -121,6 +155,30 @@ package breezedb.queries
 		{
 			_isCancelled = true;
 			_callback = null;
+		}
+
+
+		/**
+		 *
+		 *
+		 * Private API
+		 *
+		 *
+		 */
+
+
+		private function onRawQueryCompleted(statement:SQLStatement, error:Error):void
+		{
+			if(!isCancelled)
+			{
+				_isCompleted = true;
+			}
+
+			GarbagePrevention.instance.remove(this);
+
+			// todo: format response data based on query type
+
+			Callback.call(_callback, [error]);
 		}
 
 
