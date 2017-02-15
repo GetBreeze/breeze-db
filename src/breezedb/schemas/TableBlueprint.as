@@ -33,9 +33,9 @@ package breezedb.schemas
 	public class TableBlueprint
 	{
 		internal static const CREATE:int = 0;
-		internal static const EDIT:int = 1;
+		internal static const ALTER:int = 1;
 
-		private var _operation:int;
+		private var _statement:int;
 		private var _tableName:String;
 		private var _columns:Vector.<TableColumn>;
 		private var _createIndex:String;
@@ -155,7 +155,7 @@ package breezedb.schemas
 		 */
 		public function primary(...rest):void
 		{
-			if(_operation == EDIT)
+			if(_statement == ALTER)
 			{
 				throw new IllegalOperationError("Primary key cannot be changed after the table is created.");
 			}
@@ -253,7 +253,7 @@ package breezedb.schemas
 		 */
 		public function dropIndex(indexName:String):void
 		{
-			if(_operation == CREATE)
+			if(_statement == CREATE)
 			{
 				throw new IllegalOperationError("Index can be dropped only when editing table.");
 			}
@@ -283,7 +283,7 @@ package breezedb.schemas
 				throw new ArgumentError("Parameter columnName cannot be null.");
 			}
 
-			var newColumn:TableColumn = new TableColumn(columnName, dataType, _operation == CREATE);
+			var newColumn:TableColumn = new TableColumn(columnName, dataType, _statement == CREATE);
 			var index:int = 0;
 			for each(var column:TableColumn in _columns)
 			{
@@ -314,9 +314,9 @@ package breezedb.schemas
 		/**
 		 * @private
 		 */
-		internal function setOperation(value:int):void
+		internal function setStatement(value:int):void
 		{
-			_operation = value;
+			_statement = value;
 		}
 		
 
@@ -337,7 +337,18 @@ package breezedb.schemas
 			var result:String = "";
 			if(_columns.length > 0)
 			{
-				result = ((_operation == CREATE) ? "CREATE TABLE" : "ALTER TABLE") + " " + _tableName + "("
+				if(_statement == CREATE)
+				{
+					result = "CREATE TABLE " + _tableName + "(";
+				}
+				else if(_statement == ALTER)
+				{
+					result = "ALTER TABLE " + _tableName + " ADD COLUMN ";
+				}
+				else
+				{
+					throw new Error("Unknown statement value: " + _statement);
+				}
 
 				var primaryKeys:Vector.<TableColumn> = this.primaryKeys;
 				var hasCompositeKey:Boolean = primaryKeys.length > 1;
@@ -368,7 +379,11 @@ package breezedb.schemas
 					}
 					result += ")";
 				}
-				result += ");";
+				if(_statement == CREATE)
+				{
+					result += ")";
+				}
+				result += ";";
 			}
 
 			// Add index statement if needed
