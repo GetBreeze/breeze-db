@@ -28,8 +28,6 @@ package breezedb.queries
 	import breezedb.utils.Callback;
 	import breezedb.utils.GarbagePrevention;
 
-	import flash.data.SQLResult;
-
 	import flash.data.SQLStatement;
 	import flash.events.SQLErrorEvent;
 	import flash.events.SQLEvent;
@@ -37,7 +35,6 @@ package breezedb.queries
 
 	internal class BreezeSQLStatement extends SQLStatement
 	{
-		private var _results:Array;
 		private var _callback:Function;
 
 
@@ -107,35 +104,6 @@ package breezedb.queries
 			Callback.call(_callback, [this, event.error]);
 			
 			GarbagePrevention.instance.remove(this);
-		}
-
-
-		/**
-		 *
-		 *
-		 * Getters / Setters
-		 *
-		 *
-		 */
-
-
-		public function get results():Array
-		{
-			if(_results != null)
-			{
-				return _results;
-			}
-
-			_results = [];
-			var results:SQLResult = this.getResult();
-
-			if(results != null && results.data != null && results.data.length > 0)
-			{
-				_results = results.data;
-				return _results;
-			}
-
-			return [];
 		}
 	}
 	

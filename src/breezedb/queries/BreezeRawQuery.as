@@ -177,8 +177,9 @@ package breezedb.queries
 			GarbagePrevention.instance.remove(this);
 
 			// todo: format response data based on query type
+			var result:BreezeSQLResult = new BreezeSQLResult(statement.getResult());
 
-			Callback.call(_callback, [error]);
+			Callback.call(_callback, [error, result]);
 		}
 
 
