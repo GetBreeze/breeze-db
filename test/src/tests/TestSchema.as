@@ -25,7 +25,8 @@
 
 package tests
 {
-	import breezedb.DB;
+	import breezedb.BreezeDb;
+	import breezedb.IBreezeDatabase;
 	import breezedb.schemas.TableBlueprint;
 
 	import breezetest.Assert;
@@ -39,19 +40,22 @@ package tests
 		
 		public var currentAsync:Async;
 
+		private var _db:IBreezeDatabase;
+
 
 		public function setupClass(async:Async):void
 		{
 			async.timeout = 2000;
 
-			DB.setup(onDatabaseSetup);
+			_db = BreezeDb.getDb("schema-test");
+			_db.setup(onDatabaseSetup);
 		}
 
 
 		private function onDatabaseSetup(error:Error):void
 		{
 			Assert.isNull(error);
-			Assert.isTrue(DB.isSetup);
+			Assert.isTrue(_db.isSetup);
 
 			currentAsync.complete();
 		}
@@ -63,10 +67,10 @@ package tests
 			
 			Assert.throwsError(function():void
 			{
-				DB.schema.createTable(null, null);
+				_db.schema.createTable(null, null);
 			}, ArgumentError);
 
-			DB.schema.createTable("photos", function (table:TableBlueprint):void
+			_db.schema.createTable("photos", function (table:TableBlueprint):void
 			{
 				table.increments("id");
 				table.string("name");
@@ -89,16 +93,33 @@ package tests
 
 			Assert.throwsError(function():void
 			{
-				DB.schema.hasTable(null);
+				_db.schema.hasTable(null, onPhotosTableCreated);
 			}, ArgumentError);
 
-			DB.schema.hasTable("photos", function(error:Error, hasTable:Boolean):void
+			Assert.throwsError(function():void
 			{
-				Assert.isNull(error);
-				Assert.isTrue(hasTable);
+				_db.schema.hasTable("", null);
+			}, ArgumentError);
 
-				checkColumnsExistence();
-			});
+			_db.schema.hasTable("photos", hasPhotosTable);
+		}
+
+
+		private function hasPhotosTable(error:Error, hasTable:Boolean):void
+		{
+			Assert.isNull(error);
+			Assert.isTrue(hasTable);
+
+			_db.schema.hasTable("non-existing", hasNonExistingTable);
+		}
+
+
+		private function hasNonExistingTable(error:Error, hasTable:Boolean):void
+		{
+			Assert.isNotNull(error);
+			Assert.isFalse(hasTable);
+
+			checkColumnsExistence();
 		}
 
 
@@ -106,15 +127,20 @@ package tests
 		{
 			Assert.throwsError(function():void
 			{
-				DB.schema.hasColumn("photos", null);
+				_db.schema.hasColumn("photos", null, checkColumnsExistence);
 			}, ArgumentError);
 
 			Assert.throwsError(function():void
 			{
-				DB.schema.hasColumn(null, "views");
+				_db.schema.hasColumn(null, "views", checkColumnsExistence);
 			}, ArgumentError);
 
-			DB.schema.hasColumn("photos", "name", hasNameColumn);
+			Assert.throwsError(function():void
+			{
+				_db.schema.hasColumn("", "views", null);
+			}, ArgumentError);
+
+			_db.schema.hasColumn("photos", "name", hasNameColumn);
 		}
 
 
@@ -123,7 +149,7 @@ package tests
 			Assert.isNull(error);
 			Assert.isTrue(hasColumn);
 
-			DB.schema.hasColumn("photos", "views", hasViewsColumn);
+			_db.schema.hasColumn("photos", "views", hasViewsColumn);
 		}
 
 
@@ -132,7 +158,7 @@ package tests
 			Assert.isNull(error);
 			Assert.isTrue(hasColumn);
 
-			DB.schema.hasColumn("photos", "id", hasIdColumn);
+			_db.schema.hasColumn("photos", "id", hasIdColumn);
 		}
 
 
@@ -141,13 +167,22 @@ package tests
 			Assert.isNull(error);
 			Assert.isTrue(hasColumn);
 
-			DB.schema.hasColumn("photos", "non-existing", hasNonExistingColumn);
+			_db.schema.hasColumn("photos", "non-existing", hasNonExistingColumn);
 		}
 
 
 		private function hasNonExistingColumn(error:Error, hasColumn:Boolean):void
 		{
 			Assert.isNull(error);
+			Assert.isFalse(hasColumn);
+
+			_db.schema.hasColumn("non-existing", "id", hasNonExistingTableAndColumn);
+		}
+
+
+		private function hasNonExistingTableAndColumn(error:Error, hasColumn:Boolean):void
+		{
+			Assert.isNotNull(error);
 			Assert.isFalse(hasColumn);
 
 			testEditTable();
@@ -159,10 +194,10 @@ package tests
 		{
 			Assert.throwsError(function():void
 			{
-				DB.schema.editTable(null, null);
+				_db.schema.editTable(null, null);
 			}, ArgumentError);
 
-			DB.schema.editTable("photos", function (table:TableBlueprint):void
+			_db.schema.editTable("photos", function (table:TableBlueprint):void
 			{
 				Assert.throwsError(function():void
 				{
@@ -179,15 +214,25 @@ package tests
 		{
 			Assert.isNull(error);
 
-			DB.schema.hasColumn("photos", "newColumn", function(error:Error, hasTable:Boolean):void
+			_db.schema.hasColumn("photos", "newColumn", function(error:Error, hasTable:Boolean):void
 			{
 				Assert.isNull(error);
 				Assert.isTrue(hasTable);
 
-				DB.file.deleteFile();
+				_db.file.deleteFile();
 
 				currentAsync.complete();
 			});
+		}
+
+
+		public function tearDownClass():void
+		{
+			if(_db.file != null && _db.file.exists)
+			{
+				_db.file.deleteFile();
+				_db = null;
+			}
 		}
 		
 	}
