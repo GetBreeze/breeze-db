@@ -182,25 +182,25 @@ package breezedb.schemas
 		/**
 		 * Creates an index on the given column(s).
 		 *
-		 * @param indexes Either a <code>String</code> (column name) or <code>Array</code> of <code>Strings</code>
-		 *        (multiple column names).
+		 * @param columns Either a <code>String</code> (column name) or <code>Array</code> of <code>Strings</code>
+		 *        (multiple column names) on which the index should be created.
 		 * @param indexName Optional index name. If not specified, it will default to <code>index_{column_name}</code>.
 		 * @param unique Similar to <code>UNIQUE</code> constraint, unique index prevents duplicate entries
 		 *        in the column or combination of columns on which there's an index.
 		 */
-		public function index(indexes:*, indexName:String = null, unique:Boolean = false):void
+		public function index(columns:*, indexName:String = null, unique:Boolean = false):void
 		{
-			if(indexes is String)
+			if(columns is String)
 			{
-				indexes = [indexes];
+				columns = [columns];
 			}
 
-			if(!(indexes is Array))
+			if(!(columns is Array))
 			{
-				throw new ArgumentError("Parameter indexes must be either a String or Array.");
+				throw new ArgumentError("Parameter columns must be either a String or Array.");
 			}
 
-			if((indexes as Array).length == 0)
+			if((columns as Array).length == 0)
 			{
 				throw new ArgumentError("At least one column name must be specified.");
 			}
@@ -213,11 +213,11 @@ package breezedb.schemas
 				indexName = "index_";
 			}
 
-			var columns:String = "(";
-			var length:int = indexes.length;
+			var columnsString:String = "(";
+			var length:int = columns.length;
 			for(var i:int = 0; i < length; ++i)
 			{
-				var index:String = indexes[i] as String;
+				var index:String = columns[i] as String;
 				if(index == null)
 				{
 					throw new ArgumentError("The name of the column must be a String.");
@@ -225,9 +225,9 @@ package breezedb.schemas
 
 				if(i > 0)
 				{
-					columns += ", ";
+					columnsString += ", ";
 				}
-				columns += index;
+				columnsString += index;
 
 				if(!customIndexName)
 				{
@@ -238,11 +238,11 @@ package breezedb.schemas
 					indexName += index;
 				}
 			}
-			columns += ")";
+			columnsString += ")";
 
 			_createIndex += indexName;
 			_createIndex += " ON " + _tableName + " ";
-			_createIndex += columns + ";";
+			_createIndex += columnsString + ";";
 		}
 
 
