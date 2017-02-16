@@ -145,6 +145,12 @@ package breezedb
 		 */
 		public function beginTransaction():void
 		{
+			if(!isSetup)
+			{
+				throw new IllegalOperationError("There is no active database connection.");
+			}
+
+			_sqlConnection.begin();
 		}
 
 
@@ -153,6 +159,12 @@ package breezedb
 		 */
 		public function commit():void
 		{
+			if(!isSetup)
+			{
+				throw new IllegalOperationError("There is no active database connection.");
+			}
+
+			_sqlConnection.commit();
 		}
 
 
@@ -161,6 +173,12 @@ package breezedb
 		 */
 		public function rollBack():void
 		{
+			if(!isSetup)
+			{
+				throw new IllegalOperationError("There is no active database connection.");
+			}
+
+			_sqlConnection.rollback();
 		}
 
 
@@ -176,7 +194,7 @@ package breezedb
 
 			if(_sqlConnection == null || !_sqlConnection.connected)
 			{
-				callback(new Error("There is no active database connection."));
+				callback(new IllegalOperationError("There is no active database connection."));
 				return;
 			}
 
