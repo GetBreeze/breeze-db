@@ -99,7 +99,7 @@ package breezedb.schemas
 		 *        <code>BreezeDb.DELAY</code> instead. If a <code>Function</code> is specified, it should have
 		 *        the following signature:
 		 * <listing version="3.0">
-		 * function onTableCreated(error:Error):void {
+		 * function onTableEdited(error:Error):void {
 		 *     if(error == null)
 		 *     {
 		 *         // table edited successfully
@@ -130,9 +130,55 @@ package breezedb.schemas
 		}
 
 
+		/**
+		 * Renames a table with the given name. If the table does not exist, the query will fail with an error.
+		 *
+		 * @param oldTableName Name of the existing table that should be renamed.
+		 * @param newTableName New table name.
+		 * @param callback <code>Function</code> that is called when the query is completed. If you do not wish
+		 *        to execute the SQL query immediately after calling this method, you can pass in
+		 *        <code>BreezeDb.DELAY</code> instead. If a <code>Function</code> is specified, it should have
+		 *        the following signature:
+		 * <listing version="3.0">
+		 * function onTableRenamed(error:Error):void {
+		 *     if(error == null)
+		 *     {
+		 *         // table renamed successfully
+		 *     }
+		 * };
+		 * </listing>
+		 *
+		 * @see breezedb.BreezeDb#DELAY
+		 *
+		 * @return <code>BreezeQueryRunner</code> object that allows cancelling the query callback or executing
+		 *         the query if it was delayed.
+		 */
 		public function renameTable(oldTableName:String, newTableName:String, callback:* = null):BreezeQueryRunner
 		{
-			return null;
+			if(oldTableName == null)
+			{
+				throw new ArgumentError("Parameter oldTableName cannot be null.");
+			}
+
+			if(newTableName == null)
+			{
+				throw new ArgumentError("Parameter newTableName cannot be null.");
+			}
+
+			if(!(callback == null || callback is Function || callback === BreezeDb.DELAY))
+			{
+				throw new ArgumentError("Parameter callback must be a BreezeDb.DELAY constant, Function or null.");
+			}
+
+			_queryString = "ALTER TABLE [" + oldTableName + "] RENAME TO [" + newTableName + "];";
+
+			// Execute the query if we do not want it to be delayed
+			if(callback !== BreezeDb.DELAY)
+			{
+				exec(callback);
+			}
+
+			return this;
 		}
 
 
