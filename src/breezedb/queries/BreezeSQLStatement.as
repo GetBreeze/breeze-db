@@ -93,7 +93,7 @@ package breezedb.queries
 		
 		private function onQuerySuccess(event:SQLEvent):void
 		{
-			Callback.call(_callback, [this, null]);
+			Callback.call(_callback, [null, this]);
 			
 			GarbagePrevention.instance.remove(this);
 		}
@@ -101,7 +101,7 @@ package breezedb.queries
 		
 		private function onQueryError(event:SQLErrorEvent):void
 		{
-			Callback.call(_callback, [this, event.error]);
+			Callback.call(_callback, [event.error, this]);
 			
 			GarbagePrevention.instance.remove(this);
 		}

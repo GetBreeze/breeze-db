@@ -162,7 +162,7 @@ package breezedb.queries
 		 */
 
 
-		private function onRawQueryCompleted(statement:SQLStatement, error:Error):void
+		private function onRawQueryCompleted(error:Error, statement:SQLStatement):void
 		{
 			var result:BreezeSQLResult = new BreezeSQLResult(statement.getResult());
 
