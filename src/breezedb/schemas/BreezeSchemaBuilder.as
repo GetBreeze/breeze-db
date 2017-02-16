@@ -36,6 +36,11 @@ package breezedb.schemas
 	 */
 	public class BreezeSchemaBuilder extends BreezeQueryRunner
 	{
+		/**
+		 * Creates a schema builder and associates it with the given database.
+		 *
+		 * @param db The database to associate the builder with.
+		 */
 		public function BreezeSchemaBuilder(db:IBreezeDatabase)
 		{
 			super(db);
@@ -70,6 +75,7 @@ package breezedb.schemas
 		 * </listing>
 		 *
 		 * @see breezedb.BreezeDb#DELAY
+		 * @see breezedb.schemas.TableBlueprint
 		 *
 		 * @return <code>BreezeQueryRunner</code> object that allows cancelling the query callback or executing
 		 *         the query if it was delayed.
@@ -108,6 +114,7 @@ package breezedb.schemas
 		 * </listing>
 		 *
 		 * @see breezedb.BreezeDb#DELAY
+		 * @see breezedb.schemas.TableBlueprint
 		 *
 		 * @return <code>BreezeQueryRunner</code> object that allows cancelling the query callback or executing
 		 *         the query if it was delayed.
@@ -118,15 +125,61 @@ package breezedb.schemas
 		}
 
 
+		/**
+		 * Drops a table with the given name. If the table does not exist, the query will fail with an error.
+		 *
+		 * @param tableName Name of the table to drop.
+		 * @param callback <code>Function</code> that is called when the query is completed. If you do not wish
+		 *        to execute the SQL query immediately after calling this method, you can pass in
+		 *        <code>BreezeDb.DELAY</code> instead. If a <code>Function</code> is specified, it should have
+		 *        the following signature:
+		 * <listing version="3.0">
+		 * function onTableDropped(error:Error):void {
+		 *     if(error == null)
+		 *     {
+		 *         // table dropped successfully
+		 *     }
+		 * };
+		 * </listing>
+		 *
+		 * @see breezedb.BreezeDb#DELAY
+		 * @see #dropTableIfExists()
+		 *
+		 * @return <code>BreezeQueryRunner</code> object that allows cancelling the query callback or executing
+		 *         the query if it was delayed.
+		 */
 		public function dropTable(tableName:String, callback:* = null):BreezeQueryRunner
 		{
-			return null;
+			return dropTableInternal(tableName, callback);
 		}
 
 
+		/**
+		 * Drops a table with the given name. If the table does not exist, the query will not fail with an error.
+		 *
+		 * @param tableName Name of the table to drop.
+		 * @param callback <code>Function</code> that is called when the query is completed. If you do not wish
+		 *        to execute the SQL query immediately after calling this method, you can pass in
+		 *        <code>BreezeDb.DELAY</code> instead. If a <code>Function</code> is specified, it should have
+		 *        the following signature:
+		 * <listing version="3.0">
+		 * function onTableDropped(error:Error):void {
+		 *     if(error == null)
+		 *     {
+		 *         // table may or may have not been dropped successfully
+		 *     }
+		 * };
+		 * </listing>
+		 *
+		 * @see breezedb.BreezeDb#DELAY
+		 * @see #dropTable()
+		 *
+		 * @return <code>BreezeQueryRunner</code> object that allows cancelling the query callback or executing
+		 *         the query if it was delayed.
+		 */
 		public function dropTableIfExists(tableName:String, callback:* = null):BreezeQueryRunner
 		{
-			return null;
+			return dropTableInternal(tableName, callback, true);
 		}
 
 
@@ -288,6 +341,30 @@ package breezedb.schemas
 			blueprint(bp);
 
 			_queryString = bp.query;
+
+			// Execute the query if we do not want it to be delayed
+			if(callback !== BreezeDb.DELAY)
+			{
+				exec(callback);
+			}
+
+			return this;
+		}
+
+
+		private function dropTableInternal(tableName:String, callback:*, ifExists:Boolean = false):BreezeQueryRunner
+		{
+			if(tableName == null)
+			{
+				throw new ArgumentError("Parameter tableName cannot be null.");
+			}
+
+			if(!(callback == null || callback is Function || callback === BreezeDb.DELAY))
+			{
+				throw new ArgumentError("Parameter callback must be a BreezeDb.DELAY constant, Function or null.");
+			}
+
+			_queryString = "DROP TABLE " + (ifExists ? "IF EXISTS " : "") + "[" + tableName + "];";
 
 			// Execute the query if we do not want it to be delayed
 			if(callback !== BreezeDb.DELAY)
