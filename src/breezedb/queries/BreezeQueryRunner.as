@@ -32,14 +32,22 @@ package breezedb.queries
 	 */
 	public class BreezeQueryRunner
 	{
+		protected static const MULTI_QUERY_RAW:int = 0;
+		protected static const MULTI_QUERY_FAIL_ON_ERROR:int = 1;
+		protected static const MULTI_QUERY_TRANSACTION:int = 2;
+
 		protected var _db:IBreezeDatabase;
 
 		protected var _queryString:String;
+		protected var _queryParams:*;
 		protected var _queryReference:BreezeQueryReference;
+		protected var _multiQueryMethod:int;
 
 		public function BreezeQueryRunner(db:IBreezeDatabase)
 		{
 			_db = db;
+			_queryParams = null;
+			_multiQueryMethod = MULTI_QUERY_TRANSACTION;
 		}
 		
 
@@ -58,7 +66,44 @@ package breezedb.queries
 				return _queryReference;
 			}
 
-			_queryReference = new BreezeRawQuery(_db).query(_queryString, callback);
+			// Check if there are multiple statements
+			var queries:Array = _queryString.split(";");
+
+			// Remove empty queries
+			for(var i:int = 0; i < queries.length; )
+			{
+				var queryString:String = queries[i];
+				if(!(/\S/.test(queryString)))
+				{
+					queries.removeAt(i);
+					continue;
+				}
+				++i;
+			}
+
+			_queryString = queries.join(";");
+			_queryString += ";";
+
+			// Run multi query if there are multiple statements
+			var query:BreezeRawQuery = new BreezeRawQuery(_db);
+			if(queries.length > 1)
+			{
+				switch(_multiQueryMethod)
+				{
+					case MULTI_QUERY_RAW:
+						_queryReference = query.multiQuery(queries, _queryParams, callback);
+						break;
+					case MULTI_QUERY_FAIL_ON_ERROR:
+						_queryReference = query.multiQueryFailOnError(queries, _queryParams, callback);
+						break;
+					case MULTI_QUERY_TRANSACTION:
+						_queryReference = query.multiQueryTransaction(queries, _queryParams, callback);
+						break;
+				}
+				return _queryReference;
+			}
+
+			_queryReference = new BreezeRawQuery(_db).query(_queryString, _queryParams, callback);
 			return _queryReference;
 		}
 

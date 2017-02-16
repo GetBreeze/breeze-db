@@ -101,7 +101,7 @@ package breezedb.queries
 			var statement:BreezeSQLStatement = new BreezeSQLStatement(onRawQueryCompleted);
 			statement.sqlConnection = _db.connection;
 			statement.text = rawQuery;
-			if(params)
+			if(params !== null)
 			{
 				for(var key:String in params)
 				{
@@ -158,7 +158,7 @@ package breezedb.queries
 		 */
 		public function multiQuery(rawQueries:Array, params:*, callback:Function = null):BreezeQueryReference
 		{
-			return null;
+			return runMultiQueries(rawQueries, params, callback);
 		}
 
 
@@ -167,7 +167,7 @@ package breezedb.queries
 		 */
 		public function multiQueryFailOnError(rawQueries:Array, params:*, callback:Function = null):BreezeQueryReference
 		{
-			return null;
+			return runMultiQueries(rawQueries, params, callback, true);
 		}
 
 
@@ -176,7 +176,7 @@ package breezedb.queries
 		 */
 		public function multiQueryTransaction(rawQueries:Array, params:*, callback:Function = null):BreezeQueryReference
 		{
-			return null;
+			return runMultiQueries(rawQueries, params, callback, true, true);
 		}
 
 
@@ -187,6 +187,50 @@ package breezedb.queries
 		 *
 		 *
 		 */
+
+
+		private function runMultiQueries(rawQueries:Array, params:*, callback:Function, failOnError:Boolean = false, transaction:Boolean = false):BreezeQueryReference
+		{
+			if(!_db.isSetup)
+			{
+				throw new IllegalOperationError("Database must be set up before making a query.");
+			}
+
+			if(rawQueries == null)
+			{
+				throw new ArgumentError("Parameter rawQueries cannot be null.");
+			}
+
+			if(params is Function)
+			{
+				callback = params as Function;
+			}
+
+			_callback = callback;
+
+			GarbagePrevention.instance.add(this);
+
+			var statement:BreezeSQLMultiStatement = new BreezeSQLMultiStatement(_db, onRawMultiQueryCompleted);
+			var length:int = rawQueries.length;
+			for(var i:int = 0; i < length; ++i)
+			{
+				var rawQuery:String = rawQueries[i] as String;
+				if(rawQuery == null)
+				{
+					throw new ArgumentError("Each query must be a String.");
+				}
+				var parameters:Object = (params is Array) ? params[i] : null;
+				statement.addQuery(rawQuery, parameters);
+			}
+			statement.execute(failOnError, transaction);
+			return new BreezeQueryReference(this);
+		}
+
+
+		private function onRawMultiQueryCompleted(callbackParams:Array):void
+		{
+			finishQuery(callbackParams);
+		}
 
 
 		private function onRawQueryCompleted(error:Error, statement:SQLStatement):void
