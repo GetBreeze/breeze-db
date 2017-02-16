@@ -178,7 +178,10 @@ package breezedb
 				throw new IllegalOperationError("There is no active database connection.");
 			}
 
-			_sqlConnection.rollback();
+			if(_sqlConnection.inTransaction)
+			{
+				_sqlConnection.rollback();
+			}
 		}
 
 
