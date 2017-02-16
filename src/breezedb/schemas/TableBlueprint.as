@@ -339,15 +339,7 @@ package breezedb.schemas
 			{
 				if(_statement == CREATE)
 				{
-					result = "CREATE TABLE " + _tableName + "(";
-				}
-				else if(_statement == ALTER)
-				{
-					result = "ALTER TABLE " + _tableName + " ADD COLUMN ";
-				}
-				else
-				{
-					throw new Error("Unknown statement value: " + _statement);
+					result = (_statement == CREATE) ? "CREATE TABLE " + _tableName + "(" : "";
 				}
 
 				var primaryKeys:Vector.<TableColumn> = this.primaryKeys;
@@ -355,12 +347,24 @@ package breezedb.schemas
 				var i:int = 0;
 				for each(var column:TableColumn in _columns)
 				{
-					// Add comma to separate the previous line
-					if(i++ > 0)
+					// Adding multiple columns requires a separate query for each column
+					if(_statement == ALTER)
+					{
+						result += "ALTER TABLE " + _tableName + " ADD COLUMN ";
+					}
+
+					// Add comma or semicolon to separate the previous line
+					if(_statement == CREATE && i++ > 0)
 					{
 						result += ", ";
 					}
+
 					result += column.getSQLText(!hasCompositeKey);
+
+					if(_statement == ALTER)
+					{
+						result += ";";
+					}
 				}
 
 				// Add primary key on multiple fields if has composite key
@@ -381,9 +385,8 @@ package breezedb.schemas
 				}
 				if(_statement == CREATE)
 				{
-					result += ")";
+					result += ");";
 				}
-				result += ";";
 			}
 
 			// Add index statement if needed
