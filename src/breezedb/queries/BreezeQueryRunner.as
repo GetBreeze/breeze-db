@@ -32,17 +32,50 @@ package breezedb.queries
 	 */
 	public class BreezeQueryRunner
 	{
+		/**
+		 * @private
+		 */
 		protected static const MULTI_QUERY_RAW:int = 0;
+
+		/**
+		 * @private
+		 */
 		protected static const MULTI_QUERY_FAIL_ON_ERROR:int = 1;
+
+		/**
+		 * @private
+		 */
 		protected static const MULTI_QUERY_TRANSACTION:int = 2;
 
+		/**
+		 * @private
+		 */
 		protected var _db:IBreezeDatabase;
 
+		/**
+		 * @private
+		 */
 		protected var _queryString:String;
+
+		/**
+		 * @private
+		 */
 		protected var _queryParams:*;
+
+		/**
+		 * @private
+		 */
 		protected var _queryReference:BreezeQueryReference;
+
+		/**
+		 * @private
+		 */
 		protected var _multiQueryMethod:int;
 
+
+		/**
+		 * @private
+		 */
 		public function BreezeQueryRunner(db:IBreezeDatabase)
 		{
 			_db = db;

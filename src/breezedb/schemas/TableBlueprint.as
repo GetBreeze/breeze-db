@@ -32,7 +32,14 @@ package breezedb.schemas
 	 */
 	public class TableBlueprint
 	{
+		/**
+		 * @private
+		 */
 		internal static const CREATE:int = 0;
+
+		/**
+		 * @private
+		 */
 		internal static const ALTER:int = 1;
 
 		private var _statement:int;
@@ -41,6 +48,10 @@ package breezedb.schemas
 		private var _createIndex:String;
 		private var _dropIndex:String;
 
+
+		/**
+		 * @private
+		 */
 		public function TableBlueprint()
 		{
 			_columns = new <TableColumn>[];
