@@ -154,6 +154,33 @@ package breezedb.queries
 
 
 		/**
+		 * @inheritDoc
+		 */
+		public function multiQuery(rawQueries:Array, params:*, callback:Function = null):BreezeQueryReference
+		{
+			return null;
+		}
+
+
+		/**
+		 * @inheritDoc
+		 */
+		public function multiQueryFailOnError(rawQueries:Array, params:*, callback:Function = null):BreezeQueryReference
+		{
+			return null;
+		}
+
+
+		/**
+		 * @inheritDoc
+		 */
+		public function multiQueryTransaction(rawQueries:Array, params:*, callback:Function = null):BreezeQueryReference
+		{
+			return null;
+		}
+
+
+		/**
 		 *
 		 *
 		 * Private / Internal API

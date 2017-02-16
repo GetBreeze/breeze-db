@@ -40,6 +40,15 @@ package breezedb.queries
 
 
 		function remove(rawQuery:String, params:*, callback:Function = null):BreezeQueryReference;
+
+
+		function multiQuery(rawQueries:Array, params:*, callback:Function = null):BreezeQueryReference;
+
+
+		function multiQueryFailOnError(rawQueries:Array, params:*, callback:Function = null):BreezeQueryReference;
+
+
+		function multiQueryTransaction(rawQueries:Array, params:*, callback:Function = null):BreezeQueryReference;
 	}
 	
 }

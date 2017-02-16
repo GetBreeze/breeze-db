@@ -265,6 +265,33 @@ package breezedb
 
 
 		/**
+		 * @inheritDoc
+		 */
+		public function multiQuery(rawQueries:Array, params:*, callback:Function = null):BreezeQueryReference
+		{
+			return new BreezeRawQuery(this).multiQuery(rawQueries, params, callback);
+		}
+
+
+		/**
+		 * @inheritDoc
+		 */
+		public function multiQueryFailOnError(rawQueries:Array, params:*, callback:Function = null):BreezeQueryReference
+		{
+			return new BreezeRawQuery(this).multiQueryFailOnError(rawQueries, params, callback);
+		}
+
+
+		/**
+		 * @inheritDoc
+		 */
+		public function multiQueryTransaction(rawQueries:Array, params:*, callback:Function = null):BreezeQueryReference
+		{
+			return new BreezeRawQuery(this).multiQueryTransaction(rawQueries, params, callback);
+		}
+
+
+		/**
 		 *
 		 *
 		 * Private API
