@@ -218,6 +218,16 @@ package breezedb.schemas
 				throw new ArgumentError("Parameter newTableName cannot be null.");
 			}
 
+			if(oldTableName.indexOf(";") >= 0)
+			{
+				throw new ArgumentError("Parameter oldTableName cannot contain semicolon.");
+			}
+
+			if(newTableName.indexOf(";") >= 0)
+			{
+				throw new ArgumentError("Parameter newTableName cannot contain semicolon.");
+			}
+
 			if(!(callback == null || callback is Function || callback === BreezeDb.DELAY))
 			{
 				throw new ArgumentError("Parameter callback must be a BreezeDb.DELAY constant, Function or null.");
@@ -357,6 +367,11 @@ package breezedb.schemas
 			if(tableName == null)
 			{
 				throw new ArgumentError("Parameter tableName cannot be null.");
+			}
+
+			if(tableName.indexOf(";") >= 0)
+			{
+				throw new ArgumentError("Parameter tableName cannot contain semicolon.");
 			}
 
 			if(!(callback == null || callback is Function || callback === BreezeDb.DELAY))
