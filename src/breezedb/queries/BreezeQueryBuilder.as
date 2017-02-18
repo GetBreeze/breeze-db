@@ -39,6 +39,210 @@ package breezedb.queries
 			super(db);
 			_tableName = tableName;
 		}
+
+
+		public function first(callback:* = null):BreezeQueryRunner
+		{
+			return this;
+		}
+		
+		
+		public function count(callback:* = null):BreezeQueryRunner
+		{
+			return this;
+		}
+
+
+		public function max(column:String, callback:* = null):BreezeQueryRunner
+		{
+			return this;
+		}
+
+
+		public function min(column:String, callback:* = null):BreezeQueryRunner
+		{
+			return this;
+		}
+
+
+		public function sum(column:String, callback:* = null):BreezeQueryRunner
+		{
+			return this;
+		}
+
+
+		public function avg(column:String, callback:* = null):BreezeQueryRunner
+		{
+			return this;
+		}
+		
+		
+		public function select(...args):BreezeQueryBuilder
+		{
+			return this;
+		}
+
+
+		public function distinct(column:String):BreezeQueryBuilder
+		{
+			return this;
+		}
+		
+		
+		public function chunk(limit:uint, callback:* = null):BreezeQueryRunner
+		{
+			return this;
+		}
+
+
+		public function where(param1:*, param2:* = null, param3:* = null):BreezeQueryBuilder
+		{
+			return this;
+		}
+
+
+		public function orWhere(param1:*, param2:* = null, param3:* = null):BreezeQueryBuilder
+		{
+			return this;
+		}
+
+
+		public function whereBetween(name:String, value1:Number, value2:Number):BreezeQueryBuilder
+		{
+			return this;
+		}
+
+
+		public function whereNotBetween(name:String, value1:Number, value2:Number):BreezeQueryBuilder
+		{
+			return this;
+		}
+
+
+		public function whereNull(name:String):BreezeQueryBuilder
+		{
+			return this;
+		}
+
+
+		public function whereNotNull(name:String):BreezeQueryBuilder
+		{
+			return this;
+		}
+
+
+		public function whereIn(name:String, values:Array):BreezeQueryBuilder
+		{
+			return this;
+		}
+
+
+		public function whereNotIn(name:String, values:Array):BreezeQueryBuilder
+		{
+			return this;
+		}
+
+
+		public function whereDay(dateColumn:String, param2:* = null, param3:* = null):BreezeQueryBuilder
+		{
+			return this;
+		}
+
+
+		public function whereMonth(dateColumn:String, param2:* = null, param3:* = null):BreezeQueryBuilder
+		{
+			return this;
+		}
+
+
+		public function whereYear(dateColumn:String, param2:* = null, param3:* = null):BreezeQueryBuilder
+		{
+			return this;
+		}
+
+
+		public function whereDate(dateColumn:String, param2:* = null, param3:* = null):BreezeQueryBuilder
+		{
+			return this;
+		}
+
+
+		public function whereColumn(param1:*, param2:* = null, param3:* = null):BreezeQueryBuilder
+		{
+			return this;
+		}
+
+
+		public function whereRaw(query:String):BreezeQueryBuilder
+		{
+			return this;
+		}
+
+
+		public function orderBy(...args):BreezeQueryBuilder
+		{
+			return this;
+		}
+
+
+		public function groupBy(...args):BreezeQueryBuilder
+		{
+			return this;
+		}
+
+
+		public function limit(value:int):BreezeQueryBuilder
+		{
+			return this;
+		}
+
+
+		public function offset(value:int):BreezeQueryBuilder
+		{
+			return this;
+		}
+
+
+		public function insert(value:*, callback:* = null):BreezeQueryBuilder
+		{
+			return this;
+		}
+
+
+		public function insertGetId(value:Object, callback:* = null):BreezeQueryBuilder
+		{
+			return this;
+		}
+
+
+		public function update(value:Object, callback:* = null):BreezeQueryBuilder
+		{
+			return this;
+		}
+
+
+		public function remove(callback:* = null):BreezeQueryBuilder
+		{
+			return this;
+		}
+
+
+		public function increment(column:String, param1:* = null, param2:* = null, callback:* = null):BreezeQueryBuilder
+		{
+			return this;
+		}
+
+
+		public function decrement(column:String, param1:* = null, param2:* = null, callback:* = null):BreezeQueryBuilder
+		{
+			return this;
+		}
+
+
+		public function fetch(callback:* = null):BreezeQueryRunner
+		{
+			return this;
+		}
 		
 	}
 	
