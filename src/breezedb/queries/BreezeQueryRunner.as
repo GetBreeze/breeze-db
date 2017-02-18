@@ -78,6 +78,11 @@ package breezedb.queries
 		 */
 		public function BreezeQueryRunner(db:IBreezeDatabase)
 		{
+			if(db == null)
+			{
+				throw new ArgumentError("Parameter db cannot be null.");
+			}
+
 			_db = db;
 			_queryParams = null;
 			_multiQueryMethod = MULTI_QUERY_TRANSACTION;
