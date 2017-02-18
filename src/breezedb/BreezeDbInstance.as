@@ -225,7 +225,7 @@ package breezedb
 		/**
 		 * @inheritDoc
 		 */
-		public function query(rawQuery:String, params:*, callback:Function = null):BreezeQueryReference
+		public function query(rawQuery:String, params:* = null, callback:Function = null):BreezeQueryReference
 		{
 			return new BreezeRawQuery(this).query(rawQuery, params, callback);
 		}
@@ -234,7 +234,7 @@ package breezedb
 		/**
 		 * @inheritDoc
 		 */
-		public function select(rawQuery:String, params:*, callback:Function = null):BreezeQueryReference
+		public function select(rawQuery:String, params:* = null, callback:Function = null):BreezeQueryReference
 		{
 			return new BreezeRawQuery(this).select(rawQuery, params, callback);
 		}
@@ -243,7 +243,7 @@ package breezedb
 		/**
 		 * @inheritDoc
 		 */
-		public function insert(rawQuery:String, params:*, callback:Function = null):BreezeQueryReference
+		public function insert(rawQuery:String, params:* = null, callback:Function = null):BreezeQueryReference
 		{
 			return new BreezeRawQuery(this).insert(rawQuery, params, callback);
 		}
@@ -252,7 +252,7 @@ package breezedb
 		/**
 		 * @inheritDoc
 		 */
-		public function update(rawQuery:String, params:*, callback:Function = null):BreezeQueryReference
+		public function update(rawQuery:String, params:* = null, callback:Function = null):BreezeQueryReference
 		{
 			return new BreezeRawQuery(this).update(rawQuery, params, callback);
 		}
@@ -261,7 +261,7 @@ package breezedb
 		/**
 		 * @inheritDoc
 		 */
-		public function remove(rawQuery:String, params:*, callback:Function = null):BreezeQueryReference
+		public function remove(rawQuery:String, params:* = null, callback:Function = null):BreezeQueryReference
 		{
 			return new BreezeRawQuery(this).remove(rawQuery, params, callback);
 		}
@@ -270,7 +270,7 @@ package breezedb
 		/**
 		 * @inheritDoc
 		 */
-		public function multiQuery(rawQueries:Array, params:*, callback:Function = null):BreezeQueryReference
+		public function multiQuery(rawQueries:Array, params:* = null, callback:Function = null):BreezeQueryReference
 		{
 			return new BreezeRawQuery(this).multiQuery(rawQueries, params, callback);
 		}
@@ -279,7 +279,7 @@ package breezedb
 		/**
 		 * @inheritDoc
 		 */
-		public function multiQueryFailOnError(rawQueries:Array, params:*, callback:Function = null):BreezeQueryReference
+		public function multiQueryFailOnError(rawQueries:Array, params:* = null, callback:Function = null):BreezeQueryReference
 		{
 			return new BreezeRawQuery(this).multiQueryFailOnError(rawQueries, params, callback);
 		}
@@ -288,7 +288,7 @@ package breezedb
 		/**
 		 * @inheritDoc
 		 */
-		public function multiQueryTransaction(rawQueries:Array, params:*, callback:Function = null):BreezeQueryReference
+		public function multiQueryTransaction(rawQueries:Array, params:* = null, callback:Function = null):BreezeQueryReference
 		{
 			return new BreezeRawQuery(this).multiQueryTransaction(rawQueries, params, callback);
 		}

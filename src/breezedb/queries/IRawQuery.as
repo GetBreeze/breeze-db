@@ -27,28 +27,28 @@ package breezedb.queries
 {
 	public interface IRawQuery
 	{
-		function query(rawQuery:String, params:*, callback:Function = null):BreezeQueryReference;
+		function query(rawQuery:String, params:* = null, callback:Function = null):BreezeQueryReference;
 
 
-		function select(rawQuery:String, params:*, callback:Function = null):BreezeQueryReference;
+		function select(rawQuery:String, params:* = null, callback:Function = null):BreezeQueryReference;
 
 
-		function insert(rawQuery:String, params:*, callback:Function = null):BreezeQueryReference;
+		function insert(rawQuery:String, params:* = null, callback:Function = null):BreezeQueryReference;
 
 
-		function update(rawQuery:String, params:*, callback:Function = null):BreezeQueryReference;
+		function update(rawQuery:String, params:* = null, callback:Function = null):BreezeQueryReference;
 
 
-		function remove(rawQuery:String, params:*, callback:Function = null):BreezeQueryReference;
+		function remove(rawQuery:String, params:* = null, callback:Function = null):BreezeQueryReference;
 
 
-		function multiQuery(rawQueries:Array, params:*, callback:Function = null):BreezeQueryReference;
+		function multiQuery(rawQueries:Array, params:* = null, callback:Function = null):BreezeQueryReference;
 
 
-		function multiQueryFailOnError(rawQueries:Array, params:*, callback:Function = null):BreezeQueryReference;
+		function multiQueryFailOnError(rawQueries:Array, params:* = null, callback:Function = null):BreezeQueryReference;
 
 
-		function multiQueryTransaction(rawQueries:Array, params:*, callback:Function = null):BreezeQueryReference;
+		function multiQueryTransaction(rawQueries:Array, params:* = null, callback:Function = null):BreezeQueryReference;
 	}
 	
 }
