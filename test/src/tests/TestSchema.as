@@ -295,22 +295,10 @@ package tests
 			Assert.isNull(error);
 			Assert.isTrue(hasTable);
 
-			_db.schema.renameTable("pictures", "photos; DROP TABLE photos", onInvalidTableRename);
-		}
-
-
-		private function onInvalidTableRename(error:Error):void
-		{
-			Assert.isNotNull(error);
-
-			_db.schema.hasTable("pictures", stillHasNewTableName);
-		}
-
-
-		private function stillHasNewTableName(error:Error, hasTable:Boolean):void
-		{
-			Assert.isNull(error);
-			Assert.isTrue(hasTable);
+			Assert.throwsError(function():void
+			{
+				_db.schema.renameTable("pictures", "photos; DROP TABLE photos", BreezeDb.DELAY);
+			}, ArgumentError);
 
 			dropTable();
 		}
