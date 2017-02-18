@@ -736,6 +736,24 @@ package tests.collections
 			Assert.equals("Galaxy S6", uniqueBrandType[2].name);
 			Assert.equals("Galaxy Gear", uniqueBrandType[3].name);
 		}
+
+
+		public function testFromArray():void
+		{
+			var empty:Collection = Collection.fromArray([]);
+
+			Assert.arrayEquals([], empty.all);
+
+			empty = Collection.fromArray(null);
+
+			Assert.arrayEquals([], empty.all);
+
+			var numbersArray:Array = [1, 2, 3, 4, 5];
+
+			var numbers:Collection = Collection.fromArray(numbersArray);
+
+			Assert.arrayEquals(numbersArray, numbers.all);
+		}
 		
 	}
 	

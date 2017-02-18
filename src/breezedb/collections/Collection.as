@@ -952,6 +952,28 @@ package breezedb.collections
 			return length == 0;
 		}
 
+
+		/**
+		 * Creates new <code>Collection</code> from an existing <code>Array</code>.
+		 *
+		 * @param value The source <code>Array</code>.
+		 * @return New <code>Collection</code> with all the elements from the source <code>Array</code>.
+		 */
+		public static function fromArray(value:Array):Collection
+		{
+			var collection:Collection = new Collection();
+
+			if(value != null)
+			{
+				for each(var elem:* in value)
+				{
+					collection.push(elem);
+				}
+			}
+
+			return collection;
+		}
+
 	}
 	
 }
