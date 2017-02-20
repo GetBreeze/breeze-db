@@ -73,7 +73,7 @@ package breezedb.queries
 			{
 				for(var key:String in params)
 				{
-					statement.parameters[key] = params[key];
+					statement.parameters[":" + key] = params[key];
 				}
 			}
 			_queries[_queries.length] = statement;
