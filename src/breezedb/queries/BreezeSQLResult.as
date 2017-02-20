@@ -25,6 +25,8 @@
 
 package breezedb.queries
 {
+	import breezedb.collections.Collection;
+
 	import flash.data.SQLResult;
 
 	/**
@@ -32,7 +34,7 @@ package breezedb.queries
 	 */
 	public class BreezeSQLResult
 	{
-		private var _data:Array;
+		private var _data:Collection;
 		private var _result:SQLResult;
 
 
@@ -81,9 +83,9 @@ package breezedb.queries
 		 * represent the rows of result data. Each object in the array has property names that correspond
 		 * to the result data set's column names.</p>
 		 *
-		 * <p>The returned <code>Array</code> is never <code>null</code>.</p>
+		 * <p>The returned <code>Collection</code> is never <code>null</code>.</p>
 		 */
-		public function get data():Array
+		public function get data():Collection
 		{
 			if(_data != null)
 			{
@@ -92,11 +94,11 @@ package breezedb.queries
 			
 			if(_result != null && _result.data != null && _result.data.length > 0)
 			{
-				_data = _result.data;
+				_data = Collection.fromArray(_result.data);
 				return _data;
 			}
 
-			_data = [];
+			_data = new Collection();
 			return _data;
 		}
 	}
