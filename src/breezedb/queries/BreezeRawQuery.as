@@ -237,9 +237,26 @@ package breezedb.queries
 		{
 			var result:BreezeSQLResult = new BreezeSQLResult(statement.getResult());
 
-			// todo: format response data based on query type
+			var params:Array = [error];
 
-			finishQuery([error, result]);
+			// Format second callback parameter based on query type
+			if(_queryType == SELECT)
+			{
+				// Return selected items
+				params[1] = result.data;
+			}
+			else if(_queryType == UPDATE || _queryType == DELETE)
+			{
+				// Return rows affected
+				params[1] = result.rowsAffected;
+			}
+			else
+			{
+				// Return generic result
+				params[1] = result;
+			}
+
+			finishQuery(params);
 		}
 
 
