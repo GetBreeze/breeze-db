@@ -107,37 +107,37 @@ package breezedb.queries
 		}
 
 
-		public function whereBetween(name:String, value1:Number, value2:Number):BreezeQueryBuilder
+		public function whereBetween(column:String, greaterThan:Number, lessThan:Number):BreezeQueryBuilder
 		{
 			return this;
 		}
 
 
-		public function whereNotBetween(name:String, value1:Number, value2:Number):BreezeQueryBuilder
+		public function whereNotBetween(column:String, greaterThan:Number, lessThan:Number):BreezeQueryBuilder
 		{
 			return this;
 		}
 
 
-		public function whereNull(name:String):BreezeQueryBuilder
+		public function whereNull(column:String):BreezeQueryBuilder
 		{
 			return this;
 		}
 
 
-		public function whereNotNull(name:String):BreezeQueryBuilder
+		public function whereNotNull(column:String):BreezeQueryBuilder
 		{
 			return this;
 		}
 
 
-		public function whereIn(name:String, values:Array):BreezeQueryBuilder
+		public function whereIn(column:String, values:Array):BreezeQueryBuilder
 		{
 			return this;
 		}
 
 
-		public function whereNotIn(name:String, values:Array):BreezeQueryBuilder
+		public function whereNotIn(column:String, values:Array):BreezeQueryBuilder
 		{
 			return this;
 		}
@@ -173,7 +173,7 @@ package breezedb.queries
 		}
 
 
-		public function whereRaw(query:String):BreezeQueryBuilder
+		private function whereRaw(query:String):BreezeQueryBuilder
 		{
 			return this;
 		}
@@ -186,6 +186,12 @@ package breezedb.queries
 
 
 		public function groupBy(...args):BreezeQueryBuilder
+		{
+			return this;
+		}
+
+
+		public function having(param1:*, param2:* = null, param3:* = null):BreezeQueryBuilder
 		{
 			return this;
 		}
