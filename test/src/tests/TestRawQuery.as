@@ -120,7 +120,7 @@ package tests
 			Assert.isNull(error);
 			Assert.isNotNull(result);
 			Assert.isNotNull(result.data);
-			Assert.equals(4, result.data.length);
+			Assert.isTrue(result.data.length >= 3);
 
 			var length:int = result.data.length;
 			for(var i:int = 0; i < length; ++i)
@@ -187,6 +187,17 @@ package tests
 			Assert.equals(1, results.length);
 			Assert.equals("Trees", results[0].title);
 
+			// Change back to "Flowers"
+			var query:BreezeRawQuery = new BreezeRawQuery(_db);
+			query.update("UPDATE " + _tableName + " SET title = :title WHERE id = :id", { title: "Flowers", id: 2 }, onRollBackUpdateCompleted);
+		}
+
+
+		private function onRollBackUpdateCompleted(error:Error, rowsAffected:int):void
+		{
+			Assert.isNull(error);
+			Assert.equals(1, rowsAffected);
+
 			currentAsync.complete();
 		}
 
@@ -194,7 +205,7 @@ package tests
 		public function testRemove(async:Async):void
 		{
 			var query:BreezeRawQuery = new BreezeRawQuery(_db);
-			query.remove("DELETE FROM " + _tableName + " WHERE title = :title", { title: "Lake" }, onDeleteCompleted);
+			query.remove("DELETE FROM " + _tableName + " WHERE title = :title", { title: "Camp Fire" }, onDeleteCompleted);
 		}
 
 
@@ -218,8 +229,8 @@ package tests
 			var length:int = results.length;
 			for(var i:int = 0; i < length; ++i)
 			{
-				Assert.notEquals("Lake", results[i].title);
-				Assert.notEquals(3, results[i].id);
+				Assert.notEquals("Camp Fire", results[i].title);
+				Assert.notEquals(4, results[i].id)
 			}
 
 			currentAsync.complete();
@@ -335,6 +346,17 @@ package tests
 			Assert.equals(1, results.length);
 			Assert.equals(1, results[0].id);
 			Assert.equals("Hills", results[0].title);
+
+			// Change the title back to "Mountains"
+			var query:BreezeRawQuery = new BreezeRawQuery(_db)
+			query.update("UPDATE " + _tableName + " SET title = :title WHERE id = :id", { title: "Mountains", id: 1 }, onRollBackMultiQueryCompleted);
+		}
+
+
+		private function onRollBackMultiQueryCompleted(error:Error, affectedRows:int):void
+		{
+			Assert.isNull(error);
+			Assert.equals(1, affectedRows);
 
 			currentAsync.complete();
 		}
