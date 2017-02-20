@@ -42,7 +42,7 @@ package breezedb.queries
 		private var _db:IBreezeDatabase;
 		private var _callback:Function;
 		private var _queries:Vector.<BreezeSQLStatement>;
-		private var _results:Array;
+		private var _results:Vector.<BreezeQueryResult>;
 		private var _fatalError:Error;
 
 
@@ -51,7 +51,7 @@ package breezedb.queries
 			_db = db;
 			_callback = callback;
 			_queries = new <BreezeSQLStatement>[];
-			_results = [];
+			_results = new <BreezeQueryResult>[];
 		}
 		
 		
@@ -113,11 +113,7 @@ package breezedb.queries
 		
 		private function onQueryCompleted(error:Error, statement:SQLStatement):void
 		{
-			var result:BreezeSQLResult = new BreezeSQLResult(statement.getResult());
-
-			// todo: format response data based on query type
-
-			_results[_currentIndex] = { error: error, result: result };
+			_results[_currentIndex] = new BreezeQueryResult(statement.getResult(), error);
 
 			if(error != null && (_failOnError || _transaction))
 			{
