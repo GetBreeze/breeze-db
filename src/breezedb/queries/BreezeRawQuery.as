@@ -219,7 +219,7 @@ package breezedb.queries
 				{
 					throw new ArgumentError("Each query must be a String.");
 				}
-				var parameters:Object = (params is Array) ? params[i] : null;
+				var parameters:Object = (params is Array && i < params.length) ? params[i] : null;
 				statement.addQuery(rawQuery, parameters);
 			}
 			statement.execute(failOnError, transaction);
