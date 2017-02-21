@@ -412,6 +412,12 @@ package breezedb.queries
 		}
 
 
+		public function orHaving(param1:*, param2:* = null, param3:* = null):BreezeQueryBuilder
+		{
+			return this;
+		}
+
+
 		public function limit(value:int):BreezeQueryBuilder
 		{
 			_limit = value;
