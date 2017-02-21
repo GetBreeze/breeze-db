@@ -45,7 +45,7 @@ package breezedb.queries
 		private var _where:Array = [[]];
 		private var _orderBy:Array = [];
 		private var _groupBy:Array = [];
-		private var _having:Array = [];
+		private var _having:Array = [[]];
 		private var _distinct:Boolean = false;
 		private var _offset:int = -1;
 		private var _limit:int = -1;
@@ -414,6 +414,9 @@ package breezedb.queries
 
 		public function orHaving(param1:*, param2:* = null, param3:* = null):BreezeQueryBuilder
 		{
+			_having[_having.length] = [];
+			having(param1, param2, param3);
+
 			return this;
 		}
 
@@ -582,6 +585,7 @@ package breezedb.queries
 				}
 
 				addQueryPart(parts, tmpOrWhere.join(" OR "))
+				addQueryPart(parts, tmpOrWhere.join(" OR "));
 			}
 
 			// GROUP BY
@@ -592,10 +596,17 @@ package breezedb.queries
 			}
 
 			// HAVING
-			if(_having.length > 0)
+			if(_having.length > 0 && _having[0].length > 0)
 			{
 				addQueryPart(parts, "HAVING");
-				addQueryPart(parts, _having.join(" AND "));
+
+				var tmpOrHaving:Array = [];
+				for each(var havingArray:Array in _having)
+				{
+					tmpOrHaving[tmpOrHaving.length] = "(" + havingArray.join(" AND ") + ")";
+				}
+
+				addQueryPart(parts, tmpOrHaving.join(" OR "));
 			}
 
 			// ORDER BY
@@ -643,7 +654,8 @@ package breezedb.queries
 
 		private function havingRaw(query:String):BreezeQueryBuilder
 		{
-			_having[_having.length] = query;
+			var lastHaving:Array = _having[_having.length - 1];
+			lastHaving[lastHaving.length] = query;
 
 			return this;
 		}
