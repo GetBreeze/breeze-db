@@ -55,8 +55,11 @@ package breezedb.queries
 		private var _isCompleted:Boolean;
 		private var _columnName:String;
 
-		// Only the first item in the SELECT result is returned to the callback.
+		// Only the first item in the SELECT result is returned to the callback
 		private var _selectFirstOnly:Boolean;
+
+		// Running an aggregate query, a single numeric value is returned to the callback
+		private var _aggregate:String;
 
 		private var _db:IBreezeDatabase;
 		private var _callback:Function;
@@ -65,6 +68,7 @@ package breezedb.queries
 		{
 			_db = db;
 			_queryType = RAW;
+			_aggregate = null;
 		}
 
 
@@ -246,8 +250,21 @@ package breezedb.queries
 			// Format second callback parameter based on query type
 			if(_queryType == SELECT)
 			{
-				// Return selected items or first only if requested
-				params[1] = _selectFirstOnly ? (result.data.length > 0 ? result.data[0] : null) : result.data;
+				// Return single value (first item or aggregate value)
+				if(_selectFirstOnly || _aggregate != null)
+				{
+					var firstItem:Object = (result.data.length > 0) ? result.data[0] : null;
+					if(_aggregate != null)
+					{
+						firstItem = (firstItem !== null && _aggregate in firstItem) ? firstItem[_aggregate] : 0;
+					}
+					params[1] = firstItem;
+				}
+				// Return entire Collection
+				else
+				{
+					params[1] = result.data;
+				}
 			}
 			else if(_queryType == UPDATE || _queryType == DELETE)
 			{
@@ -426,6 +443,24 @@ package breezedb.queries
 		internal function set selectFirstOnly(value:Boolean):void
 		{
 			_selectFirstOnly = value;
+		}
+
+
+		/**
+		 * @private
+		 */
+		internal function get aggregate():String
+		{
+			return _aggregate;
+		}
+
+
+		/**
+		 * @private
+		 */
+		internal function set aggregate(value:String):void
+		{
+			_aggregate = value;
 		}
 	}
 	

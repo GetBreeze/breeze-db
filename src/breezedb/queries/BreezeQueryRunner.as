@@ -108,6 +108,12 @@ package breezedb.queries
 		 */
 		protected var _selectFirstOnly:Boolean = false;
 
+		/**
+		 * @private
+		 * Running an aggregate query, a single numeric value is returned to the callback.
+		 */
+		protected var _aggregate:String;
+
 
 		/**
 		 * @private
@@ -184,6 +190,7 @@ package breezedb.queries
 					_queryReference = query.query(_queryString, _queryParams, callback);
 					break;
 				case QUERY_SELECT:
+					query.aggregate = _aggregate;
 					query.selectFirstOnly = _selectFirstOnly;
 					_queryReference = query.select(_queryString, _queryParams, callback);
 					break;
