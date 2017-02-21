@@ -71,30 +71,95 @@ package breezedb.queries
 		
 		public function count(callback:* = null):BreezeQueryRunner
 		{
+			_aggregate = "total";
+
+			select("COUNT(*) as total");
+			executeIfNeeded(callback);
+
 			return this;
 		}
 
 
 		public function max(column:String, callback:* = null):BreezeQueryRunner
 		{
+			if(column == null)
+			{
+				throw new ArgumentError("Parameter column cannot be null.");
+			}
+
+			if(column.indexOf(";") >= 0)
+			{
+				throw new ArgumentError("Invalid column name.");
+			}
+
+			_aggregate = "max";
+
+			select("MAX(" + column + ") as max");
+			executeIfNeeded(callback);
+
 			return this;
 		}
 
 
 		public function min(column:String, callback:* = null):BreezeQueryRunner
 		{
+			if(column == null)
+			{
+				throw new ArgumentError("Parameter column cannot be null.");
+			}
+
+			if(column.indexOf(";") >= 0)
+			{
+				throw new ArgumentError("Invalid column name.");
+			}
+
+			_aggregate = "min";
+
+			select("MIN(" + column + ") as min");
+			executeIfNeeded(callback);
+
 			return this;
 		}
 
 
 		public function sum(column:String, callback:* = null):BreezeQueryRunner
 		{
+			if(column == null)
+			{
+				throw new ArgumentError("Parameter column cannot be null.");
+			}
+
+			if(column.indexOf(";") >= 0)
+			{
+				throw new ArgumentError("Invalid column name.");
+			}
+
+			_aggregate = "sum";
+
+			select("SUM(" + column + ") as sum");
+			executeIfNeeded(callback);
+
 			return this;
 		}
 
 
 		public function avg(column:String, callback:* = null):BreezeQueryRunner
 		{
+			if(column == null)
+			{
+				throw new ArgumentError("Parameter column cannot be null.");
+			}
+
+			if(column.indexOf(";") >= 0)
+			{
+				throw new ArgumentError("Invalid column name.");
+			}
+
+			_aggregate = "avg";
+
+			select("AVG(" + column + ") as avg");
+			executeIfNeeded(callback);
+
 			return this;
 		}
 		
