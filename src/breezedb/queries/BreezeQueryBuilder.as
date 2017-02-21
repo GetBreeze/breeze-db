@@ -39,8 +39,13 @@ package breezedb.queries
 
 		private var _tableName:String;
 
+		private var _select:Array = [];
 		private var _insert:Array = [];
 		private var _insertColumns:String = null;
+		private var _where:Array = [[]];
+		private var _distinct:Boolean = false;
+		private var _offset:int = -1;
+		private var _limit:int = -1;
 
 		private var _parametersIndex:int = 0;
 		
@@ -90,12 +95,21 @@ package breezedb.queries
 		
 		public function select(...args):BreezeQueryBuilder
 		{
+			for(var i:int = 0; i < args.length; i++)
+			{
+				_select[_select.length] = args[i];
+			}
+
 			return this;
 		}
 
 
 		public function distinct(column:String):BreezeQueryBuilder
 		{
+			_distinct = true;
+
+			select(column);
+
 			return this;
 		}
 		
@@ -108,48 +122,109 @@ package breezedb.queries
 
 		public function where(param1:*, param2:* = null, param3:* = null):BreezeQueryBuilder
 		{
+			// Raw where statement, e.g. where("id > 2")
+			if(param1 is String && param2 === null && param3 === null)
+			{
+				whereRaw(param1);
+			}
+			// Simple equal statement, e.g. where("id", 15)
+			else if(param1 is String && param3 === null)
+			{
+				where(param1, "=", param2);
+			}
+			// Simple statement with operator, e.g. where("id", "!=", 15)
+			else if(param1 is String && param2 is String && param3 !== null)
+			{
+				whereRaw(param1 + " " + param2 + " " + inputToParameter(param3));
+			}
+			// Array of statements, e.g. where([["id", 15], ["name", "!=", "Kevin"])
+			else if(param1 is Array && param2 === null && param3 === null)
+			{
+				for each(var statement:* in param1)
+				{
+					if(!(statement is Array))
+					{
+						throw new Error("Where must be an Array of Arrays.");
+					}
+
+					if(statement.length == 3)
+					{
+						where(statement[0], statement[1], statement[2]);
+					}
+					else if(statement.length == 2)
+					{
+						where(statement[0], "=", statement[1]);
+					}
+					else
+					{
+						throw new Error("Invalid where parameters.");
+					}
+
+				}
+			}
+			// Invalid input
+			else
+			{
+				throw new ArgumentError("Invalid where parameters.");
+			}
+
 			return this;
 		}
 
 
 		public function orWhere(param1:*, param2:* = null, param3:* = null):BreezeQueryBuilder
 		{
+			_where[_where.length] = [];
+			where(param1, param2, param3);
+
 			return this;
 		}
 
 
 		public function whereBetween(column:String, greaterThan:Number, lessThan:Number):BreezeQueryBuilder
 		{
+			whereRaw(column + " BETWEEN " + inputToParameter(greaterThan) + " AND " + inputToParameter(lessThan));
+
 			return this;
 		}
 
 
 		public function whereNotBetween(column:String, greaterThan:Number, lessThan:Number):BreezeQueryBuilder
 		{
+			whereRaw(column + " NOT BETWEEN " + inputToParameter(greaterThan) + " AND " + inputToParameter(lessThan));
+
 			return this;
 		}
 
 
 		public function whereNull(column:String):BreezeQueryBuilder
 		{
+			whereRaw(column + " IS NULL");
+
 			return this;
 		}
 
 
 		public function whereNotNull(column:String):BreezeQueryBuilder
 		{
+			whereRaw(column + " IS NOT NULL");
+
 			return this;
 		}
 
 
 		public function whereIn(column:String, values:Array):BreezeQueryBuilder
 		{
+			whereRaw(column + " IN (" + arrayToParameters(values).join(",") + ")");
+
 			return this;
 		}
 
 
 		public function whereNotIn(column:String, values:Array):BreezeQueryBuilder
 		{
+			whereRaw(column + " NOT IN (" + arrayToParameters(values).join(",") + ")");
+
 			return this;
 		}
 
@@ -184,12 +259,6 @@ package breezedb.queries
 		}
 
 
-		private function whereRaw(query:String):BreezeQueryBuilder
-		{
-			return this;
-		}
-
-
 		public function orderBy(...args):BreezeQueryBuilder
 		{
 			return this;
@@ -210,12 +279,14 @@ package breezedb.queries
 
 		public function limit(value:int):BreezeQueryBuilder
 		{
+			_limit = value;
 			return this;
 		}
 
 
 		public function offset(value:int):BreezeQueryBuilder
 		{
+			_offset = value;
 			return this;
 		}
 
@@ -272,6 +343,10 @@ package breezedb.queries
 
 		public function remove(callback:* = null):BreezeQueryBuilder
 		{
+			_queryType = QUERY_DELETE;
+
+			executeIfNeeded(callback);
+
 			return this;
 		}
 
@@ -290,6 +365,7 @@ package breezedb.queries
 
 		public function fetch(callback:* = null):BreezeQueryRunner
 		{
+			executeIfNeeded(callback);
 			return this;
 		}
 
@@ -303,8 +379,39 @@ package breezedb.queries
 
 			var parts:Vector.<String> = new <String>[];
 
+			// SELECT
+			if(_queryType == QUERY_SELECT)
+			{
+				addQueryPart(parts, "SELECT");
+
+				// DISTINCT
+				if(_distinct)
+				{
+					addQueryPart(parts, "DISTINCT");
+				}
+
+				if (_select.length == 0 || _select[0] == "*")
+				{
+					addQueryPart(parts, "*");
+				}
+				else
+				{
+					addQueryPart(parts, _select.join(", "));
+				}
+
+				// FROM
+				addFromPart(parts);
+			}
+			// DELETE
+			else if(_queryType == QUERY_DELETE)
+			{
+				addQueryPart(parts, "DELETE");
+
+				// FROM
+				addFromPart(parts);
+			}
 			// INSERT
-			if(_queryType == QUERY_INSERT)
+			else if(_queryType == QUERY_INSERT)
 			{
 				addQueryPart(parts, "INSERT INTO " + _tableName);
 				addQueryPart(parts, _insertColumns);
@@ -322,6 +429,32 @@ package breezedb.queries
 				}
 			}
 
+			// WHERE
+			if(_where.length > 0 && _where[0].length > 0)
+			{
+				addQueryPart(parts, "WHERE");
+
+				var tmpOrWhere:Array = [];
+				for each(var whereArray:Array in _where)
+				{
+					tmpOrWhere[tmpOrWhere.length] = "(" + whereArray.join(" AND ") + ")";
+				}
+
+				addQueryPart(parts, tmpOrWhere.join(" OR "))
+			}
+
+			// LIMIT
+			if(_limit != -1)
+			{
+				addQueryPart(parts, "LIMIT " + _limit);
+			}
+
+			// OFFSET
+			if(_offset != -1)
+			{
+				addQueryPart(parts, "OFFSET " + _offset);
+			}
+
 			_queryString = parts.join(" ");
 
 			return super.queryString;
@@ -335,6 +468,15 @@ package breezedb.queries
 		 *
 		 *
 		 */
+
+
+		private function whereRaw(query:String):BreezeQueryBuilder
+		{
+			var lastWhere:Array = _where[_where.length - 1];
+			lastWhere[lastWhere.length] = query;
+
+			return this;
+		}
 		
 		
 		private function addInsertObjects(row:Object, multiRowInsert:Boolean):void
@@ -396,6 +538,18 @@ package breezedb.queries
 		}
 
 
+		private function arrayToParameters(values:Array):Array
+		{
+			var result:Array = [];
+			for each(var value:* in values)
+			{
+				result[result.length] = inputToParameter(value);
+			}
+
+			return result;
+		}
+
+
 		private function executeIfNeeded(callback:*):void
 		{
 			_queryString = queryString;
@@ -415,6 +569,12 @@ package breezedb.queries
 		private function addQueryPart(parts:Vector.<String>, part:String):void
 		{
 			parts[parts.length] = part;
+		}
+
+
+		private function addFromPart(parts:Vector.<String>):void
+		{
+			parts[parts.length] = "FROM " + _tableName;
 		}
 
 
