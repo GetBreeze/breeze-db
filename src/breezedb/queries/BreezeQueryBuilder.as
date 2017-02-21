@@ -43,6 +43,9 @@ package breezedb.queries
 		private var _insert:Array = [];
 		private var _insertColumns:String = null;
 		private var _where:Array = [[]];
+		private var _orderBy:Array = [];
+		private var _groupBy:Array = [];
+		private var _having:Array = [];
 		private var _distinct:Boolean = false;
 		private var _offset:int = -1;
 		private var _limit:int = -1;
@@ -332,18 +335,79 @@ package breezedb.queries
 
 		public function orderBy(...args):BreezeQueryBuilder
 		{
+			if(args.length % 2 != 0)
+			{
+				throw new ArgumentError("Invalid orderBy parameters.");
+			}
+
+			var length:uint = args.length;
+			for(var i:int = 0; i < length; i+=2)
+			{
+				_orderBy[_orderBy.length] = args[i] + " " + args[i + 1];
+			}
 			return this;
 		}
 
 
 		public function groupBy(...args):BreezeQueryBuilder
 		{
+			var length:uint = args.length;
+			for(var i:int = 0; i < length; ++i)
+			{
+				_groupBy[_groupBy.length] = args[i];
+			}
 			return this;
 		}
 
 
 		public function having(param1:*, param2:* = null, param3:* = null):BreezeQueryBuilder
 		{
+			// Raw having statement, e.g. having("count > 2")
+			if(param1 is String && param2 === null && param3 === null)
+			{
+				havingRaw(param1);
+			}
+			// Simple equal statement, e.g. having("count", 15)
+			else if(param1 is String && param3 === null)
+			{
+				having(param1, "=", param2);
+			}
+			// Simple statement with operator, e.g. having("count", "!=", 15)
+			else if(param1 is String && param2 is String && param3 !== null)
+			{
+				havingRaw(param1 + " " + param2 + " " + inputToParameter(param3));
+			}
+			// Array of statements, e.g. having([["count", 15], ["team", "!=", "Alpha"])
+			else if(param1 is Array && param2 === null && param3 === null)
+			{
+				for each(var statement:* in param1)
+				{
+					if(!(statement is Array))
+					{
+						throw new Error("Having must be an Array of Arrays.");
+					}
+
+					if(statement.length == 3)
+					{
+						having(statement[0], statement[1], statement[2]);
+					}
+					else if(statement.length == 2)
+					{
+						having(statement[0], "=", statement[1]);
+					}
+					else
+					{
+						throw new Error("Invalid having parameters.");
+					}
+
+				}
+			}
+			// Invalid input
+			else
+			{
+				throw new ArgumentError("Invalid having parameters.");
+			}
+
 			return this;
 		}
 
@@ -514,6 +578,27 @@ package breezedb.queries
 				addQueryPart(parts, tmpOrWhere.join(" OR "))
 			}
 
+			// GROUP BY
+			if(_groupBy.length > 0)
+			{
+				addQueryPart(parts, "GROUP BY");
+				addQueryPart(parts, _groupBy.join(", "));
+			}
+
+			// HAVING
+			if(_having.length > 0)
+			{
+				addQueryPart(parts, "HAVING");
+				addQueryPart(parts, _having.join(" AND "));
+			}
+
+			// ORDER BY
+			if(_orderBy.length > 0)
+			{
+				addQueryPart(parts, "ORDER BY");
+				addQueryPart(parts, _orderBy.join(", "));
+			}
+
 			// LIMIT
 			if(_limit != -1)
 			{
@@ -545,6 +630,14 @@ package breezedb.queries
 		{
 			var lastWhere:Array = _where[_where.length - 1];
 			lastWhere[lastWhere.length] = query;
+
+			return this;
+		}
+
+
+		private function havingRaw(query:String):BreezeQueryBuilder
+		{
+			_having[_having.length] = query;
 
 			return this;
 		}
