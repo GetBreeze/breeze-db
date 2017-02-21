@@ -50,12 +50,42 @@ package breezedb.queries
 		/**
 		 * @private
 		 */
+		protected static const QUERY_RAW:int = 0;
+
+		/**
+		 * @private
+		 */
+		protected static const QUERY_SELECT:int = 1;
+
+		/**
+		 * @private
+		 */
+		protected static const QUERY_DELETE:int = 2;
+
+		/**
+		 * @private
+		 */
+		protected static const QUERY_INSERT:int = 3;
+
+		/**
+		 * @private
+		 */
+		protected static const QUERY_UPDATE:int = 4;
+
+		/**
+		 * @private
+		 */
 		protected var _db:IBreezeDatabase;
 
 		/**
 		 * @private
 		 */
 		protected var _queryString:String;
+
+		/**
+		 * @private
+		 */
+		protected var _queryType:int;
 
 		/**
 		 * @private
@@ -85,6 +115,7 @@ package breezedb.queries
 
 			_db = db;
 			_queryParams = null;
+			_queryType = QUERY_RAW;
 			_multiQueryMethod = MULTI_QUERY_TRANSACTION;
 		}
 		
@@ -141,7 +172,24 @@ package breezedb.queries
 				return _queryReference;
 			}
 
-			_queryReference = new BreezeRawQuery(_db).query(_queryString, _queryParams, callback);
+			switch(_queryType)
+			{
+				case QUERY_RAW:
+					_queryReference = query.query(_queryString, _queryParams, callback);
+					break;
+				case QUERY_SELECT:
+					_queryReference = query.select(_queryString, _queryParams, callback);
+					break;
+				case QUERY_DELETE:
+					_queryReference = query.remove(_queryString, _queryParams, callback);
+					break;
+				case QUERY_INSERT:
+					_queryReference = query.insert(_queryString, _queryParams, callback);
+					break;
+				case QUERY_UPDATE:
+					_queryReference = query.update(_queryString, _queryParams, callback);
+					break;
+			}
 			return _queryReference;
 		}
 
