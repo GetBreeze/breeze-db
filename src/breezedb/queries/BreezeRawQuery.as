@@ -55,6 +55,9 @@ package breezedb.queries
 		private var _isCompleted:Boolean;
 		private var _columnName:String;
 
+		// Only the first item in the SELECT result is returned to the callback.
+		private var _selectFirstOnly:Boolean;
+
 		private var _db:IBreezeDatabase;
 		private var _callback:Function;
 
@@ -243,8 +246,8 @@ package breezedb.queries
 			// Format second callback parameter based on query type
 			if(_queryType == SELECT)
 			{
-				// Return selected items
-				params[1] = result.data;
+				// Return selected items or first only if requested
+				params[1] = _selectFirstOnly ? (result.data.length > 0 ? result.data[0] : null) : result.data;
 			}
 			else if(_queryType == UPDATE || _queryType == DELETE)
 			{
@@ -405,6 +408,24 @@ package breezedb.queries
 		internal function get isCompleted():Boolean
 		{
 			return _isCompleted;
+		}
+
+
+		/**
+		 * @private
+		 */
+		internal function get selectFirstOnly():Boolean
+		{
+			return _selectFirstOnly;
+		}
+
+
+		/**
+		 * @private
+		 */
+		internal function set selectFirstOnly(value:Boolean):void
+		{
+			_selectFirstOnly = value;
 		}
 	}
 	

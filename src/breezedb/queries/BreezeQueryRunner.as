@@ -102,6 +102,12 @@ package breezedb.queries
 		 */
 		protected var _multiQueryMethod:int;
 
+		/**
+		 * @private
+		 * Only the first item in the SELECT result is returned to the callback.
+		 */
+		protected var _selectFirstOnly:Boolean = false;
+
 
 		/**
 		 * @private
@@ -178,6 +184,7 @@ package breezedb.queries
 					_queryReference = query.query(_queryString, _queryParams, callback);
 					break;
 				case QUERY_SELECT:
+					query.selectFirstOnly = _selectFirstOnly;
 					_queryReference = query.select(_queryString, _queryParams, callback);
 					break;
 				case QUERY_DELETE:
