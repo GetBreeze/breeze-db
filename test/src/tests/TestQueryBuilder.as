@@ -305,7 +305,7 @@ package tests
 			    Assert.isTrue("name" in photo);
 
 				Assert.equals(index + 1, photo.id);
-				Assert.equals(_photos[index].title, photo.name);
+				Assert.equals(_photos[index++].title, photo.name);
 			}
 
 			currentAsync.complete();
@@ -343,7 +343,14 @@ package tests
 			Assert.isNull(error);
 			Assert.isNotNull(results);
 			Assert.equals(_photos.length - 1, results.length);
-			Assert.arrayEquals([10, 6, 0, 13], results.all);
+
+			var downloads:Array = [];
+			for each(var result:Object in results)
+			{
+			    downloads[downloads.length] = result.downloads;
+			}
+
+			Assert.arrayEquals([0, 6, 10, 13], downloads);
 
 			currentAsync.complete();
 		}
@@ -396,7 +403,7 @@ package tests
 			Assert.equals(1, results.length);
 
 			var photo2:Object = _photos[1]; // Photo id 2
-			Assert.equals(photo2.id, results[0].id);
+			Assert.equals(2, results[0].id);
 			Assert.equals(photo2.title, results[0].title);
 			Assert.equals(photo2.views, results[0].views);
 			Assert.equals(photo2.downloads, results[0].downloads);
@@ -416,7 +423,7 @@ package tests
 			for(var i:int = 0; i < length; ++i)
 			{
 				var photo:Object = _photos[index++];
-				Assert.equals(photo.id, results[i].id);
+				Assert.equals(index, results[i].id);
 				Assert.equals(photo.title, results[i].title);
 				Assert.equals(photo.views, results[i].views);
 				Assert.equals(photo.downloads, results[i].downloads);
@@ -433,7 +440,7 @@ package tests
 			Assert.equals(1, results.length);
 
 			var photo2:Object = _photos[1]; // Photo id 2
-			Assert.equals(photo2.id, results[0].id);
+			Assert.equals(2, results[0].id);
 			Assert.equals(photo2.title, results[0].title);
 			Assert.equals(photo2.views, results[0].views);
 			Assert.equals(photo2.downloads, results[0].downloads);
@@ -451,13 +458,13 @@ package tests
 			// Photo 3 should not be included, it has 0 downloads
 
 			var photo4:Object = _photos[3]; // Photo id 4
-			Assert.equals(photo4.id, results[0].id);
+			Assert.equals(4, results[0].id);
 			Assert.equals(photo4.title, results[0].title);
 			Assert.equals(photo4.views, results[0].views);
 			Assert.equals(photo4.downloads, results[0].downloads);
 
 			var photo5:Object = _photos[4]; // Photo id 5
-			Assert.equals(photo5.id, results[1].id);
+			Assert.equals(5, results[1].id);
 			Assert.equals(photo5.title, results[1].title);
 			Assert.equals(photo5.views, results[1].views);
 			Assert.equals(photo5.downloads, results[1].downloads);
@@ -473,7 +480,7 @@ package tests
 			Assert.equals(1, results.length);
 
 			var photo2:Object = _photos[1]; // Photo id 2
-			Assert.equals(photo2.id, results[0].id);
+			Assert.equals(2, results[0].id);
 			Assert.equals(photo2.title, results[0].title);
 			Assert.equals(photo2.views, results[0].views);
 			Assert.equals(photo2.downloads, results[0].downloads);
@@ -497,16 +504,16 @@ package tests
 			Assert.equals(2, results.length);
 
 			var photo2:Object = _photos[1]; // Photo id 2
-			Assert.equals(photo2.id, results[0].id);
+			Assert.equals(2, results[0].id);
 			Assert.equals(photo2.title, results[0].title);
 			Assert.equals(photo2.views, results[0].views);
 			Assert.equals(photo2.downloads, results[0].downloads);
 
-			var photo4:Object = _photos[4]; // Photo id 5
-			Assert.equals(photo4.id, results[1].id);
-			Assert.equals(photo4.title, results[1].title);
-			Assert.equals(photo4.views, results[1].views);
-			Assert.equals(photo4.downloads, results[1].downloads);
+			var photo5:Object = _photos[4]; // Photo id 5
+			Assert.equals(5, results[1].id);
+			Assert.equals(photo5.title, results[1].title);
+			Assert.equals(photo5.views, results[1].views);
+			Assert.equals(photo5.downloads, results[1].downloads);
 
 			currentAsync.complete();
 		}
@@ -527,13 +534,13 @@ package tests
 			Assert.equals(2, results.length);
 
 			var photo4:Object = _photos[3]; // Photo id 4
-			Assert.equals(photo4.id, results[0].id);
+			Assert.equals(4, results[0].id);
 			Assert.equals(photo4.title, results[0].title);
 			Assert.equals(photo4.views, results[0].views);
 			Assert.equals(photo4.downloads, results[0].downloads);
 
 			var photo5:Object = _photos[4]; // Photo id 5
-			Assert.equals(photo5.id, results[1].id);
+			Assert.equals(5, results[1].id);
 			Assert.equals(photo5.title, results[1].title);
 			Assert.equals(photo5.views, results[1].views);
 			Assert.equals(photo5.downloads, results[1].downloads);
@@ -557,19 +564,19 @@ package tests
 			Assert.equals(3, results.length);
 
 			var photo1:Object = _photos[0]; // Photo id 1
-			Assert.equals(photo1.id, results[0].id);
+			Assert.equals(1, results[0].id);
 			Assert.equals(photo1.title, results[0].title);
 			Assert.equals(photo1.views, results[0].views);
 			Assert.equals(photo1.downloads, results[0].downloads);
 
 			var photo2:Object = _photos[1]; // Photo id 2
-			Assert.equals(photo2.id, results[1].id);
+			Assert.equals(2, results[1].id);
 			Assert.equals(photo2.title, results[1].title);
 			Assert.equals(photo2.views, results[1].views);
 			Assert.equals(photo2.downloads, results[1].downloads);
 
 			var photo3:Object = _photos[2]; // Photo id 3
-			Assert.equals(photo3.id, results[2].id);
+			Assert.equals(3, results[2].id);
 			Assert.equals(photo3.title, results[2].title);
 			Assert.equals(photo3.views, results[2].views);
 			Assert.equals(photo3.downloads, results[2].downloads);
@@ -593,13 +600,13 @@ package tests
 			Assert.equals(2, results.length);
 
 			var photo4:Object = _photos[3]; // Photo id 4
-			Assert.equals(photo4.id, results[0].id);
+			Assert.equals(4, results[0].id);
 			Assert.equals(photo4.title, results[0].title);
 			Assert.equals(photo4.views, results[0].views);
 			Assert.equals(photo4.downloads, results[0].downloads);
 
 			var photo5:Object = _photos[4]; // Photo id 5
-			Assert.equals(photo5.id, results[1].id);
+			Assert.equals(5, results[1].id);
 			Assert.equals(photo5.title, results[1].title);
 			Assert.equals(photo5.views, results[1].views);
 			Assert.equals(photo5.downloads, results[1].downloads);
@@ -620,22 +627,22 @@ package tests
 		{
 			Assert.isNull(error);
 			Assert.isNotNull(results);
-			Assert.equals(2, results.length);
+			Assert.equals(3, results.length);
 
 			var photo1:Object = _photos[0]; // Photo id 1
-			Assert.equals(photo1.id, results[0].id);
+			Assert.equals(1, results[0].id);
 			Assert.equals(photo1.title, results[0].title);
 			Assert.equals(photo1.views, results[0].views);
 			Assert.equals(photo1.downloads, results[0].downloads);
 
 			var photo2:Object = _photos[1]; // Photo id 2
-			Assert.equals(photo2.id, results[1].id);
+			Assert.equals(2, results[1].id);
 			Assert.equals(photo2.title, results[1].title);
 			Assert.equals(photo2.views, results[1].views);
 			Assert.equals(photo2.downloads, results[1].downloads);
 
 			var photo3:Object = _photos[2]; // Photo id 3
-			Assert.equals(photo3.id, results[2].id);
+			Assert.equals(3, results[2].id);
 			Assert.equals(photo3.title, results[2].title);
 			Assert.equals(photo3.views, results[2].views);
 			Assert.equals(photo3.downloads, results[2].downloads);
@@ -659,7 +666,7 @@ package tests
 			Assert.equals(1, results.length);
 
 			var photo1:Object = _photos[0]; // Photo id 1
-			Assert.equals(photo1.id, results[0].id);
+			Assert.equals(1, results[0].id);
 			Assert.equals(photo1.title, results[0].title);
 			Assert.equals(photo1.views, results[0].views);
 			Assert.equals(photo1.downloads, results[0].downloads);
@@ -675,7 +682,7 @@ package tests
 			Assert.equals(1, results.length);
 
 			var photo1:Object = _photos[0]; // Photo id 1
-			Assert.equals(photo1.id, results[0].id);
+			Assert.equals(1, results[0].id);
 			Assert.equals(photo1.title, results[0].title);
 			Assert.equals(photo1.views, results[0].views);
 			Assert.equals(photo1.downloads, results[0].downloads);
@@ -699,7 +706,7 @@ package tests
 			Assert.equals(1, results.length);
 
 			var photo1:Object = _photos[0]; // Photo id 1
-			Assert.equals(photo1.id, results[0].id);
+			Assert.equals(1, results[0].id);
 			Assert.equals(photo1.title, results[0].title);
 			Assert.equals(photo1.views, results[0].views);
 			Assert.equals(photo1.downloads, results[0].downloads);
@@ -715,13 +722,13 @@ package tests
 			Assert.equals(2, results.length);
 
 			var photo1:Object = _photos[0]; // Photo id 1
-			Assert.equals(photo1.id, results[0].id);
+			Assert.equals(1, results[0].id);
 			Assert.equals(photo1.title, results[0].title);
 			Assert.equals(photo1.views, results[0].views);
 			Assert.equals(photo1.downloads, results[0].downloads);
 
 			var photo4:Object = _photos[3]; // Photo id 4
-			Assert.equals(photo4.id, results[1].id);
+			Assert.equals(4, results[1].id);
 			Assert.equals(photo4.title, results[1].title);
 			Assert.equals(photo4.views, results[1].views);
 			Assert.equals(photo4.downloads, results[1].downloads);
@@ -745,7 +752,7 @@ package tests
 			Assert.equals(1, results.length);
 
 			var photo3:Object = _photos[2]; // Photo id 3
-			Assert.equals(photo3.id, results[0].id);
+			Assert.equals(3, results[0].id);
 			Assert.equals(photo3.title, results[0].title);
 			Assert.equals(photo3.views, results[0].views);
 			Assert.equals(photo3.downloads, results[0].downloads);
@@ -761,13 +768,13 @@ package tests
 			Assert.equals(2, results.length);
 
 			var photo4:Object = _photos[3]; // Photo id 4
-			Assert.equals(photo4.id, results[0].id);
+			Assert.equals(4, results[0].id);
 			Assert.equals(photo4.title, results[0].title);
 			Assert.equals(photo4.views, results[0].views);
 			Assert.equals(photo4.downloads, results[0].downloads);
 
 			var photo5:Object = _photos[4]; // Photo id 5
-			Assert.equals(photo5.id, results[1].id);
+			Assert.equals(5, results[1].id);
 			Assert.equals(photo5.title, results[1].title);
 			Assert.equals(photo5.views, results[1].views);
 			Assert.equals(photo5.downloads, results[1].downloads);
@@ -791,13 +798,13 @@ package tests
 			Assert.equals(2, results.length);
 
 			var photo2:Object = _photos[1]; // Photo id 2
-			Assert.equals(photo2.id, results[0].id);
+			Assert.equals(2, results[0].id);
 			Assert.equals(photo2.title, results[0].title);
 			Assert.equals(photo2.views, results[0].views);
 			Assert.equals(photo2.downloads, results[0].downloads);
 
 			var photo5:Object = _photos[4]; // Photo id 5
-			Assert.equals(photo5.id, results[1].id);
+			Assert.equals(5, results[1].id);
 			Assert.equals(photo5.title, results[1].title);
 			Assert.equals(photo5.views, results[1].views);
 			Assert.equals(photo5.downloads, results[1].downloads);
@@ -813,7 +820,7 @@ package tests
 			Assert.equals(1, results.length);
 
 			var photo1:Object = _photos[0]; // Photo id 1
-			Assert.equals(photo1.id, results[0].id);
+			Assert.equals(1, results[0].id);
 			Assert.equals(photo1.title, results[0].title);
 			Assert.equals(photo1.views, results[0].views);
 			Assert.equals(photo1.downloads, results[0].downloads);
@@ -837,14 +844,14 @@ package tests
 			Assert.equals(2, results.length);
 
 			var photo2:Object = _photos[1]; // Photo id 2
-			Assert.equals(photo2.id, results[0].id);
+			Assert.equals(2, results[0].id);
 			Assert.equals(photo2.title, results[0].title);
 			Assert.equals(photo2.views, results[0].views);
 			Assert.equals(photo2.downloads, results[0].downloads);
 			Assert.equals(results[0].views, results[0].downloads);
 
 			var photo5:Object = _photos[4]; // Photo id 5
-			Assert.equals(photo5.id, results[1].id);
+			Assert.equals(5, results[1].id);
 			Assert.equals(photo5.title, results[1].title);
 			Assert.equals(photo5.views, results[1].views);
 			Assert.equals(photo5.downloads, results[1].downloads);
@@ -861,14 +868,14 @@ package tests
 			Assert.equals(2, results.length);
 
 			var photo1:Object = _photos[0]; // Photo id 1
-			Assert.equals(photo1.id, results[0].id);
+			Assert.equals(1, results[0].id);
 			Assert.equals(photo1.title, results[0].title);
 			Assert.equals(photo1.views, results[0].views);
 			Assert.equals(photo1.downloads, results[0].downloads);
 			Assert.isTrue(results[0].likes < results[0].downloads);
 
 			var photo4:Object = _photos[3]; // Photo id 4
-			Assert.equals(photo4.id, results[1].id);
+			Assert.equals(4, results[1].id);
 			Assert.equals(photo4.title, results[1].title);
 			Assert.equals(photo4.views, results[1].views);
 			Assert.equals(photo4.downloads, results[1].downloads);
@@ -885,7 +892,7 @@ package tests
 			Assert.equals(1, results.length);
 
 			var photo4:Object = _photos[3]; // Photo id 4
-			Assert.equals(photo4.id, results[0].id);
+			Assert.equals(4, results[0].id);
 			Assert.equals(photo4.title, results[0].title);
 			Assert.equals(photo4.views, results[0].views);
 			Assert.equals(photo4.downloads, results[0].downloads);
@@ -1026,13 +1033,13 @@ package tests
 			Assert.equals(2, results.length);
 
 			var photo1:Object = _photos[0]; // Photo id 1
-			Assert.equals(photo1.id, results[0].id);
+			Assert.equals(1, results[0].id);
 			Assert.equals(photo1.title, results[0].title);
 			Assert.equals(photo1.views, results[0].views);
 			Assert.equals(photo1.downloads, results[0].downloads);
 
 			var photo2:Object = _photos[1]; // Photo id 2
-			Assert.equals(photo2.id, results[1].id);
+			Assert.equals(2, results[1].id);
 			Assert.equals(photo2.title, results[1].title);
 			Assert.equals(photo2.views, results[1].views);
 			Assert.equals(photo2.downloads, results[1].downloads);
@@ -1056,13 +1063,13 @@ package tests
 			Assert.equals(2, results.length);
 
 			var photo3:Object = _photos[2]; // Photo id 3
-			Assert.equals(photo3.id, results[0].id);
+			Assert.equals(3, results[0].id);
 			Assert.equals(photo3.title, results[0].title);
 			Assert.equals(photo3.views, results[0].views);
 			Assert.equals(photo3.downloads, results[0].downloads);
 
 			var photo4:Object = _photos[3]; // Photo id 4
-			Assert.equals(photo4.id, results[1].id);
+			Assert.equals(4, results[1].id);
 			Assert.equals(photo4.title, results[1].title);
 			Assert.equals(photo4.views, results[1].views);
 			Assert.equals(photo4.downloads, results[1].downloads);
