@@ -966,7 +966,7 @@ package tests
 			async.timeout = 2000;
 
 			_db.table(_tableName)
-					.select("SUM(views) as total_views, strftime(%Y, creation_date) as year_created")
+					.select("SUM(views) as total_views, strftime('%Y', creation_date) as year_created")
 					.groupBy("year_created")
 					.orderBy("total_views", "ASC")
 					.fetch(onGroupByCompleted);
@@ -997,10 +997,10 @@ package tests
 			async.timeout = 2000;
 
 			_db.table(_tableName)
-					.select("SUM(views) as total_views, strftime(%Y, creation_date) as year_created")
+					.select("SUM(views) as total_views, strftime('%Y', creation_date) as year_created")
 					.groupBy("year_created")
 					.orderBy("total_views", "ASC")
-					.having("year_created", ">", 2015)
+					.having([["total_views", ">=", 30], ["total_views", "<=", 35]])
 					.fetch(onHavingCompleted);
 		}
 
@@ -1009,10 +1009,13 @@ package tests
 		{
 			Assert.isNull(error);
 			Assert.isNotNull(results);
-			Assert.equals(1, results.length);
+			Assert.equals(2, results.length);
 
 			Assert.equals(30, results[0].total_views);
 			Assert.equals(2015, results[0].year_created);
+
+			Assert.equals(35, results[1].total_views);
+			Assert.equals(2014, results[1].year_created);
 
 			currentAsync.complete();
 		}
