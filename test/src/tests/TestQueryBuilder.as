@@ -38,7 +38,6 @@ package tests
 		public var currentAsync:Async;
 
 		private var _db:IBreezeDatabase;
-		private var _numInserts:int = 0;
 		private var _numChunks:int = 0;
 
 		private const _photos:Array = [
@@ -82,11 +81,7 @@ package tests
 		{
 			Assert.isNull(error);
 
-			// Insert initial data
-			for each(var photo:Object in _photos)
-			{
-				_db.table(_tableName).insert(photo, onInsertInitialDataCompleted);
-			}
+			_db.table(_tableName).insert(_photos, onInsertInitialDataCompleted);
 		}
 
 
@@ -94,16 +89,14 @@ package tests
 		{
 			Assert.isNull(error);
 
-			_numInserts++;
-			if(_numInserts == _photos.length)
-			{
-				currentAsync.complete();
-			}
+			currentAsync.complete();
 		}
 		
 		
 		public function testFirst(async:Async):void
 		{
+			async.timeout = 2000;
+
 			_db.table(_tableName).first(onFirstCompleted);
 		}
 
@@ -125,6 +118,8 @@ package tests
 		
 		public function testCount(async:Async):void
 		{
+			async.timeout = 2000;
+
 			_db.table(_tableName).count(onCountCompleted);
 		}
 
@@ -140,6 +135,8 @@ package tests
 
 		public function testSum(async:Async):void
 		{
+			async.timeout = 2000;
+
 			_db.table(_tableName).sum("views", onSumViewsCompleted);
 		}
 
@@ -147,7 +144,14 @@ package tests
 		private function onSumViewsCompleted(error:Error, sum:Number):void
 		{
 			Assert.isNull(error);
-			Assert.equals(94, sum);
+
+			var actual:Number = 0;
+			for each(var photo:Object in _photos)
+			{
+				actual += photo.views;
+			}
+
+			Assert.equals(actual, sum);
 
 			currentAsync.complete();
 		}
@@ -155,6 +159,8 @@ package tests
 
 		public function testInvalidSum(async:Async):void
 		{
+			async.timeout = 2000;
+
 			_db.table(_tableName).sum("viewz", onInvalidSumCompleted);
 		}
 
@@ -170,6 +176,8 @@ package tests
 
 		public function testAvg(async:Async):void
 		{
+			async.timeout = 2000;
+
 			_db.table(_tableName).avg("downloads", onAvgDownloadsCompleted);
 		}
 
@@ -177,7 +185,15 @@ package tests
 		private function onAvgDownloadsCompleted(error:Error, avg:Number):void
 		{
 			Assert.isNull(error);
-			Assert.equals(23.5, avg);
+
+			var actual:Number = 0;
+			for each(var photo:Object in _photos)
+			{
+			    actual += photo.downloads;
+			}
+			actual /= _photos.length;
+
+			Assert.equals(actual, avg);
 
 			currentAsync.complete();
 		}
@@ -185,6 +201,8 @@ package tests
 
 		public function testInvalidAvg(async:Async):void
 		{
+			async.timeout = 2000;
+
 			_db.table(_tableName).avg("downloadz", onInvalidAvgCompleted);
 		}
 
@@ -200,6 +218,8 @@ package tests
 
 		public function testMin(async:Async):void
 		{
+			async.timeout = 2000;
+
 			_db.table(_tableName).min("downloads", onMinDownloadsCompleted);
 		}
 
@@ -215,6 +235,8 @@ package tests
 
 		public function testInvalidMin(async:Async):void
 		{
+			async.timeout = 2000;
+
 			_db.table(_tableName).min("downloadz", onInvalidMinCompleted);
 		}
 
@@ -230,14 +252,16 @@ package tests
 
 		public function testMax(async:Async):void
 		{
-			_db.table(_tableName).max("views", onMaxDownloadsCompleted);
+			async.timeout = 2000;
+
+			_db.table(_tableName).max("views", onMaxViewsCompleted);
 		}
 
 
-		private function onMaxDownloadsCompleted(error:Error, max:Number):void
+		private function onMaxViewsCompleted(error:Error, max:Number):void
 		{
 			Assert.isNull(error);
-			Assert.equals(40, max);
+			Assert.equals(35, max);
 
 			currentAsync.complete();
 		}
@@ -245,6 +269,8 @@ package tests
 
 		public function testInvalidMax(async:Async):void
 		{
+			async.timeout = 2000;
+
 			_db.table(_tableName).max("viewz", onInvalidMaxCompleted);
 		}
 
@@ -260,6 +286,8 @@ package tests
 
 		public function testSelect(async:Async):void
 		{
+			async.timeout = 2000;
+
 			_db.table(_tableName).select("id", "title as name").fetch(onSelectCompleted);
 		}
 
@@ -286,6 +314,8 @@ package tests
 
 		public function testInvalidSelect(async:Async):void
 		{
+			async.timeout = 2000;
+
 			_db.table(_tableName).select("idz").fetch(onInvalidSelectCompleted);
 		}
 
@@ -302,6 +332,8 @@ package tests
 
 		public function testDistinct(async:Async):void
 		{
+			async.timeout = 2000;
+
 			_db.table(_tableName).distinct("downloads").fetch(onDistinctCompleted);
 		}
 
@@ -319,6 +351,8 @@ package tests
 
 		public function testChunk(async:Async):void
 		{
+			async.timeout = 2000;
+
 			_db.table(_tableName).chunk(1, onChunkCompleted);
 		}
 
@@ -349,6 +383,8 @@ package tests
 
 		public function testWhere(async:Async):void
 		{
+			async.timeout = 2000;
+
 			_db.table(_tableName).where("id", 2).fetch(onWhereEqualCompleted);
 		}
 		
@@ -448,6 +484,8 @@ package tests
 
 		public function testOrWhere(async:Async):void
 		{
+			async.timeout = 2000;
+
 			_db.table(_tableName).where("id", 2).orWhere("id", 5).fetch(onWhereOrWhereCompleted);
 		}
 
@@ -476,6 +514,8 @@ package tests
 		
 		public function testWhereBetween(async:Async):void
 		{
+			async.timeout = 2000;
+
 			_db.table(_tableName).whereBetween("views", 10, 30).fetch(onWhereBetweenCompleted);
 		}
 
@@ -504,6 +544,8 @@ package tests
 
 		public function testWhereNotBetween(async:Async):void
 		{
+			async.timeout = 2000;
+
 			_db.table(_tableName).whereNotBetween("views", 10, 30).fetch(onWhereNotBetweenCompleted);
 		}
 
@@ -538,6 +580,8 @@ package tests
 
 		public function testWhereIn(async:Async):void
 		{
+			async.timeout = 2000;
+
 			_db.table(_tableName).whereIn("title", ["Camp Fire", "Sunset"]).fetch(onWhereInCompleted);
 		}
 
@@ -566,6 +610,8 @@ package tests
 
 		public function testWhereNotIn(async:Async):void
 		{
+			async.timeout = 2000;
+
 			_db.table(_tableName).whereNotIn("title", ["Camp Fire", "Sunset"]).fetch(onWhereNotInCompleted);
 		}
 
@@ -600,6 +646,8 @@ package tests
 
 		public function testWhereDate(async:Async):void
 		{
+			async.timeout = 2000;
+
 			_db.table(_tableName).whereDate("creation_date", new Date(2014, 1, 25)).fetch(onWhereDateEqualsCompleted);
 		}
 
@@ -638,6 +686,8 @@ package tests
 
 		public function testWhereDay(async:Async):void
 		{
+			async.timeout = 2000;
+
 			_db.table(_tableName).whereDay("creation_date", 25).fetch(onWhereDayEqualsCompleted);
 		}
 
@@ -682,6 +732,8 @@ package tests
 
 		public function testWhereMonth(async:Async):void
 		{
+			async.timeout = 2000;
+
 			_db.table(_tableName).whereMonth("creation_date", 5).fetch(onWhereMonthEqualsCompleted);
 		}
 
@@ -726,6 +778,8 @@ package tests
 
 		public function testWhereYear(async:Async):void
 		{
+			async.timeout = 2000;
+
 			_db.table(_tableName).whereYear("creation_date", 2015).fetch(onWhereYearEqualsCompleted);
 		}
 
@@ -770,6 +824,8 @@ package tests
 
 		public function testWhereColumn(async:Async):void
 		{
+			async.timeout = 2000;
+
 			_db.table(_tableName).whereColumn("views", "downloads").fetch(onWhereViewsEqualDownloadsCompleted);
 		}
 
@@ -842,6 +898,8 @@ package tests
 
 		public function testOrderBy(async:Async):void
 		{
+			async.timeout = 2000;
+
 			_db.table(_tableName).orderBy("views", "ASC", "downloads", "ASC").fetch(onOrderByViewsDownloadsAscCompleted);
 		}
 
@@ -898,6 +956,8 @@ package tests
 
 		public function testGroupBy(async:Async):void
 		{
+			async.timeout = 2000;
+
 			_db.table(_tableName)
 					.select("SUM(views) as total_views, strftime(%Y, creation_date) as year_created")
 					.groupBy("year_created")
@@ -927,6 +987,8 @@ package tests
 
 		public function testHaving(async:Async):void
 		{
+			async.timeout = 2000;
+
 			_db.table(_tableName)
 					.select("SUM(views) as total_views, strftime(%Y, creation_date) as year_created")
 					.groupBy("year_created")
@@ -951,6 +1013,8 @@ package tests
 
 		public function testLimit(async:Async):void
 		{
+			async.timeout = 2000;
+
 			_db.table(_tableName).limit(2).fetch(onLimitCompleted);
 		}
 
@@ -979,6 +1043,8 @@ package tests
 
 		public function testOffset(async:Async):void
 		{
+			async.timeout = 2000;
+
 			_db.table(_tableName).limit(2).offset(2).fetch(onOffsetCompleted);
 		}
 
@@ -1007,6 +1073,8 @@ package tests
 
 		public function testInsertAndRemove(async:Async):void
 		{
+			async.timeout = 2000;
+
 			_db.table(_tableName).insert({ id: 6, title: "Morning Dew", views: 3, downloads: 0, likes: 0, creation_date: new Date() }, onSingleInsertCompleted);
 		}
 
@@ -1100,6 +1168,8 @@ package tests
 
 		public function testUpdate(async:Async):void
 		{
+			async.timeout = 2000;
+
 			_db.table(_tableName)
 					.where("id", 1)
 					.update({ title: "Hills" }, onUpdateCompleted);
@@ -1146,6 +1216,8 @@ package tests
 
 		public function testIncAndDec(async:Async):void
 		{
+			async.timeout = 2000;
+
 			_db.table(_tableName)
 					.where("id", 1)
 					.increment("views", onSimpleIncrementCompleted);
