@@ -59,6 +59,12 @@ package breezedb.queries
 
 		public function first(callback:* = null):BreezeQueryRunner
 		{
+			_selectFirstOnly = true;
+
+			limit(1);
+
+			executeIfNeeded(callback);
+
 			return this;
 		}
 		
