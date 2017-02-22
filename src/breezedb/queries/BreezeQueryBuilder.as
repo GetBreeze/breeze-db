@@ -35,7 +35,8 @@ package breezedb.queries
 	 */
 	public class BreezeQueryBuilder extends BreezeQueryRunner
 	{
-		private static var sDateFormatter:DateTimeFormatter = null;
+		private static var sLongDateFormatter:DateTimeFormatter = null;
+		private static var sShortDateFormatter:DateTimeFormatter = null;
 
 		private var _tableName:String;
 
@@ -305,24 +306,91 @@ package breezedb.queries
 
 		public function whereDay(dateColumn:String, param2:* = null, param3:* = null):BreezeQueryBuilder
 		{
+			if(dateColumn == null)
+			{
+				throw new ArgumentError("Parameter dateColumn cannot be null.");
+			}
+
+			if(dateColumn.indexOf(";") >= 0)
+			{
+				throw new ArgumentError("Invalid column name.");
+			}
+
+			param2 = formatDayOrMonth(param2, "date");
+			param3 = formatDayOrMonth(param3, "date");
+
+			where("strftime('%d', " + dateColumn + ")", param2, param3);
+
 			return this;
 		}
 
 
 		public function whereMonth(dateColumn:String, param2:* = null, param3:* = null):BreezeQueryBuilder
 		{
+			if(dateColumn == null)
+			{
+				throw new ArgumentError("Parameter dateColumn cannot be null.");
+			}
+
+			if(dateColumn.indexOf(";") >= 0)
+			{
+				throw new ArgumentError("Invalid column name.");
+			}
+
+			param2 = formatDayOrMonth(param2, "month");
+			param3 = formatDayOrMonth(param3, "month");
+
+			where("strftime('%m', " + dateColumn + ")", param2, param3);
+
 			return this;
 		}
 
 
 		public function whereYear(dateColumn:String, param2:* = null, param3:* = null):BreezeQueryBuilder
 		{
+			if(dateColumn == null)
+			{
+				throw new ArgumentError("Parameter dateColumn cannot be null.");
+			}
+
+			if(dateColumn.indexOf(";") >= 0)
+			{
+				throw new ArgumentError("Invalid column name.");
+			}
+
+			param2 = formatDayOrMonth(param2, "fullYear");
+			param3 = formatDayOrMonth(param3, "fullYear");
+
+			where("strftime('%Y', " + dateColumn + ")", param2, param3);
+
 			return this;
 		}
 
 
 		public function whereDate(dateColumn:String, param2:* = null, param3:* = null):BreezeQueryBuilder
 		{
+			if(dateColumn == null)
+			{
+				throw new ArgumentError("Parameter dateColumn cannot be null.");
+			}
+
+			if(dateColumn.indexOf(";") >= 0)
+			{
+				throw new ArgumentError("Invalid column name.");
+			}
+
+			if(param2 is Date)
+			{
+				param2 = getShortStringFromDate(param2);
+			}
+
+			if(param3 is Date)
+			{
+				param3 = getShortStringFromDate(param3);
+			}
+
+			where("date(" + dateColumn + ")", param2, param3);
+
 			return this;
 		}
 
@@ -702,6 +770,38 @@ package breezedb.queries
 			}
 			_insertColumns += ")";
 		}
+
+
+		/**
+		 * Formats the given value to a two-digit String,
+		 * used for SQL comparison of months and days.
+		 */
+		private function formatDayOrMonth(param2:*, dateValue:String):*
+		{
+			if(param2 is Date)
+			{
+				param2 = param2[dateValue];
+
+				// Month value starts from 0 so it must be incremented to match the SQL value
+				if(dateValue == "month")
+				{
+					param2++;
+				}
+			}
+
+			if(param2 is Number)
+			{
+				if(param2 < 0)
+				{
+					throw new ArgumentError("Negative value cannot be used for comparison.");
+				}
+
+				// Add leading zero if needed
+				param2 = ((param2 < 10) ? "0" : "") + int(param2);
+			}
+
+			return param2;
+		}
 		
 		
 		private function inputToParameter(value:*):String
@@ -709,7 +809,7 @@ package breezedb.queries
 			var name:String = ":param_" + _parametersIndex++;
 			if(value is Date)
 			{
-				value = getStringFromDate(value as Date);
+				value = getLongStringFromDate(value as Date);
 			}
 			if(_queryParams == null)
 			{
@@ -760,20 +860,37 @@ package breezedb.queries
 		}
 
 
-		private function getStringFromDate(date:Date):String
+		private function getShortStringFromDate(date:Date):String
 		{
-			return dateFormatter.format(date);
+			return shortDateFormatter.format(date);
 		}
 
 
-		private static function get dateFormatter():DateTimeFormatter
+		private function getLongStringFromDate(date:Date):String
 		{
-			if(sDateFormatter == null)
+			return longDateFormatter.format(date);
+		}
+
+
+		private static function get shortDateFormatter():DateTimeFormatter
+		{
+			if(sShortDateFormatter == null)
 			{
-				sDateFormatter = new DateTimeFormatter("en-US");
-				sDateFormatter.setDateTimePattern("yyyy-MM-dd HH:mm:ss");
+				sShortDateFormatter = new DateTimeFormatter("en-US");
+				sShortDateFormatter.setDateTimePattern("yyyy-MM-dd");
 			}
-			return sDateFormatter;
+			return sShortDateFormatter;
+		}
+
+
+		private static function get longDateFormatter():DateTimeFormatter
+		{
+			if(sLongDateFormatter == null)
+			{
+				sLongDateFormatter = new DateTimeFormatter("en-US");
+				sLongDateFormatter.setDateTimePattern("yyyy-MM-dd HH:mm:ss");
+			}
+			return sLongDateFormatter;
 		}
 	}
 	
