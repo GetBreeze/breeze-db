@@ -75,6 +75,11 @@ package breezedb.queries
 		/**
 		 * @private
 		 */
+		protected static const QUERY_INSERT_GET_ID:int = 5;
+
+		/**
+		 * @private
+		 */
 		protected var _db:IBreezeDatabase;
 
 		/**
@@ -198,6 +203,8 @@ package breezedb.queries
 					_queryReference = query.remove(_queryString, _queryParams, callback);
 					break;
 				case QUERY_INSERT:
+				case QUERY_INSERT_GET_ID:
+					query.getLastInsertId = _queryType == QUERY_INSERT_GET_ID;
 					_queryReference = query.insert(_queryString, _queryParams, callback);
 					break;
 				case QUERY_UPDATE:

@@ -61,6 +61,9 @@ package breezedb.queries
 		// Running an aggregate query, a single numeric value is returned to the callback
 		private var _aggregate:String;
 
+		// Last inserted id value is returned to the callback instead of a generic result
+		private var _getLastInsertId:Boolean;
+
 		private var _db:IBreezeDatabase;
 		private var _callback:Function;
 
@@ -276,6 +279,11 @@ package breezedb.queries
 				// Return rows affected
 				params[1] = result.rowsAffected;
 			}
+			else if(_getLastInsertId)
+			{
+				// Return the last inserted id
+				params[1] = result.lastInsertRowID;
+			}
 			else
 			{
 				// Return generic result
@@ -466,6 +474,24 @@ package breezedb.queries
 		internal function set aggregate(value:String):void
 		{
 			_aggregate = value;
+		}
+
+
+		/**
+		 * @private
+		 */
+		internal function get getLastInsertId():Boolean
+		{
+			return _getLastInsertId;
+		}
+
+
+		/**
+		 * @private
+		 */
+		internal function set getLastInsertId(value:Boolean):void
+		{
+			_getLastInsertId = value;
 		}
 	}
 	
