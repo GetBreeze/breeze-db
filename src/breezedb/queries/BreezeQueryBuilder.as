@@ -50,7 +50,7 @@ package breezedb.queries
 		private var _offset:int = -1;
 		private var _limit:int = -1;
 
-		private var _parametersIndex:int = 0;
+		private var _parametersIndex:uint = 0;
 		
 		public function BreezeQueryBuilder(db:IBreezeDatabase, tableName:String)
 		{
@@ -456,10 +456,9 @@ package breezedb.queries
 					setInsertColumns(value[0]);
 				}
 
-				var multiRowInsert:Boolean = value.length > 1;
 				for each(var row:Object in value)
 				{
-					addInsertObjects(row, multiRowInsert);
+					addInsertObjects(row);
 				}
 			}
 			else
@@ -557,20 +556,13 @@ package breezedb.queries
 			// INSERT
 			else if(_queryType == QUERY_INSERT)
 			{
-				addQueryPart(parts, "INSERT INTO " + _tableName);
-				addQueryPart(parts, _insertColumns);
-
-				if(_insert.length == 1)
+				// Multiple inserts must be split into single query each
+				var tmpInsert:Array = [];
+				for each(var insert:String in _insert)
 				{
-					addQueryPart(parts, "VALUES");
-					addQueryPart(parts, _insert.join(", "));
+					tmpInsert[tmpInsert.length] = "INSERT INTO " + _tableName + " " + _insertColumns + " VALUES " + insert;
 				}
-				// Multi-row INSERT is not supported in the SQLite version shipped with AIR
-				else
-				{
-					addQueryPart(parts, "SELECT");
-					addQueryPart(parts, _insert.join(" UNION ALL SELECT "));
-				}
+				addQueryPart(parts, tmpInsert.join(";"));
 			}
 
 			// WHERE
@@ -584,7 +576,6 @@ package breezedb.queries
 					tmpOrWhere[tmpOrWhere.length] = "(" + whereArray.join(" AND ") + ")";
 				}
 
-				addQueryPart(parts, tmpOrWhere.join(" OR "))
 				addQueryPart(parts, tmpOrWhere.join(" OR "));
 			}
 
@@ -661,9 +652,9 @@ package breezedb.queries
 		}
 		
 		
-		private function addInsertObjects(row:Object, multiRowInsert:Boolean):void
+		private function addInsertObjects(row:Object):void
 		{
-			var values:String = multiRowInsert ? "" : "(";
+			var values:String = "(";
 			var i:int = 0;
 			for each(var value:Object in row)
 			{
@@ -679,10 +670,7 @@ package breezedb.queries
 				throw new ArgumentError("Cannot insert row with no columns specified.");
 			}
 
-			if(!multiRowInsert)
-			{
-				values += ")";
-			}
+			values += ")";
 
 			_insert[_insert.length] = values;
 		}
