@@ -86,15 +86,7 @@ package breezedb.queries
 
 		public function max(column:String, callback:* = null):BreezeQueryRunner
 		{
-			if(column == null)
-			{
-				throw new ArgumentError("Parameter column cannot be null.");
-			}
-
-			if(column.indexOf(";") >= 0)
-			{
-				throw new ArgumentError("Invalid column name.");
-			}
+			validateColumnName(column);
 
 			_aggregate = "max";
 
@@ -107,15 +99,7 @@ package breezedb.queries
 
 		public function min(column:String, callback:* = null):BreezeQueryRunner
 		{
-			if(column == null)
-			{
-				throw new ArgumentError("Parameter column cannot be null.");
-			}
-
-			if(column.indexOf(";") >= 0)
-			{
-				throw new ArgumentError("Invalid column name.");
-			}
+			validateColumnName(column);
 
 			_aggregate = "min";
 
@@ -128,15 +112,7 @@ package breezedb.queries
 
 		public function sum(column:String, callback:* = null):BreezeQueryRunner
 		{
-			if(column == null)
-			{
-				throw new ArgumentError("Parameter column cannot be null.");
-			}
-
-			if(column.indexOf(";") >= 0)
-			{
-				throw new ArgumentError("Invalid column name.");
-			}
+			validateColumnName(column);
 
 			_aggregate = "sum";
 
@@ -149,15 +125,7 @@ package breezedb.queries
 
 		public function avg(column:String, callback:* = null):BreezeQueryRunner
 		{
-			if(column == null)
-			{
-				throw new ArgumentError("Parameter column cannot be null.");
-			}
-
-			if(column.indexOf(";") >= 0)
-			{
-				throw new ArgumentError("Invalid column name.");
-			}
+			validateColumnName(column);
 
 			_aggregate = "avg";
 
@@ -258,6 +226,8 @@ package breezedb.queries
 
 		public function whereBetween(column:String, greaterThan:Number, lessThan:Number):BreezeQueryBuilder
 		{
+			validateColumnName(column);
+
 			whereRaw(column + " BETWEEN " + inputToParameter(greaterThan) + " AND " + inputToParameter(lessThan));
 
 			return this;
@@ -266,6 +236,8 @@ package breezedb.queries
 
 		public function whereNotBetween(column:String, greaterThan:Number, lessThan:Number):BreezeQueryBuilder
 		{
+			validateColumnName(column);
+
 			whereRaw(column + " NOT BETWEEN " + inputToParameter(greaterThan) + " AND " + inputToParameter(lessThan));
 
 			return this;
@@ -274,6 +246,8 @@ package breezedb.queries
 
 		public function whereNull(column:String):BreezeQueryBuilder
 		{
+			validateColumnName(column);
+
 			whereRaw(column + " IS NULL");
 
 			return this;
@@ -282,6 +256,8 @@ package breezedb.queries
 
 		public function whereNotNull(column:String):BreezeQueryBuilder
 		{
+			validateColumnName(column);
+
 			whereRaw(column + " IS NOT NULL");
 
 			return this;
@@ -290,6 +266,8 @@ package breezedb.queries
 
 		public function whereIn(column:String, values:Array):BreezeQueryBuilder
 		{
+			validateColumnName(column);
+
 			whereRaw(column + " IN (" + arrayToParameters(values).join(",") + ")");
 
 			return this;
@@ -298,6 +276,8 @@ package breezedb.queries
 
 		public function whereNotIn(column:String, values:Array):BreezeQueryBuilder
 		{
+			validateColumnName(column);
+
 			whereRaw(column + " NOT IN (" + arrayToParameters(values).join(",") + ")");
 
 			return this;
@@ -306,15 +286,7 @@ package breezedb.queries
 
 		public function whereDay(dateColumn:String, param2:* = null, param3:* = null):BreezeQueryBuilder
 		{
-			if(dateColumn == null)
-			{
-				throw new ArgumentError("Parameter dateColumn cannot be null.");
-			}
-
-			if(dateColumn.indexOf(";") >= 0)
-			{
-				throw new ArgumentError("Invalid column name.");
-			}
+			validateColumnName(dateColumn);
 
 			param2 = formatDayOrMonth(param2, "date");
 			param3 = formatDayOrMonth(param3, "date");
@@ -327,15 +299,7 @@ package breezedb.queries
 
 		public function whereMonth(dateColumn:String, param2:* = null, param3:* = null):BreezeQueryBuilder
 		{
-			if(dateColumn == null)
-			{
-				throw new ArgumentError("Parameter dateColumn cannot be null.");
-			}
-
-			if(dateColumn.indexOf(";") >= 0)
-			{
-				throw new ArgumentError("Invalid column name.");
-			}
+			validateColumnName(dateColumn);
 
 			param2 = formatDayOrMonth(param2, "month");
 			param3 = formatDayOrMonth(param3, "month");
@@ -348,15 +312,7 @@ package breezedb.queries
 
 		public function whereYear(dateColumn:String, param2:* = null, param3:* = null):BreezeQueryBuilder
 		{
-			if(dateColumn == null)
-			{
-				throw new ArgumentError("Parameter dateColumn cannot be null.");
-			}
-
-			if(dateColumn.indexOf(";") >= 0)
-			{
-				throw new ArgumentError("Invalid column name.");
-			}
+			validateColumnName(dateColumn);
 
 			param2 = formatDayOrMonth(param2, "fullYear");
 			param3 = formatDayOrMonth(param3, "fullYear");
@@ -369,15 +325,7 @@ package breezedb.queries
 
 		public function whereDate(dateColumn:String, param2:* = null, param3:* = null):BreezeQueryBuilder
 		{
-			if(dateColumn == null)
-			{
-				throw new ArgumentError("Parameter dateColumn cannot be null.");
-			}
-
-			if(dateColumn.indexOf(";") >= 0)
-			{
-				throw new ArgumentError("Invalid column name.");
-			}
+			validateColumnName(dateColumn);
 
 			if(param2 is Date)
 			{
@@ -857,6 +805,20 @@ package breezedb.queries
 		private function addFromPart(parts:Vector.<String>):void
 		{
 			parts[parts.length] = "FROM " + _tableName;
+		}
+
+
+		private function validateColumnName(columnName:String):void
+		{
+			if(columnName == null)
+			{
+				throw new ArgumentError("Column name cannot be null.");
+			}
+
+			if(columnName.indexOf(";") >= 0)
+			{
+				throw new ArgumentError("Invalid column name: " + columnName);
+			}
 		}
 
 
