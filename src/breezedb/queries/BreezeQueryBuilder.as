@@ -343,8 +343,57 @@ package breezedb.queries
 		}
 
 
-		public function whereColumn(param1:*, param2:* = null, param3:* = null):BreezeQueryBuilder
+		public function whereColumn(param1:*, param2:String = null, param3:String = null):BreezeQueryBuilder
 		{
+			if(!(param1 is Array || param1 is String))
+			{
+				throw new ArgumentError("Parameter param1 must be either an Array or String.");
+			}
+
+			// Simple equal statement, e.g. whereColumn("views", "downloads)
+			if(param1 is String && param3 === null)
+			{
+				whereColumn(param1, "=", param2);
+			}
+			// Simple statement with operator, e.g. whereColumn("views", ">", "downloads")
+			else if(param1 is String && param2 !== null && param3 !== null)
+			{
+				validateColumnName(param1);
+				validateColumnName(param3);
+
+				whereRaw(param1 + " " + param2 + " " + param3);
+			}
+			// Array of statements, e.g. whereColumn([["views", "downloads"], ["likes", ">", "downloads"])
+			else if(param1 is Array && param2 === null && param3 === null)
+			{
+				for each(var statement:* in param1)
+				{
+					if(!(statement is Array))
+					{
+						throw new Error("Where must be an Array of Arrays.");
+					}
+
+					if(statement.length == 3)
+					{
+						whereColumn(statement[0], statement[1], statement[2]);
+					}
+					else if(statement.length == 2)
+					{
+						whereColumn(statement[0], "=", statement[1]);
+					}
+					else
+					{
+						throw new Error("Invalid whereColumn parameters.");
+					}
+
+				}
+			}
+			// Invalid input
+			else
+			{
+				throw new ArgumentError("Invalid whereColumn parameters.");
+			}
+
 			return this;
 		}
 
