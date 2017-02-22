@@ -212,6 +212,7 @@ package breezedb.queries
 			if(params is Function)
 			{
 				callback = params as Function;
+				params = null;
 			}
 
 			_callback = callback;
@@ -227,7 +228,11 @@ package breezedb.queries
 				{
 					throw new ArgumentError("Each query must be a String.");
 				}
-				var parameters:Object = (params is Array && i < params.length) ? params[i] : null;
+				var parameters:Object = params;
+				if(params is Array && i < params.length)
+				{
+					parameters = params[i];
+				}
 				statement.addQuery(rawQuery, parameters);
 			}
 			statement.execute(failOnError, transaction);
