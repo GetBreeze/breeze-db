@@ -83,7 +83,8 @@ package breezedb.queries
 		{
 			for(var property:String in parameters)
 			{
-				if(text.indexOf(property) == -1)
+				var regex:RegExp = new RegExp(property + "(\\b)");
+				if(text.search(regex) == -1)
 				{
 					delete parameters[property];
 				}
