@@ -711,7 +711,7 @@ package tests
 			Assert.equals(photo1.views, results[0].views);
 			Assert.equals(photo1.downloads, results[0].downloads);
 
-			_db.table(_tableName).whereDay("creation_date", ">", 24).fetch(onWhereDayGreaterThanCompleted);
+			_db.table(_tableName).whereDay("creation_date", ">", new Date(2016, 5, 24)).fetch(onWhereDayGreaterThanCompleted);
 		}
 
 
@@ -741,7 +741,7 @@ package tests
 		{
 			async.timeout = 2000;
 
-			_db.table(_tableName).whereMonth("creation_date", 5).fetch(onWhereMonthEqualsCompleted);
+			_db.table(_tableName).whereMonth("creation_date", 6).fetch(onWhereMonthEqualsCompleted);
 		}
 
 
@@ -757,7 +757,7 @@ package tests
 			Assert.equals(photo3.views, results[0].views);
 			Assert.equals(photo3.downloads, results[0].downloads);
 
-			_db.table(_tableName).whereMonth("creation_date", ">", 5).fetch(onWhereMonthGreaterThanCompleted);
+			_db.table(_tableName).whereMonth("creation_date", ">", new Date(2015, 6, 15)).fetch(onWhereMonthGreaterThanCompleted);
 		}
 
 
@@ -809,7 +809,7 @@ package tests
 			Assert.equals(photo5.views, results[1].views);
 			Assert.equals(photo5.downloads, results[1].downloads);
 
-			_db.table(_tableName).whereYear("creation_date", "<", 2015).fetch(onWhereYearLessThanCompleted);
+			_db.table(_tableName).whereYear("creation_date", "<", new Date(2015, 1, 1)).fetch(onWhereYearLessThanCompleted);
 		}
 
 
@@ -1201,6 +1201,15 @@ package tests
 		{
 			Assert.isNull(error);
 			Assert.equals(9, newId);
+
+			_db.table(_tableName).where("id", 9).remove(onTempInsertRemoveCompleted);
+		}
+
+
+		private function onTempInsertRemoveCompleted(error:Error, deleted:int):void
+		{
+			Assert.isNull(error);
+			Assert.equals(1, deleted);
 
 			currentAsync.complete();
 		}
