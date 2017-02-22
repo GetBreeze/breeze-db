@@ -474,6 +474,18 @@ package breezedb.queries
 
 		public function insertGetId(value:Object, callback:* = null):BreezeQueryBuilder
 		{
+			if(value == null)
+			{
+				throw new ArgumentError("Parameter value cannot be null.");
+			}
+
+			_queryType = QUERY_INSERT_GET_ID;
+
+			setInsertColumns(value);
+			addInsertObjects(value);
+			
+			executeIfNeeded(callback);
+
 			return this;
 		}
 
@@ -553,8 +565,8 @@ package breezedb.queries
 				// FROM
 				addFromPart(parts);
 			}
-			// INSERT
-			else if(_queryType == QUERY_INSERT)
+			// INSERT, INSERT_GET_ID
+			else if(_queryType == QUERY_INSERT || _queryType == QUERY_INSERT_GET_ID)
 			{
 				// Multiple inserts must be split into single query each
 				var tmpInsert:Array = [];
