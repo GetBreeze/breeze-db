@@ -850,11 +850,11 @@ package tests
 			Assert.equals(photo2.downloads, results[0].downloads);
 			Assert.equals(results[0].views, results[0].downloads);
 
-			var photo5:Object = _photos[4]; // Photo id 5
-			Assert.equals(5, results[1].id);
-			Assert.equals(photo5.title, results[1].title);
-			Assert.equals(photo5.views, results[1].views);
-			Assert.equals(photo5.downloads, results[1].downloads);
+			var photo4:Object = _photos[3]; // Photo id 4
+			Assert.equals(4, results[1].id);
+			Assert.equals(photo4.title, results[1].title);
+			Assert.equals(photo4.views, results[1].views);
+			Assert.equals(photo4.downloads, results[1].downloads);
 			Assert.equals(results[1].views, results[1].downloads);
 
 			_db.table(_tableName).whereColumn("likes", "<", "downloads").fetch(onWhereLikesLessThanDownloadsCompleted);
@@ -1221,7 +1221,7 @@ package tests
 
 			_db.table(_tableName)
 					.where("id", 1)
-					.update({ title: "Hills" }, onUpdateCompleted);
+					.update({ title: "Hills", likes: 10 }, onUpdateCompleted);
 		}
 
 
@@ -1232,7 +1232,7 @@ package tests
 
 			// Check that the title has been updated
 			_db.table(_tableName)
-					.select("id", "title")
+					.select("id", "title", "likes")
 					.where("id", 1)
 					.fetch(onUpdateCheckCompleted);
 		}
@@ -1241,16 +1241,17 @@ package tests
 		private function onUpdateCheckCompleted(error:Error, results:Collection):void
 		{
 			Assert.isNull(error);
-			Assert.isNull(results);
+			Assert.isNotNull(results);
 			Assert.equals(1, results.length);
 
 			Assert.equals(1, results[0].id);
 			Assert.equals("Hills", results[0].title);
+			Assert.equals(10, results[0].likes);
 
 			// Change back to "Mountains"
 			_db.table(_tableName)
 					.where("id", 1)
-					.update({ title: "Mountains" }, onRollBackUpdateCompleted);
+					.update({ title: "Mountains", likes: 4 }, onRollBackUpdateCompleted);
 		}
 
 
