@@ -40,6 +40,7 @@ package breezedb.queries
 
 		private var _tableName:String;
 
+		private var _update:String = null;
 		private var _select:Array = [];
 		private var _insert:Array = [];
 		private var _insertColumns:String = null;
@@ -557,6 +558,26 @@ package breezedb.queries
 
 		public function update(value:Object, callback:* = null):BreezeQueryBuilder
 		{
+			if(value == null)
+			{
+				throw new ArgumentError("Parameter value cannot be null.");
+			}
+
+			_queryType = QUERY_UPDATE;
+
+			_update = "";
+			var i:int = 0;
+			for(var key:String in value)
+			{
+				if(i++ > 0)
+				{
+					_update += ", ";
+				}
+				_update += key + " = " + inputToParameter(value[key]);
+			}
+
+			executeIfNeeded(callback);
+
 			return this;
 		}
 
@@ -640,6 +661,11 @@ package breezedb.queries
 					tmpInsert[tmpInsert.length] = "INSERT INTO " + _tableName + " " + _insertColumns + " VALUES " + insert;
 				}
 				addQueryPart(parts, tmpInsert.join(";"));
+			}
+			// UPDATE
+			else if(_queryType == QUERY_UPDATE)
+			{
+				addQueryPart(parts, "UPDATE " + _tableName + " SET " + _update);
 			}
 
 			// WHERE
