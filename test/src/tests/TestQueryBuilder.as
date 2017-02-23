@@ -1274,10 +1274,9 @@ package tests
 		}
 
 
-		private function onSimpleIncrementCompleted(error:Error, affectedRows:int):void
+		private function onSimpleIncrementCompleted(error:Error):void
 		{
 			Assert.isNull(error);
-			Assert.equals(1, affectedRows);
 
 			// Check that the views count has been incremented by 1
 			_db.table(_tableName)
@@ -1290,7 +1289,7 @@ package tests
 		private function onSimpleIncrementCheckCompleted(error:Error, results:Collection):void
 		{
 			Assert.isNull(error);
-			Assert.isNull(results);
+			Assert.isNotNull(results);
 			Assert.equals(1, results.length);
 
 			Assert.equals(1, results[0].id);
@@ -1302,10 +1301,9 @@ package tests
 		}
 
 
-		private function onSpecificIncrementCompleted(error:Error, affectedRows:int):void
+		private function onSpecificIncrementCompleted(error:Error):void
 		{
 			Assert.isNull(error);
-			Assert.equals(1, affectedRows);
 
 			// Check that the views count has been further incremented by 4
 			_db.table(_tableName)
@@ -1318,7 +1316,7 @@ package tests
 		private function onSpecificIncrementCheckCompleted(error:Error, results:Collection):void
 		{
 			Assert.isNull(error);
-			Assert.isNull(results);
+			Assert.isNotNull(results);
 			Assert.equals(1, results.length);
 
 			Assert.equals(1, results[0].id);
@@ -1330,10 +1328,9 @@ package tests
 		}
 
 
-		private function onIncrementAndUpdateCompleted(error:Error, affectedRows:int):void
+		private function onIncrementAndUpdateCompleted(error:Error):void
 		{
 			Assert.isNull(error);
-			Assert.equals(1, affectedRows);
 
 			// Check that the views count has been further incremented by 1 and the title has been updated
 			_db.table(_tableName)
@@ -1346,7 +1343,7 @@ package tests
 		private function onIncrementAndUpdateCheckCompleted(error:Error, results:Collection):void
 		{
 			Assert.isNull(error);
-			Assert.isNull(results);
+			Assert.isNotNull(results);
 			Assert.equals(1, results.length);
 
 			Assert.equals(1, results[0].id);
@@ -1360,10 +1357,9 @@ package tests
 		}
 
 
-		private function onSimpleDecrementCompleted(error:Error, affectedRows:int):void
+		private function onSimpleDecrementCompleted(error:Error):void
 		{
 			Assert.isNull(error);
-			Assert.equals(1, affectedRows);
 
 			// Check that the views count has been decremented by 1
 			_db.table(_tableName)
@@ -1376,7 +1372,7 @@ package tests
 		private function onSimpleDecrementCheckCompleted(error:Error, results:Collection):void
 		{
 			Assert.isNull(error);
-			Assert.isNull(results);
+			Assert.isNotNull(results);
 			Assert.equals(1, results.length);
 
 			Assert.equals(1, results[0].id);
@@ -1388,10 +1384,9 @@ package tests
 		}
 
 
-		private function onSpecificDecrementCompleted(error:Error, affectedRows:int):void
+		private function onSpecificDecrementCompleted(error:Error):void
 		{
 			Assert.isNull(error);
-			Assert.equals(1, affectedRows);
 
 			// Check that the views count has been further decremented by 4
 			_db.table(_tableName)
@@ -1404,7 +1399,7 @@ package tests
 		private function onSpecificDecrementCheckCompleted(error:Error, results:Collection):void
 		{
 			Assert.isNull(error);
-			Assert.isNull(results);
+			Assert.isNotNull(results);
 			Assert.equals(1, results.length);
 
 			Assert.equals(1, results[0].id);
@@ -1416,10 +1411,9 @@ package tests
 		}
 
 
-		private function onDecrementAndUpdateCompleted(error:Error, affectedRows:int):void
+		private function onDecrementAndUpdateCompleted(error:Error):void
 		{
 			Assert.isNull(error);
-			Assert.equals(1, affectedRows);
 
 			// Check that the views count has been further decremented by 1 and the title has been updated
 			_db.table(_tableName)
@@ -1432,7 +1426,7 @@ package tests
 		private function onDecrementAndUpdateCheckCompleted(error:Error, results:Collection):void
 		{
 			Assert.isNull(error);
-			Assert.isNull(results);
+			Assert.isNotNull(results);
 			Assert.equals(1, results.length);
 
 			Assert.equals(1, results[0].id);
