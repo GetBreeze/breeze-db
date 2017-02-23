@@ -119,6 +119,19 @@ package breezedb.queries
 		 */
 		protected var _aggregate:String;
 
+		/**
+		 * @private
+		 * Reference to the original callback, if callback proxy is used.
+		 */
+		protected var _originalCallback:Function;
+
+		/**
+		 * @private
+		 * Callback used in place of the provided callback. Useful when the query response
+		 * needs further processing, e.g. during query builder's chunk call.
+		 */
+		protected var _callbackProxy:Function;
+
 
 		/**
 		 * @private
@@ -169,6 +182,12 @@ package breezedb.queries
 
 			_queryString = queries.join(";");
 			_queryString += ";";
+
+			if(_callbackProxy != null)
+			{
+				_originalCallback = callback;
+				callback = _callbackProxy;
+			}
 
 			// Run multi query if there are multiple statements
 			var query:BreezeRawQuery = new BreezeRawQuery(_db);

@@ -27,6 +27,7 @@ package breezedb.queries
 {
 	import breezedb.BreezeDb;
 	import breezedb.IBreezeDatabase;
+	import breezedb.collections.Collection;
 
 	import flash.globalization.DateTimeFormatter;
 
@@ -51,6 +52,8 @@ package breezedb.queries
 		private var _distinct:Boolean = false;
 		private var _offset:int = -1;
 		private var _limit:int = -1;
+		private var _chunkLimit:uint;
+		private var _chunkQueryReference:BreezeQueryReference;
 
 		private var _parametersIndex:uint = 0;
 		
@@ -160,6 +163,15 @@ package breezedb.queries
 		
 		public function chunk(limit:uint, callback:* = null):BreezeQueryRunner
 		{
+			_chunkLimit = limit;
+			_callbackProxy = onChunkCompleted;
+			_originalCallback = callback;
+
+			_offset = (_offset == -1) ? 0 : (_offset + limit);
+			_limit = limit;
+
+			executeIfNeeded(callback);
+
 			return this;
 		}
 
@@ -934,6 +946,43 @@ package breezedb.queries
 			}
 
 			executeIfNeeded(callback);
+		}
+
+
+		private function onChunkCompleted(error:Error, results:Collection):void
+		{
+			// Track subsequent chunk queries so that the callback is not called when there are no more results
+			var initialChunk:Boolean = false;
+
+			// Save the reference to the initial chunk query so we can see whether it was cancelled or not
+			if(_chunkQueryReference == null)
+			{
+				initialChunk = true;
+				_chunkQueryReference = _queryReference;
+			}
+
+			var numResults:uint = results.length;
+			var terminate:Boolean = numResults == 0 || _originalCallback === null || _chunkQueryReference.isCancelled;
+
+			// Trigger the original callback if we need to
+			// If there are no results, the callback will be triggered only for the initial chunk call
+			if(!_chunkQueryReference.isCancelled && _originalCallback != null && (numResults > 0 || initialChunk))
+			{
+				var params:Array = [error, results].slice(0, _originalCallback.length);
+
+				// Check if the original callback tells us to stop making further chunk queries
+				var canTerminate:Boolean = _originalCallback.apply(_originalCallback, params) === false;
+				terminate = terminate || canTerminate;
+			}
+
+			if(terminate)
+			{
+				_chunkQueryReference = null;
+				return;
+			}
+
+			_queryReference = null;
+			chunk(_chunkLimit, _originalCallback);
 		}
 
 
