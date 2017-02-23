@@ -55,15 +55,6 @@ package breezedb.queries
 		private var _isCompleted:Boolean;
 		private var _columnName:String;
 
-		// Only the first item in the SELECT result is returned to the callback
-		private var _selectFirstOnly:Boolean;
-
-		// Running an aggregate query, a single numeric value is returned to the callback
-		private var _aggregate:String;
-
-		// Last inserted id value is returned to the callback instead of a generic result
-		private var _getLastInsertId:Boolean;
-
 		private var _db:IBreezeDatabase;
 		private var _callback:Function;
 
@@ -71,7 +62,6 @@ package breezedb.queries
 		{
 			_db = db;
 			_queryType = RAW;
-			_aggregate = null;
 		}
 
 
@@ -258,31 +248,13 @@ package breezedb.queries
 			// Format second callback parameter based on query type
 			if(_queryType == SELECT)
 			{
-				// Return single value (first item or aggregate value)
-				if(_selectFirstOnly || _aggregate != null)
-				{
-					var firstItem:Object = (result.data.length > 0) ? result.data[0] : null;
-					if(_aggregate != null)
-					{
-						firstItem = (firstItem !== null && _aggregate in firstItem) ? firstItem[_aggregate] : 0;
-					}
-					params[1] = firstItem;
-				}
 				// Return entire Collection
-				else
-				{
-					params[1] = result.data;
-				}
+				params[1] = result.data;
 			}
 			else if(_queryType == UPDATE || _queryType == DELETE)
 			{
 				// Return rows affected
 				params[1] = result.rowsAffected;
-			}
-			else if(_getLastInsertId)
-			{
-				// Return the last inserted id
-				params[1] = result.lastInsertRowID;
 			}
 			else
 			{
@@ -438,60 +410,6 @@ package breezedb.queries
 		internal function get isCompleted():Boolean
 		{
 			return _isCompleted;
-		}
-
-
-		/**
-		 * @private
-		 */
-		internal function get selectFirstOnly():Boolean
-		{
-			return _selectFirstOnly;
-		}
-
-
-		/**
-		 * @private
-		 */
-		internal function set selectFirstOnly(value:Boolean):void
-		{
-			_selectFirstOnly = value;
-		}
-
-
-		/**
-		 * @private
-		 */
-		internal function get aggregate():String
-		{
-			return _aggregate;
-		}
-
-
-		/**
-		 * @private
-		 */
-		internal function set aggregate(value:String):void
-		{
-			_aggregate = value;
-		}
-
-
-		/**
-		 * @private
-		 */
-		internal function get getLastInsertId():Boolean
-		{
-			return _getLastInsertId;
-		}
-
-
-		/**
-		 * @private
-		 */
-		internal function set getLastInsertId(value:Boolean):void
-		{
-			_getLastInsertId = value;
 		}
 	}
 	
