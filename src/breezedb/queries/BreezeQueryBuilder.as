@@ -28,6 +28,7 @@ package breezedb.queries
 	import breezedb.BreezeDb;
 	import breezedb.IBreezeDatabase;
 	import breezedb.collections.Collection;
+	import breezedb.utils.GarbagePrevention;
 
 	import flash.globalization.DateTimeFormatter;
 
@@ -54,6 +55,7 @@ package breezedb.queries
 		private var _limit:int = -1;
 		private var _chunkLimit:uint;
 		private var _chunkQueryReference:BreezeQueryReference;
+		private var _aggregate:String = null;
 
 		private var _parametersIndex:uint = 0;
 		
@@ -67,9 +69,9 @@ package breezedb.queries
 
 		public function first(callback:* = null):BreezeQueryRunner
 		{
-			_selectFirstOnly = true;
-
 			limit(1);
+
+			_callbackProxy = onFirstCompleted;
 
 			executeIfNeeded(callback);
 
@@ -80,6 +82,7 @@ package breezedb.queries
 		public function count(callback:* = null):BreezeQueryRunner
 		{
 			_aggregate = "total";
+			_callbackProxy = onAggregateCompleted;
 
 			select("COUNT(*) as total");
 			executeIfNeeded(callback);
@@ -93,6 +96,7 @@ package breezedb.queries
 			validateColumnName(column);
 
 			_aggregate = "max";
+			_callbackProxy = onAggregateCompleted;
 
 			select("MAX(" + column + ") as max");
 			executeIfNeeded(callback);
@@ -106,6 +110,7 @@ package breezedb.queries
 			validateColumnName(column);
 
 			_aggregate = "min";
+			_callbackProxy = onAggregateCompleted;
 
 			select("MIN(" + column + ") as min");
 			executeIfNeeded(callback);
@@ -119,6 +124,7 @@ package breezedb.queries
 			validateColumnName(column);
 
 			_aggregate = "sum";
+			_callbackProxy = onAggregateCompleted;
 
 			select("SUM(" + column + ") as sum");
 			executeIfNeeded(callback);
@@ -132,6 +138,7 @@ package breezedb.queries
 			validateColumnName(column);
 
 			_aggregate = "avg";
+			_callbackProxy = onAggregateCompleted;
 
 			select("AVG(" + column + ") as avg");
 			executeIfNeeded(callback);
@@ -165,7 +172,6 @@ package breezedb.queries
 		{
 			_chunkLimit = limit;
 			_callbackProxy = onChunkCompleted;
-			_originalCallback = callback;
 
 			_offset = (_offset == -1) ? 0 : (_offset + limit);
 			_limit = limit;
@@ -557,7 +563,8 @@ package breezedb.queries
 				throw new ArgumentError("Parameter value cannot be null.");
 			}
 
-			_queryType = QUERY_INSERT_GET_ID;
+			_queryType = QUERY_INSERT;
+			_callbackProxy = onInsertGetIdCompleted;
 
 			setInsertColumns(value);
 			addInsertObjects(value);
@@ -659,8 +666,8 @@ package breezedb.queries
 				// FROM
 				addFromPart(parts);
 			}
-			// INSERT, INSERT_GET_ID
-			else if(_queryType == QUERY_INSERT || _queryType == QUERY_INSERT_GET_ID)
+			// INSERT
+			else if(_queryType == QUERY_INSERT)
 			{
 				// Multiple inserts must be split into single query each
 				var tmpInsert:Array = [];
@@ -949,43 +956,6 @@ package breezedb.queries
 		}
 
 
-		private function onChunkCompleted(error:Error, results:Collection):void
-		{
-			// Track subsequent chunk queries so that the callback is not called when there are no more results
-			var initialChunk:Boolean = false;
-
-			// Save the reference to the initial chunk query so we can see whether it was cancelled or not
-			if(_chunkQueryReference == null)
-			{
-				initialChunk = true;
-				_chunkQueryReference = _queryReference;
-			}
-
-			var numResults:uint = results.length;
-			var terminate:Boolean = numResults == 0 || _originalCallback === null || _chunkQueryReference.isCancelled;
-
-			// Trigger the original callback if we need to
-			// If there are no results, the callback will be triggered only for the initial chunk call
-			if(!_chunkQueryReference.isCancelled && _originalCallback != null && (numResults > 0 || initialChunk))
-			{
-				var params:Array = [error, results].slice(0, _originalCallback.length);
-
-				// Check if the original callback tells us to stop making further chunk queries
-				var canTerminate:Boolean = _originalCallback.apply(_originalCallback, params) === false;
-				terminate = terminate || canTerminate;
-			}
-
-			if(terminate)
-			{
-				_chunkQueryReference = null;
-				return;
-			}
-
-			_queryReference = null;
-			chunk(_chunkLimit, _originalCallback);
-		}
-
-
 		private function validateColumnName(columnName:String):void
 		{
 			if(columnName == null)
@@ -1031,6 +1001,73 @@ package breezedb.queries
 				sLongDateFormatter.setDateTimePattern("yyyy-MM-dd HH:mm:ss");
 			}
 			return sLongDateFormatter;
+		}
+
+
+		/**
+		 *
+		 * Proxy callbacks
+		 *
+		 * Callbacks used to further process a query response to provide more
+		 * appropriate response format, e.g. 'first()' returns single item directly
+		 * instead of one item Collection.
+		 *
+		 */
+
+
+		private function onChunkCompleted(error:Error, results:Collection):void
+		{
+			// Track subsequent chunk queries so that the callback is not called when there are no more results
+			var initialChunk:Boolean = false;
+
+			// Save the reference to the initial chunk query so we can see whether it was cancelled or not
+			if(_chunkQueryReference == null)
+			{
+				initialChunk = true;
+				_chunkQueryReference = _queryReference;
+			}
+
+			var numResults:uint = results.length;
+			var terminate:Boolean = numResults == 0 || _originalCallback === null;
+
+			// Trigger the original callback if we need to
+			// If there are no results, the callback will be triggered only for the initial chunk call
+			if(!_chunkQueryReference.isCancelled && (numResults > 0 || initialChunk))
+			{
+				// Check if the original callback tells us to stop making further chunk queries
+				var canTerminate:Boolean = finishProxiedQuery([error, results]) === false;
+				terminate = terminate || canTerminate;
+			}
+
+			if(terminate || _chunkQueryReference.isCancelled)
+			{
+				_chunkQueryReference = null;
+				return;
+			}
+
+			_queryReference = null;
+			chunk(_chunkLimit, _originalCallback);
+		}
+
+
+		private function onFirstCompleted(error:Error, results:Collection):void
+		{
+			var firstItem:Object = (results.length > 0) ? results[0] : null;
+			finishProxiedQuery([error, firstItem]);
+		}
+
+
+		private function onAggregateCompleted(error:Error, results:Collection):void
+		{
+			var row:Object = (results.length > 0) ? results[0] : null;
+			var aggregateValue:Number = (row !== null && _aggregate in row) ? row[_aggregate] : 0;
+			finishProxiedQuery([error, aggregateValue]);
+		}
+
+
+		private function onInsertGetIdCompleted(error:Error, result:BreezeSQLResult):void
+		{
+			finishProxiedQuery([error, result.lastInsertRowID]);
 		}
 	}
 	

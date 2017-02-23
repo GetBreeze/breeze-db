@@ -25,11 +25,19 @@
 
 package breezedb.queries
 {
+	import flash.events.Event;
+	import flash.events.EventDispatcher;
+
 	/**
 	 * Class providing API that allows cancelling callback of executed query.
 	 */
-	public class BreezeQueryReference
+	public class BreezeQueryReference extends EventDispatcher
 	{
+		/**
+		 * Name for event that is dispatched when the query is cancelled.
+		 */
+		public static const CANCEL:String = "cancel";
+
 		private var _rawQuery:BreezeRawQuery;
 
 
@@ -49,6 +57,7 @@ package breezedb.queries
 		public function cancel():void
 		{
 			_rawQuery.cancel();
+			dispatchEvent(new Event(CANCEL));
 		}
 
 

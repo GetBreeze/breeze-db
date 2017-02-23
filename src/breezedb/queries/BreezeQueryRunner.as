@@ -26,6 +26,9 @@
 package breezedb.queries
 {
 	import breezedb.IBreezeDatabase;
+	import breezedb.utils.GarbagePrevention;
+
+	import flash.events.Event;
 
 	/**
 	 * Base class for classes that create and run SQL queries.
@@ -75,11 +78,6 @@ package breezedb.queries
 		/**
 		 * @private
 		 */
-		protected static const QUERY_INSERT_GET_ID:int = 5;
-
-		/**
-		 * @private
-		 */
 		protected var _db:IBreezeDatabase;
 
 		/**
@@ -106,18 +104,6 @@ package breezedb.queries
 		 * @private
 		 */
 		protected var _multiQueryMethod:int;
-
-		/**
-		 * @private
-		 * Only the first item in the SELECT result is returned to the callback.
-		 */
-		protected var _selectFirstOnly:Boolean = false;
-
-		/**
-		 * @private
-		 * Running an aggregate query, a single numeric value is returned to the callback.
-		 */
-		protected var _aggregate:String;
 
 		/**
 		 * @private
@@ -187,50 +173,90 @@ package breezedb.queries
 			{
 				_originalCallback = callback;
 				callback = _callbackProxy;
+
+				GarbagePrevention.instance.add(this);
 			}
 
 			// Run multi query if there are multiple statements
-			var query:BreezeRawQuery = new BreezeRawQuery(_db);
 			if(queries.length > 1)
 			{
 				switch(_multiQueryMethod)
 				{
 					case MULTI_QUERY_RAW:
-						_queryReference = query.multiQuery(queries, _queryParams, callback);
+						_queryReference = _db.multiQuery(queries, _queryParams, callback);
 						break;
 					case MULTI_QUERY_FAIL_ON_ERROR:
-						_queryReference = query.multiQueryFailOnError(queries, _queryParams, callback);
+						_queryReference = _db.multiQueryFailOnError(queries, _queryParams, callback);
 						break;
 					case MULTI_QUERY_TRANSACTION:
-						_queryReference = query.multiQueryTransaction(queries, _queryParams, callback);
+						_queryReference = _db.multiQueryTransaction(queries, _queryParams, callback);
 						break;
 				}
+				listenToQueryCancel();
 				return _queryReference;
 			}
 
 			switch(_queryType)
 			{
 				case QUERY_RAW:
-					_queryReference = query.query(_queryString, _queryParams, callback);
+					_queryReference = _db.query(_queryString, _queryParams, callback);
 					break;
 				case QUERY_SELECT:
-					query.aggregate = _aggregate;
-					query.selectFirstOnly = _selectFirstOnly;
-					_queryReference = query.select(_queryString, _queryParams, callback);
+					_queryReference = _db.select(_queryString, _queryParams, callback);
 					break;
 				case QUERY_DELETE:
-					_queryReference = query.remove(_queryString, _queryParams, callback);
+					_queryReference = _db.remove(_queryString, _queryParams, callback);
 					break;
 				case QUERY_INSERT:
-				case QUERY_INSERT_GET_ID:
-					query.getLastInsertId = _queryType == QUERY_INSERT_GET_ID;
-					_queryReference = query.insert(_queryString, _queryParams, callback);
+					_queryReference = _db.insert(_queryString, _queryParams, callback);
 					break;
 				case QUERY_UPDATE:
-					_queryReference = query.update(_queryString, _queryParams, callback);
+					_queryReference = _db.update(_queryString, _queryParams, callback);
 					break;
 			}
+			listenToQueryCancel();
 			return _queryReference;
+		}
+
+
+		/**
+		 *
+		 *
+		 * Private API
+		 *
+		 *
+		 */
+
+
+		private function listenToQueryCancel():void
+		{
+			// If we are using a proxy, we need to remove this object from GarbagePrevention
+			// when the query is cancelled, since the proxy will not be triggered
+			if(_callbackProxy != null)
+			{
+				_queryReference.addEventListener(BreezeQueryReference.CANCEL, onQueryCancelled, false, 0, true);
+			}
+		}
+
+
+		private function onQueryCancelled(event:Event):void
+		{
+			_queryReference.removeEventListener(BreezeQueryReference.CANCEL, onQueryCancelled);
+			GarbagePrevention.instance.remove(this);
+		}
+
+
+		protected function finishProxiedQuery(params:Array):*
+		{
+			_queryReference.removeEventListener(BreezeQueryReference.CANCEL, onQueryCancelled);
+			GarbagePrevention.instance.remove(this);
+
+			if(!_queryReference.isCancelled && _originalCallback != null)
+			{
+				params = (params == null) ? null : params.slice(0, _originalCallback.length);
+
+				return _originalCallback.apply(_originalCallback, params);
+			}
 		}
 
 
