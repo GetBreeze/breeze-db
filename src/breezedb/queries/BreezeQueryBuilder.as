@@ -566,15 +566,7 @@ package breezedb.queries
 			_queryType = QUERY_UPDATE;
 
 			_update = "";
-			var i:int = 0;
-			for(var key:String in value)
-			{
-				if(i++ > 0)
-				{
-					_update += ", ";
-				}
-				_update += key + " = " + inputToParameter(value[key]);
-			}
+			addUpdateValues(value);
 
 			executeIfNeeded(callback);
 
@@ -594,12 +586,16 @@ package breezedb.queries
 
 		public function increment(column:String, param1:* = null, param2:* = null, callback:* = null):BreezeQueryBuilder
 		{
+			incrementOrDecrement(column, param1, param2, callback, "+");
+
 			return this;
 		}
 
 
 		public function decrement(column:String, param1:* = null, param2:* = null, callback:* = null):BreezeQueryBuilder
 		{
+			incrementOrDecrement(column, param1, param2, callback, "-");
+
 			return this;
 		}
 
@@ -880,6 +876,64 @@ package breezedb.queries
 		private function addFromPart(parts:Vector.<String>):void
 		{
 			parts[parts.length] = "FROM " + _tableName;
+		}
+
+
+		private function addUpdateValues(value:Object, separateFirst:Boolean = false):void
+		{
+			var i:int = 0;
+			for(var key:String in value)
+			{
+				if(i++ > 0 || separateFirst)
+				{
+					_update += ", ";
+				}
+				_update += key + " = " + inputToParameter(value[key]);
+			}
+		}
+
+
+		/**
+		 * Internal implementation for <code>increment</code> and <code>decrement</code> methods.
+		 */
+		private function incrementOrDecrement(column:String, param1:*, param2:*, callback:*, operator:String):void
+		{
+			validateColumnName(column);
+
+			_queryType = QUERY_UPDATE;
+
+			if(callback === null)
+			{
+				if(param1 is Function || param1 === BreezeDb.DELAY)
+				{
+					callback = param1;
+				}
+				else if(param2 is Function || param2 === BreezeDb.DELAY)
+				{
+					callback = param2;
+				}
+			}
+
+			// Increment amount
+			var amount:Number = 1;
+			if(param1 is Number)
+			{
+				amount = param1;
+			}
+
+			_update = column + " = " + column + " " + operator + " " + amount;
+
+			if(!(param1 is Number) && param1 !== null && param1 !== callback)
+			{
+				addUpdateValues(param1, true);
+			}
+
+			if(!(param2 is Number) && param2 !== null && param2 !== callback)
+			{
+				addUpdateValues(param2, true);
+			}
+
+			executeIfNeeded(callback);
 		}
 
 
