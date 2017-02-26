@@ -198,10 +198,14 @@ package breezedb.queries
 
 		public function orWhere(param1:*, param2:* = null, param3:* = null):BreezeQueryBuilder
 		{
-			var builder:BreezeInnerQueryBuilder = new BreezeInnerQueryBuilder(_queryParams, _parametersIndex);
+			var builder:BreezeInnerQueryBuilder = _where[_where.length - 1];
+			if(builder.queryExists)
+			{
+				builder = new BreezeInnerQueryBuilder(_queryParams, _parametersIndex);
+				_where[_where.length] = builder;
+			}
 			builder.where(param1, param2, param3);
 			_parametersIndex = builder.parametersIndex;
-			_where[_where.length] = builder;
 
 			return this;
 		}
