@@ -28,6 +28,7 @@ package tests
 	import breezedb.BreezeDb;
 	import breezedb.IBreezeDatabase;
 	import breezedb.collections.Collection;
+	import breezedb.queries.BreezeInnerQueryBuilder;
 	import breezedb.schemas.TableBlueprint;
 
 	import breezetest.Assert;
@@ -484,6 +485,42 @@ package tests
 			Assert.equals(photo2.title, results[0].title);
 			Assert.equals(photo2.views, results[0].views);
 			Assert.equals(photo2.downloads, results[0].downloads);
+
+			currentAsync.complete();
+		}
+
+
+		public function testNestedWhere(async:Async):void
+		{
+			_db.table(_tableName)
+					.where("id", 2)
+					.orWhere(function(query:BreezeInnerQueryBuilder):void
+					{
+						query
+								.where("id", ">", 3)
+								.where("id", "!=", 4)
+					})
+					.fetch(onNestedWhereCompleted);
+		}
+
+
+		private function onNestedWhereCompleted(error:Error, results:Collection):void
+		{
+			Assert.isNull(error);
+			Assert.isNotNull(results);
+			Assert.equals(2, results.length);
+
+			var photo2:Object = _photos[1]; // Photo id 2
+			Assert.equals(2, results[0].id);
+			Assert.equals(photo2.title, results[0].title);
+			Assert.equals(photo2.views, results[0].views);
+			Assert.equals(photo2.downloads, results[0].downloads);
+
+			var photo5:Object = _photos[4]; // Photo id 5
+			Assert.equals(5, results[1].id);
+			Assert.equals(photo5.title, results[1].title);
+			Assert.equals(photo5.views, results[1].views);
+			Assert.equals(photo5.downloads, results[1].downloads);
 
 			currentAsync.complete();
 		}
