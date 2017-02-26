@@ -53,8 +53,19 @@ package breezedb.queries
 
 		public function where(param1:*, param2:* = null, param3:* = null):BreezeInnerQueryBuilder
 		{
+			// Function to build nested where clauses
+			if(param1 is Function && param2 === null && param3 === null)
+			{
+				var builder:BreezeInnerQueryBuilder = new BreezeInnerQueryBuilder(_queryParams, _parametersIndex);
+				param1(builder);
+				_parametersIndex = builder.parametersIndex;
+				if(builder.queryExists)
+				{
+					whereRaw(builder.queryString);
+				}
+			}
 			// Raw where statement, e.g. where("id > 2")
-			if(param1 is String && param2 === null && param3 === null)
+			else if(param1 is String && param2 === null && param3 === null)
 			{
 				whereRaw(param1);
 			}
@@ -270,10 +281,20 @@ package breezedb.queries
 			var tmpOrWhere:Array = [];
 			for each(var whereArray:Array in _where)
 			{
-				tmpOrWhere[tmpOrWhere.length] = "(" + whereArray.join(" AND ") + ")";
+				var innerClause:String = whereArray.join(" AND ");
+				if(whereArray.length > 1 || innerClause.charAt(0) != "(")
+				{
+					innerClause = "(" + innerClause + ")";
+				}
+				tmpOrWhere[tmpOrWhere.length] = innerClause;
 			}
 
-			return tmpOrWhere.join(" OR ");
+			var result:String = tmpOrWhere.join(" OR ");
+			if(tmpOrWhere.length > 1)
+			{
+				result = "(" + result + ")";
+			}
+			return result;
 		}
 
 
