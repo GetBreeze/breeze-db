@@ -37,7 +37,7 @@ package breezedb.queries
 	 */
 	public class BreezeQueryBuilder extends BreezeQueryRunner
 	{
-		private static var sLongDateFormatter:DateTimeFormatter = null;
+		private static var sDateFormatter:DateTimeFormatter = null;
 		private static var sShortDateFormatter:DateTimeFormatter = null;
 
 		private var _tableName:String;
@@ -46,7 +46,7 @@ package breezedb.queries
 		private var _select:Array = [];
 		private var _insert:Array = [];
 		private var _insertColumns:String = null;
-		private var _where:Array = [[]];
+		private var _where:Vector.<BreezeInnerQueryBuilder>;
 		private var _orderBy:Array = [];
 		private var _groupBy:Array = [];
 		private var _having:Array = [[]];
@@ -64,6 +64,9 @@ package breezedb.queries
 			super(db);
 			_tableName = tableName;
 			_queryType = QUERY_SELECT;
+			_queryParams = {};
+			_where = new <BreezeInnerQueryBuilder>[];
+			_where[0] = new BreezeInnerQueryBuilder(_queryParams, _parametersIndex);
 		}
 
 
@@ -184,51 +187,10 @@ package breezedb.queries
 
 		public function where(param1:*, param2:* = null, param3:* = null):BreezeQueryBuilder
 		{
-			// Raw where statement, e.g. where("id > 2")
-			if(param1 is String && param2 === null && param3 === null)
-			{
-				whereRaw(param1);
-			}
-			// Simple equal statement, e.g. where("id", 15)
-			else if(param1 is String && param3 === null)
-			{
-				where(param1, "=", param2);
-			}
-			// Simple statement with operator, e.g. where("id", "!=", 15)
-			else if(param1 is String && param2 is String && param3 !== null)
-			{
-				whereRaw(param1 + " " + param2 + " " + inputToParameter(param3));
-			}
-			// Array of statements, e.g. where([["id", 15], ["name", "!=", "Kevin"])
-			else if(param1 is Array && param2 === null && param3 === null)
-			{
-				for each(var statement:* in param1)
-				{
-					if(!(statement is Array))
-					{
-						throw new Error("Where must be an Array of Arrays.");
-					}
-
-					if(statement.length == 3)
-					{
-						where(statement[0], statement[1], statement[2]);
-					}
-					else if(statement.length == 2)
-					{
-						where(statement[0], "=", statement[1]);
-					}
-					else
-					{
-						throw new Error("Invalid where parameters.");
-					}
-
-				}
-			}
-			// Invalid input
-			else
-			{
-				throw new ArgumentError("Invalid where parameters.");
-			}
+			var builder:BreezeInnerQueryBuilder = _where[_where.length - 1];
+			builder.parametersIndex = _parametersIndex;
+			builder.where(param1, param2, param3);
+			_parametersIndex = builder.parametersIndex;
 
 			return this;
 		}
@@ -236,8 +198,10 @@ package breezedb.queries
 
 		public function orWhere(param1:*, param2:* = null, param3:* = null):BreezeQueryBuilder
 		{
-			_where[_where.length] = [];
-			where(param1, param2, param3);
+			var builder:BreezeInnerQueryBuilder = new BreezeInnerQueryBuilder(_queryParams, _parametersIndex);
+			builder.where(param1, param2, param3);
+			_parametersIndex = builder.parametersIndex;
+			_where[_where.length] = builder;
 
 			return this;
 		}
@@ -305,12 +269,9 @@ package breezedb.queries
 
 		public function whereDay(dateColumn:String, param2:* = null, param3:* = null):BreezeQueryBuilder
 		{
-			validateColumnName(dateColumn);
-
-			param2 = formatDayOrMonth(param2, "date");
-			param3 = formatDayOrMonth(param3, "date");
-
-			where("strftime('%d', " + dateColumn + ")", param2, param3);
+			var builder:BreezeInnerQueryBuilder = _where[_where.length - 1];
+			builder.whereDay(dateColumn, param2, param3);
+			_parametersIndex = builder.parametersIndex;
 
 			return this;
 		}
@@ -318,12 +279,9 @@ package breezedb.queries
 
 		public function whereMonth(dateColumn:String, param2:* = null, param3:* = null):BreezeQueryBuilder
 		{
-			validateColumnName(dateColumn);
-
-			param2 = formatDayOrMonth(param2, "month");
-			param3 = formatDayOrMonth(param3, "month");
-
-			where("strftime('%m', " + dateColumn + ")", param2, param3);
+			var builder:BreezeInnerQueryBuilder = _where[_where.length - 1];
+			builder.whereMonth(dateColumn, param2, param3);
+			_parametersIndex = builder.parametersIndex;
 
 			return this;
 		}
@@ -331,12 +289,9 @@ package breezedb.queries
 
 		public function whereYear(dateColumn:String, param2:* = null, param3:* = null):BreezeQueryBuilder
 		{
-			validateColumnName(dateColumn);
-
-			param2 = formatDayOrMonth(param2, "fullYear");
-			param3 = formatDayOrMonth(param3, "fullYear");
-
-			where("strftime('%Y', " + dateColumn + ")", param2, param3);
+			var builder:BreezeInnerQueryBuilder = _where[_where.length - 1];
+			builder.whereYear(dateColumn, param2, param3);
+			_parametersIndex = builder.parametersIndex;
 
 			return this;
 		}
@@ -344,19 +299,9 @@ package breezedb.queries
 
 		public function whereDate(dateColumn:String, param2:* = null, param3:* = null):BreezeQueryBuilder
 		{
-			validateColumnName(dateColumn);
-
-			if(param2 is Date)
-			{
-				param2 = getShortStringFromDate(param2);
-			}
-
-			if(param3 is Date)
-			{
-				param3 = getShortStringFromDate(param3);
-			}
-
-			where("date(" + dateColumn + ")", param2, param3);
+			var builder:BreezeInnerQueryBuilder = _where[_where.length - 1];
+			builder.whereDate(dateColumn, param2, param3);
+			_parametersIndex = builder.parametersIndex;
 
 			return this;
 		}
@@ -364,54 +309,8 @@ package breezedb.queries
 
 		public function whereColumn(param1:*, param2:String = null, param3:String = null):BreezeQueryBuilder
 		{
-			if(!(param1 is Array || param1 is String))
-			{
-				throw new ArgumentError("Parameter param1 must be either an Array or String.");
-			}
-
-			// Simple equal statement, e.g. whereColumn("views", "downloads)
-			if(param1 is String && param3 === null)
-			{
-				whereColumn(param1, "=", param2);
-			}
-			// Simple statement with operator, e.g. whereColumn("views", ">", "downloads")
-			else if(param1 is String && param2 !== null && param3 !== null)
-			{
-				validateColumnName(param1);
-				validateColumnName(param3);
-
-				whereRaw(param1 + " " + param2 + " " + param3);
-			}
-			// Array of statements, e.g. whereColumn([["views", "downloads"], ["likes", ">", "downloads"])
-			else if(param1 is Array && param2 === null && param3 === null)
-			{
-				for each(var statement:* in param1)
-				{
-					if(!(statement is Array))
-					{
-						throw new Error("Where must be an Array of Arrays.");
-					}
-
-					if(statement.length == 3)
-					{
-						whereColumn(statement[0], statement[1], statement[2]);
-					}
-					else if(statement.length == 2)
-					{
-						whereColumn(statement[0], "=", statement[1]);
-					}
-					else
-					{
-						throw new Error("Invalid whereColumn parameters.");
-					}
-
-				}
-			}
-			// Invalid input
-			else
-			{
-				throw new ArgumentError("Invalid whereColumn parameters.");
-			}
+			var builder:BreezeInnerQueryBuilder = _where[_where.length - 1];
+			builder.whereColumn(param1, param2, param3);
 
 			return this;
 		}
@@ -684,14 +583,14 @@ package breezedb.queries
 			}
 
 			// WHERE
-			if(_where.length > 0 && _where[0].length > 0)
+			if(_where.length > 0 && _where[0].queryExists)
 			{
 				addQueryPart(parts, "WHERE");
 
 				var tmpOrWhere:Array = [];
-				for each(var whereArray:Array in _where)
+				for each(var builder:BreezeInnerQueryBuilder in _where)
 				{
-					tmpOrWhere[tmpOrWhere.length] = "(" + whereArray.join(" AND ") + ")";
+					tmpOrWhere[tmpOrWhere.length] = builder.queryString;
 				}
 
 				addQueryPart(parts, tmpOrWhere.join(" OR "));
@@ -754,8 +653,8 @@ package breezedb.queries
 
 		private function whereRaw(query:String):BreezeQueryBuilder
 		{
-			var lastWhere:Array = _where[_where.length - 1];
-			lastWhere[lastWhere.length] = query;
+			var builder:BreezeInnerQueryBuilder = _where[_where.length - 1];
+			builder.whereRaw(query);
 
 			return this;
 		}
@@ -808,38 +707,6 @@ package breezedb.queries
 			}
 			_insertColumns += ")";
 		}
-
-
-		/**
-		 * Formats the given value to a two-digit String,
-		 * used for SQL comparison of months and days.
-		 */
-		private function formatDayOrMonth(param2:*, dateValue:String):*
-		{
-			if(param2 is Date)
-			{
-				param2 = param2[dateValue];
-
-				// Month value starts from 0 so it must be incremented to match the SQL value
-				if(dateValue == "month")
-				{
-					param2++;
-				}
-			}
-
-			if(param2 is Number)
-			{
-				if(param2 < 0)
-				{
-					throw new ArgumentError("Negative value cannot be used for comparison.");
-				}
-
-				// Add leading zero if needed
-				param2 = ((param2 < 10) ? "0" : "") + int(param2);
-			}
-
-			return param2;
-		}
 		
 		
 		private function inputToParameter(value:*):String
@@ -847,11 +714,7 @@ package breezedb.queries
 			var name:String = ":param_" + _parametersIndex++;
 			if(value is Date)
 			{
-				value = getLongStringFromDate(value as Date);
-			}
-			if(_queryParams == null)
-			{
-				_queryParams = {};
+				value = getStringFromDate(value as Date);
 			}
 			_queryParams[name] = value;
 			return name;
@@ -970,37 +833,20 @@ package breezedb.queries
 		}
 
 
-		private function getShortStringFromDate(date:Date):String
+		private function getStringFromDate(date:Date):String
 		{
-			return shortDateFormatter.format(date);
+			return dateFormatter.format(date);
 		}
 
 
-		private function getLongStringFromDate(date:Date):String
+		private static function get dateFormatter():DateTimeFormatter
 		{
-			return longDateFormatter.format(date);
-		}
-
-
-		private static function get shortDateFormatter():DateTimeFormatter
-		{
-			if(sShortDateFormatter == null)
+			if(sDateFormatter == null)
 			{
-				sShortDateFormatter = new DateTimeFormatter("en-US");
-				sShortDateFormatter.setDateTimePattern("yyyy-MM-dd");
+				sDateFormatter = new DateTimeFormatter("en-US");
+				sDateFormatter.setDateTimePattern("yyyy-MM-dd HH:mm:ss");
 			}
-			return sShortDateFormatter;
-		}
-
-
-		private static function get longDateFormatter():DateTimeFormatter
-		{
-			if(sLongDateFormatter == null)
-			{
-				sLongDateFormatter = new DateTimeFormatter("en-US");
-				sLongDateFormatter.setDateTimePattern("yyyy-MM-dd HH:mm:ss");
-			}
-			return sLongDateFormatter;
+			return sDateFormatter;
 		}
 
 
