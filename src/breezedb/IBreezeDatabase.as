@@ -75,30 +75,39 @@ package breezedb
 		/**
 		 * Begins a transaction within which all SQL statements executed against the connection's database are grouped.
 		 *
+		 * @param callback Function triggered once the operation finishes. It should have a single <code>Error</code>
+		 *        object as a parameter.
+		 *
 		 * @see #commit()
 		 * @see #rollBack()
 		 */
-		function beginTransaction():void;
+		function beginTransaction(callback:Function):void;
 
 
 		/**
 		 * Commits an existing transaction, causing any actions performed by the transaction's statements to be
 		 * permanently applied to the database.
 		 *
+		 * @param callback Function triggered once the operation finishes. It should have a single <code>Error</code>
+		 *        object as a parameter.
+		 *
 		 * @see #beginTransaction()
 		 * @see #rollBack()
 		 */
-		function commit():void;
+		function commit(callback:Function):void;
 
 
 		/**
 		 * Rolls back an existing transaction created using the <code>beginTransaction</code> method,
 		 * meaning all changes made by any SQL statements in the transaction are discarded.
 		 *
+		 * @param callback Function triggered once the operation finishes. It should have a single <code>Error</code>
+		 *        object as a parameter.
+		 *
 		 * @see #commit()
 		 * @see #beginTransaction()
 		 */
-		function rollBack():void;
+		function rollBack(callback:Function):void;
 
 
 		/**
