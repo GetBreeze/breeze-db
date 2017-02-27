@@ -28,6 +28,8 @@ package tests
 	import breezedb.BreezeDb;
 	import breezedb.IBreezeDatabase;
 	import breezedb.collections.Collection;
+	import breezedb.queries.BreezeQueryBuilder;
+	import breezedb.queries.BreezeQueryRunner;
 	import breezedb.queries.BreezeRawQuery;
 	import breezedb.queries.BreezeQueryResult;
 	import breezedb.queries.BreezeSQLResult;
@@ -36,6 +38,8 @@ package tests
 	import breezetest.Assert;
 
 	import breezetest.async.Async;
+
+	import flash.errors.IllegalOperationError;
 
 	import flash.errors.SQLError;
 	
@@ -117,6 +121,7 @@ package tests
 
 		private function onRawQueryCompleted(error:Error, result:BreezeSQLResult):void
 		{
+			
 			Assert.isNull(error);
 			Assert.isNotNull(result);
 			Assert.isNotNull(result.data);
@@ -348,12 +353,79 @@ package tests
 			Assert.equals("Hills", results[0].title);
 
 			// Change the title back to "Mountains"
-			var query:BreezeRawQuery = new BreezeRawQuery(_db)
+			var query:BreezeRawQuery = new BreezeRawQuery(_db);
 			query.update("UPDATE " + _tableName + " SET title = :title WHERE id = :id", { title: "Mountains", id: 1 }, onRollBackMultiQueryCompleted);
 		}
 
 
 		private function onRollBackMultiQueryCompleted(error:Error, affectedRows:int):void
+		{
+			Assert.isNull(error);
+			Assert.equals(1, affectedRows);
+
+			testMultiQueryMixed();
+		}
+
+
+		private function testMultiQueryMixed():void
+		{
+			var query1:BreezeQueryBuilder = _db.table("photos").where("id", 1).update({title: "Hills"}, BreezeDb.DELAY);
+			var query2:BreezeQueryRunner = _db.table("photos").where("id", 2).fetch(BreezeDb.DELAY);
+			var query3:BreezeQueryRunner = BreezeDb.getDb("different-database").table("photos").fetch(BreezeDb.DELAY);
+
+			var query:BreezeRawQuery = new BreezeRawQuery(_db);
+
+			Assert.throwsError(function():void
+			{
+				query.multiQuery([query1, query2, query3]);
+			}, IllegalOperationError);
+
+			Assert.throwsError(function():void
+			{
+				query.multiQuery(["SELECT * FROM " + _tableName, query3]);
+			}, IllegalOperationError);
+
+			query.multiQuery([
+				query1,
+				query2,
+				"SELECT id, title FROM " + _tableName + " WHERE title = :title"
+			], [null, null, { title: "Hills" }], onMultiQueryMixedCompleted);
+		}
+
+
+		private function onMultiQueryMixedCompleted(results:Vector.<BreezeQueryResult>):void
+		{
+			Assert.isNotNull(results);
+			Assert.equals(3, results.length);
+
+			// UPDATE result using query builder
+			var result:BreezeQueryResult = results[0];
+			Assert.isNull(result.error);
+			Assert.isNotNull(result);
+			Assert.equals(1, result.rowsAffected);
+
+			// SELECT result using query builder
+			result = results[1];
+			Assert.isNull(result.error);
+			Assert.isNotNull(result);
+			Assert.isNotNull(result.data);
+			Assert.equals(1, result.data.length);
+
+			// SELECT result using raw query
+			result = results[2];
+			Assert.isNull(result.error);
+			Assert.isNotNull(result);
+			Assert.isNotNull(result.data);
+			Assert.equals(1, result.data.length);
+			Assert.equals("Hills", result.data[0].title);
+
+			// Change the title back to "Mountains"
+			var query:BreezeRawQuery = new BreezeRawQuery(_db);
+			query.update("UPDATE " + _tableName + " SET title = :title WHERE id = :id", { title: "Mountains", id: 1 }, onRollBackMultiQueryMixedCompleted);
+		}
+
+
+		private function onRollBackMultiQueryMixedCompleted(error:Error, affectedRows:int):void
 		{
 			Assert.isNull(error);
 			Assert.equals(1, affectedRows);
