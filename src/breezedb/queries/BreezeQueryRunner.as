@@ -260,6 +260,18 @@ package breezedb.queries
 		}
 
 
+		internal function get database():IBreezeDatabase
+		{
+			return _db;
+		}
+
+
+		internal function get parameters():Object
+		{
+			return _queryParams;
+		}
+
+
 		/**
 		 *
 		 *

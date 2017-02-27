@@ -26,11 +26,11 @@
 package breezedb.queries
 {
 	import breezedb.IBreezeDatabase;
-	import breezedb.IBreezeDatabase;
 	import breezedb.utils.Callback;
 	import breezedb.utils.GarbagePrevention;
 
 	import flash.data.SQLStatement;
+	import flash.errors.IllegalOperationError;
 
 	internal class BreezeSQLMultiStatement
 	{
@@ -46,10 +46,8 @@ package breezedb.queries
 		private var _fatalError:Error;
 
 
-		public function BreezeSQLMultiStatement(db:IBreezeDatabase, callback:Function)
+		public function BreezeSQLMultiStatement()
 		{
-			_db = db;
-			_callback = callback;
 			_queries = new <BreezeSQLStatement>[];
 			_results = new <BreezeQueryResult>[];
 		}
@@ -67,7 +65,6 @@ package breezedb.queries
 		public function addQuery(query:String, params:Object = null):void
 		{
 			var statement:BreezeSQLStatement = new BreezeSQLStatement(onQueryCompleted);
-			statement.sqlConnection = _db.connection;
 			statement.text = query;
 			if(params != null)
 			{
@@ -81,12 +78,19 @@ package breezedb.queries
 		}
 		
 		
-		public function execute(failOnError:Boolean = true, transaction:Boolean = false):void
+		public function execute(failOnError:Boolean = true, transaction:Boolean = false, callback:Function = null):void
 		{
+			if(_db == null)
+			{
+				throw new IllegalOperationError("Database must be set before executing the queries.");
+			}
+
 			if(_isRunning)
 			{
 				throw new Error("The execute statement can not be called while queries are running");
 			}
+
+			_callback = callback;
 
 			_transaction = transaction;
 			_failOnError = failOnError;
@@ -101,8 +105,14 @@ package breezedb.queries
 
 			executeNextStatement();
 		}
-		
-		
+
+
+		public function setDatabase(db:IBreezeDatabase):void
+		{
+			_db = db;
+		}
+
+
 		/**
 		 *
 		 *
@@ -145,6 +155,7 @@ package breezedb.queries
 			}
 
 			var statement:BreezeSQLStatement = _queries[++_currentIndex];
+			statement.sqlConnection = _db.connection;
 			statement.execute();
 		}
 

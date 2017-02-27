@@ -210,25 +210,58 @@ package breezedb.queries
 
 			_callback = callback;
 
-			GarbagePrevention.instance.add(this);
-
-			var statement:BreezeSQLMultiStatement = new BreezeSQLMultiStatement(_db, onRawMultiQueryCompleted);
+			var database:IBreezeDatabase = null;
+			var statement:BreezeSQLMultiStatement = new BreezeSQLMultiStatement();
 			var length:int = rawQueries.length;
 			for(var i:int = 0; i < length; ++i)
 			{
-				var rawQuery:String = rawQueries[i] as String;
+				var rawQuery:String = null;
+				var parameters:Object = params;
+				var queryDatabase:IBreezeDatabase;
+				var queryObject:Object = rawQueries[i];
+				if(queryObject is String)
+				{
+					rawQuery = queryObject as String;
+					queryDatabase = _db;
+				}
+				else if(queryObject is BreezeQueryRunner)
+				{
+					rawQuery = BreezeQueryRunner(queryObject).queryString;
+					queryDatabase = BreezeQueryRunner(queryObject).database;
+					parameters = BreezeQueryRunner(queryObject).parameters;
+				}
+
+				// Invalid parameter
 				if(rawQuery == null)
 				{
-					throw new ArgumentError("Each query must be a String.");
+					throw new ArgumentError("Each query must be a String or BreezeQueryRunner.");
 				}
-				var parameters:Object = params;
-				if(params is Array && i < params.length)
+
+				// Check if all queries use the same database connection
+				if(database == null)
 				{
-					parameters = params[i];
+					database = queryDatabase;
 				}
+				else if(database != queryDatabase)
+				{
+					throw new IllegalOperationError("All queries must use the same database connection.")
+				}
+
+				if((params == parameters) && (params is Array))
+				{
+					parameters = null;
+					if(i < params.length)
+					{
+						parameters = params[i];
+					}
+				}
+
 				statement.addQuery(rawQuery, parameters);
 			}
-			statement.execute(failOnError, transaction);
+
+			GarbagePrevention.instance.add(this);
+			statement.setDatabase(database);
+			statement.execute(failOnError, transaction, onRawMultiQueryCompleted);
 			return new BreezeQueryReference(this);
 		}
 
