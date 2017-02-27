@@ -31,6 +31,7 @@ package breezedb.queries
 
 	import flash.data.SQLStatement;
 	import flash.errors.IllegalOperationError;
+	import flash.events.SQLEvent;
 
 	internal class BreezeSQLMultiStatement
 	{
@@ -98,12 +99,11 @@ package breezedb.queries
 
 			if(transaction)
 			{
-				_db.beginTransaction();
+				_db.beginTransaction(onTransactionBegan);
+				return;
 			}
 
-			GarbagePrevention.instance.add(this);
-
-			executeNextStatement();
+			startExecution();
 		}
 
 
@@ -120,6 +120,14 @@ package breezedb.queries
 		 *
 		 *
 		 */
+
+
+		private function startExecution():void
+		{
+			GarbagePrevention.instance.add(this);
+
+			executeNextStatement();
+		}
 		
 		
 		private function onQueryCompleted(error:Error, statement:SQLStatement):void
@@ -128,16 +136,41 @@ package breezedb.queries
 
 			if(error != null && (_failOnError || _transaction))
 			{
+				_fatalError = error;
 				if(_transaction)
 				{
-					_db.rollBack();
+					_db.rollBack(onTransactionEnded);
+					return;
 				}
-				_fatalError = error;
 				finalize();
 				return;
 			}
 
 			executeNextStatement();
+		}
+		
+		
+		private function onTransactionBegan(error:Error):void
+		{
+			if(error == null)
+			{
+				startExecution();
+			}
+			else
+			{
+				_fatalError = error;
+				finalize();
+			}
+		}
+
+
+		private function onTransactionEnded(error:Error):void
+		{
+			if(error != null && _fatalError == null)
+			{
+				_fatalError = error;
+			}
+			finalize();
 		}
 
 
@@ -147,7 +180,8 @@ package breezedb.queries
 			{
 				if(_transaction)
 				{
-					_db.commit();
+					_db.commit(onTransactionEnded);
+					return;
 				}
 
 				finalize();
