@@ -37,7 +37,10 @@ package breezedb
 	 */
 	public class DB extends EventDispatcher
 	{
-		
+
+		/**
+		 * @private
+		 */
 		public function DB()
 		{
 			throw new Error("DB is a static class.");
@@ -86,12 +89,15 @@ package breezedb
 		/**
 		 * Begins a transaction within which all SQL statements executed against the connection's database are grouped.
 		 *
+		 * @param callback Function triggered once the operation finishes. It should have a single <code>Error</code>
+		 *        object as a parameter.
+		 *
 		 * @see #commit()
 		 * @see #rollBack()
 		 */
-		public static function beginTransaction():void
+		public static function beginTransaction(callback:Function):void
 		{
-			BreezeDb.db.beginTransaction();
+			BreezeDb.db.beginTransaction(callback);
 		}
 
 
@@ -99,12 +105,31 @@ package breezedb
 		 * Commits an existing transaction, causing any actions performed by the transaction's statements to be
 		 * permanently applied to the database.
 		 *
+		 * @param callback Function triggered once the operation finishes. It should have a single <code>Error</code>
+		 *        object as a parameter.
+		 *
 		 * @see #beginTransaction()
 		 * @see #rollBack()
 		 */
-		public static function commit():void
+		public static function commit(callback:Function):void
 		{
-			BreezeDb.db.commit();
+			BreezeDb.db.commit(callback);
+		}
+
+
+		/**
+		 * Rolls back an existing transaction created using the <code>beginTransaction</code> method,
+		 * meaning all changes made by any SQL statements in the transaction are discarded.
+		 *
+		 * @param callback Function triggered once the operation finishes. It should have a single <code>Error</code>
+		 *        object as a parameter.
+		 *
+		 * @see #commit()
+		 * @see #beginTransaction()
+		 */
+		public static function rollBack(callback:Function):void
+		{
+			BreezeDb.db.rollBack(callback);
 		}
 
 
@@ -387,19 +412,6 @@ package breezedb
 		public static function multiQueryTransaction(rawQueries:Array, params:* = null, callback:Function = null):BreezeQueryReference
 		{
 			return BreezeDb.db.multiQueryTransaction(rawQueries, params, callback);
-		}
-
-
-		/**
-		 * Rolls back an existing transaction created using the <code>beginTransaction</code> method,
-		 * meaning all changes made by any SQL statements in the transaction are discarded.
-		 *
-		 * @see #commit()
-		 * @see #beginTransaction()
-		 */
-		public static function rollBack():void
-		{
-			BreezeDb.db.rollBack();
 		}
 
 
