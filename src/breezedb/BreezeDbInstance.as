@@ -50,6 +50,7 @@ package breezedb
 
 		private var _setupCallback:Function;
 		private var _closeCallback:Function;
+		private var _transactionCallback:Function;
 		private var _sqlConnection:SQLConnection;
 
 		public function BreezeDbInstance(name:String)
@@ -143,13 +144,22 @@ package breezedb
 		/**
 		 * @inheritDoc
 		 */
-		public function beginTransaction():void
+		public function beginTransaction(callback:Function):void
 		{
+			if(callback == null)
+			{
+				throw new ArgumentError("Parameter callback cannot be null.");
+			}
+
 			if(!isSetup)
 			{
 				throw new IllegalOperationError("There is no active database connection.");
 			}
 
+			_transactionCallback = callback;
+
+			_sqlConnection.addEventListener(SQLEvent.BEGIN, onTransactionBegan);
+			_sqlConnection.addEventListener(SQLErrorEvent.ERROR, onTransactionError);
 			_sqlConnection.begin();
 		}
 
@@ -157,13 +167,22 @@ package breezedb
 		/**
 		 * @inheritDoc
 		 */
-		public function commit():void
+		public function commit(callback:Function):void
 		{
+			if(callback == null)
+			{
+				throw new ArgumentError("Parameter callback cannot be null.");
+			}
+
 			if(!isSetup)
 			{
 				throw new IllegalOperationError("There is no active database connection.");
 			}
 
+			_transactionCallback = callback;
+
+			_sqlConnection.addEventListener(SQLEvent.COMMIT, onTransactionCommitted);
+			_sqlConnection.addEventListener(SQLErrorEvent.ERROR, onTransactionError);
 			_sqlConnection.commit();
 		}
 
@@ -171,17 +190,23 @@ package breezedb
 		/**
 		 * @inheritDoc
 		 */
-		public function rollBack():void
+		public function rollBack(callback:Function):void
 		{
+			if(callback == null)
+			{
+				throw new ArgumentError("Parameter callback cannot be null.");
+			}
+
 			if(!isSetup)
 			{
 				throw new IllegalOperationError("There is no active database connection.");
 			}
 
-			if(_sqlConnection.inTransaction)
-			{
-				_sqlConnection.rollback();
-			}
+			_transactionCallback = callback;
+
+			_sqlConnection.addEventListener(SQLEvent.ROLLBACK, onTransactionRolledBack);
+			_sqlConnection.addEventListener(SQLErrorEvent.ERROR, onTransactionError);
+			_sqlConnection.rollback();
 		}
 
 
@@ -355,6 +380,62 @@ package breezedb
 			var callback:Function = _closeCallback;
 			_closeCallback = null;
 			callback(event.error);
+		}
+
+
+		private function onTransactionBegan(event:SQLEvent):void
+		{
+			_sqlConnection.removeEventListener(SQLEvent.BEGIN, onTransactionBegan);
+			_sqlConnection.removeEventListener(SQLErrorEvent.ERROR, onTransactionError);
+
+			triggerTransactionCallback();
+		}
+
+
+		private function onTransactionCommitted(event:SQLEvent):void
+		{
+			_sqlConnection.removeEventListener(SQLEvent.COMMIT, onTransactionCommitted);
+			_sqlConnection.removeEventListener(SQLErrorEvent.ERROR, onTransactionError);
+
+			triggerTransactionCallback();
+		}
+
+
+		private function onTransactionRolledBack(event:SQLEvent):void
+		{
+			_sqlConnection.removeEventListener(SQLEvent.ROLLBACK, onTransactionRolledBack);
+			_sqlConnection.removeEventListener(SQLErrorEvent.ERROR, onTransactionError);
+
+			triggerTransactionCallback();
+		}
+
+
+		private function onTransactionError(event:SQLErrorEvent):void
+		{
+			_sqlConnection.removeEventListener(SQLEvent.BEGIN, onTransactionBegan);
+			_sqlConnection.removeEventListener(SQLEvent.COMMIT, onTransactionCommitted);
+			_sqlConnection.removeEventListener(SQLEvent.ROLLBACK, onTransactionRolledBack);
+			_sqlConnection.removeEventListener(SQLErrorEvent.ERROR, onTransactionError);
+
+			triggerTransactionCallback(event.error);
+		}
+
+
+		private function triggerTransactionCallback(error:Error = null):void
+		{
+			if(_transactionCallback != null)
+			{
+				var callback:Function = _transactionCallback;
+				_transactionCallback = null;
+				if(callback.length == 1)
+				{
+					callback(error);
+				}
+				else
+				{
+					callback();
+				}
+			}
 		}
 
 
