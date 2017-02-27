@@ -28,7 +28,6 @@ package breezedb.queries
 	import breezedb.BreezeDb;
 	import breezedb.IBreezeDatabase;
 	import breezedb.collections.Collection;
-	import breezedb.utils.GarbagePrevention;
 
 	import flash.globalization.DateTimeFormatter;
 
@@ -38,7 +37,6 @@ package breezedb.queries
 	public class BreezeQueryBuilder extends BreezeQueryRunner
 	{
 		private static var sDateFormatter:DateTimeFormatter = null;
-		private static var sShortDateFormatter:DateTimeFormatter = null;
 
 		private var _tableName:String;
 
