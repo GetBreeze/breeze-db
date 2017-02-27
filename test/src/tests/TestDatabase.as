@@ -27,6 +27,8 @@ package tests
 {
 	import breezedb.BreezeDb;
 	import breezedb.IBreezeDatabase;
+	import breezedb.collections.Collection;
+	import breezedb.schemas.TableBlueprint;
 
 	import breezetest.Assert;
 	import breezetest.async.Async;
@@ -39,6 +41,7 @@ package tests
 	{
 
 		public var currentAsync:Async;
+		public var _transactionDb:IBreezeDatabase;
 		
 		public function testSetupAndClose(async:Async):void
 		{
@@ -183,6 +186,116 @@ package tests
 			}, ArgumentError);
 
 			BreezeDb.fileExtension = ".sqlite";
+		}
+
+
+		public function testTransaction(async:Async):void
+		{
+			_transactionDb = BreezeDb.getDb("transaction-test");
+			_transactionDb.setup(onTransactionDatabaseSetup);
+		}
+
+
+		private function onTransactionDatabaseSetup(error:Error):void
+		{
+			Assert.isNull(error);
+
+			_transactionDb.schema.createTable("test", function(table:TableBlueprint):void
+			{
+				table.increments("id");
+				table.string("title").defaultNull();
+			}, onTableCreated);
+		}
+
+
+		private function onTableCreated(error:Error):void
+		{
+			Assert.isNull(error);
+
+			_transactionDb.beginTransaction(onFirstTransactionBegan);
+		}
+
+
+		private function onFirstTransactionBegan(error:Error):void
+		{
+			Assert.isNull(error);
+
+			_transactionDb.table("test").insert({ id: 1, title: "Test" }, onFirstInsertCompleted);
+		}
+
+
+		private function onFirstInsertCompleted(error:Error):void
+		{
+			Assert.isNull(error);
+
+			_transactionDb.rollBack(onTransactionRolledBack);
+		}
+
+
+		private function onTransactionRolledBack(error:Error):void
+		{
+			Assert.isNull(error);
+
+			// Check the record was not inserted
+			_transactionDb.table("test").fetch(onCheckRollBackCompleted);
+		}
+
+
+		private function onCheckRollBackCompleted(error:Error, results:Collection):void
+		{
+			Assert.isNull(error);
+			Assert.isNotNull(results);
+			Assert.equals(0, results.length);
+
+			_transactionDb.beginTransaction(onSecondTransactionBegan);
+		}
+
+
+		private function onSecondTransactionBegan(error:Error):void
+		{
+			Assert.isNull(error);
+
+			_transactionDb.table("test").insert({ id: 1, title: "Test" }, onSecondInsertCompleted);
+		}
+
+
+		private function onSecondInsertCompleted(error:Error):void
+		{
+			Assert.isNull(error);
+
+			_transactionDb.commit(onTransactionCommitted);
+		}
+
+
+		private function onTransactionCommitted(error:Error):void
+		{
+			Assert.isNull(error);
+
+			// Check the record was inserted
+			_transactionDb.table("test").fetch(onCheckCommitCompleted);
+		}
+
+
+		private function onCheckCommitCompleted(error:Error, results:Collection):void
+		{
+			Assert.isNull(error);
+			Assert.isNotNull(results);
+			Assert.equals(1, results.length);
+			Assert.equals(1, results[0].id);
+			Assert.equals("Test", results[0].title);
+
+			_transactionDb.close(onTransactionDatabaseClosed);
+		}
+
+
+		private function onTransactionDatabaseClosed(error:Error):void
+		{
+			if(_transactionDb.file != null)
+			{
+				_transactionDb.file.deleteFile();
+			}
+			_transactionDb = null;
+			currentAsync.complete();
 		}
 		
 	}
