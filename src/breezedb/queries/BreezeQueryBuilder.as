@@ -41,6 +41,7 @@ package breezedb.queries
 		private var _tableName:String;
 
 		private var _update:String = null;
+		private var _join:Vector.<BreezeJoinStatement>;
 		private var _select:Array = [];
 		private var _insert:Array = [];
 		private var _insertColumns:String = null;
@@ -63,6 +64,7 @@ package breezedb.queries
 			_tableName = tableName;
 			_queryType = QUERY_SELECT;
 			_queryParams = {};
+			_join = new <BreezeJoinStatement>[];
 			_where = new <BreezeInnerQueryBuilder>[];
 			_where[0] = new BreezeInnerQueryBuilder(_queryParams, _parametersIndex);
 		}
@@ -525,6 +527,36 @@ package breezedb.queries
 			executeIfNeeded(callback);
 			return this;
 		}
+		
+		
+		public function join(tableName:String, predicate:String):BreezeQueryBuilder
+		{
+			validateJoinParams(tableName, predicate);
+
+			_join[_join.length] = new BreezeJoinStatement(BreezeJoinStatement.INNER_JOIN, tableName, predicate);
+
+			return this;
+		}
+
+
+		public function leftJoin(tableName:String, predicate:String):BreezeQueryBuilder
+		{
+			validateJoinParams(tableName, predicate);
+
+			_join[_join.length] = new BreezeJoinStatement(BreezeJoinStatement.LEFT_OUTER_JOIN, tableName, predicate);
+
+			return this;
+		}
+
+
+		public function crossJoin(tableName:String):BreezeQueryBuilder
+		{
+			validateJoinParams(tableName, null, false);
+
+			_join[_join.length] = new BreezeJoinStatement(BreezeJoinStatement.CROSS_JOIN, tableName);
+
+			return this;
+		}
 
 
 		/**
@@ -558,6 +590,20 @@ package breezedb.queries
 
 				// FROM
 				addFromPart(parts);
+
+				// JOIN
+				if(_join.length > 0)
+				{
+					for each(var joinStatement:BreezeJoinStatement in _join)
+					{
+						addQueryPart(parts, joinStatement.type);
+						addQueryPart(parts, joinStatement.tableName);
+						if(joinStatement.type != BreezeJoinStatement.CROSS_JOIN)
+						{
+							addQueryPart(parts, "ON " + joinStatement.predicate);
+						}
+					}
+				}
 			}
 			// DELETE
 			else if(_queryType == QUERY_DELETE)
@@ -828,9 +874,36 @@ package breezedb.queries
 				throw new ArgumentError("Column name cannot be null.");
 			}
 
-			if(columnName.indexOf(";") >= 0)
+			if(columnName.indexOf(";") >= 0 || !(/\S/.test(columnName)))
 			{
 				throw new ArgumentError("Invalid column name: " + columnName);
+			}
+		}
+
+
+		private function validateJoinParams(tableName:String, predicate:String, validatePredicate:Boolean = true):void
+		{
+			if(tableName == null)
+			{
+				throw new ArgumentError("Parameter tableName cannot be null.");
+			}
+
+			if(tableName.indexOf(";") >= 0 || !(/\S/.test(tableName)))
+			{
+				throw new ArgumentError("Invalid table name: " + tableName);
+			}
+
+			if(validatePredicate)
+			{
+				if(predicate == null)
+				{
+					throw new ArgumentError("Parameter predicate cannot be null.");
+				}
+
+				if(predicate.indexOf(";") >= 0 || !(/\S/.test(predicate)))
+				{
+					throw new ArgumentError("Invalid JOIN predicate: " + predicate);
+				}
 			}
 		}
 
