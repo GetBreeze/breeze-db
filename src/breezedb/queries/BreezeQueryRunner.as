@@ -38,42 +38,42 @@ package breezedb.queries
 		/**
 		 * @private
 		 */
-		protected static const MULTI_QUERY_RAW:int = 0;
+		internal static const MULTI_QUERY_RAW:int = 0;
 
 		/**
 		 * @private
 		 */
-		protected static const MULTI_QUERY_FAIL_ON_ERROR:int = 1;
+		internal static const MULTI_QUERY_FAIL_ON_ERROR:int = 1;
 
 		/**
 		 * @private
 		 */
-		protected static const MULTI_QUERY_TRANSACTION:int = 2;
+		internal static const MULTI_QUERY_TRANSACTION:int = 2;
 
 		/**
 		 * @private
 		 */
-		protected static const QUERY_RAW:int = 0;
+		internal static const QUERY_RAW:int = 0;
 
 		/**
 		 * @private
 		 */
-		protected static const QUERY_SELECT:int = 1;
+		internal static const QUERY_SELECT:int = 1;
 
 		/**
 		 * @private
 		 */
-		protected static const QUERY_DELETE:int = 2;
+		internal static const QUERY_DELETE:int = 2;
 
 		/**
 		 * @private
 		 */
-		protected static const QUERY_INSERT:int = 3;
+		internal static const QUERY_INSERT:int = 3;
 
 		/**
 		 * @private
 		 */
-		protected static const QUERY_UPDATE:int = 4;
+		internal static const QUERY_UPDATE:int = 4;
 
 		/**
 		 * @private
@@ -257,6 +257,12 @@ package breezedb.queries
 
 				return _originalCallback.apply(_originalCallback, params);
 			}
+		}
+
+
+		internal function setMultiQueryMethod(value:int):void
+		{
+			_multiQueryMethod = value;
 		}
 
 

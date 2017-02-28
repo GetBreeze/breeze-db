@@ -215,20 +215,30 @@ package breezedb.queries
 			var length:int = rawQueries.length;
 			for(var i:int = 0; i < length; ++i)
 			{
-				var rawQuery:String = null;
+				var rawQuery:* = null;
 				var parameters:Object = params;
 				var queryDatabase:IBreezeDatabase;
 				var queryObject:Object = rawQueries[i];
 				if(queryObject is String)
 				{
-					rawQuery = queryObject as String;
+					rawQuery = queryObject;
 					queryDatabase = _db;
+
+					// Set raw query parameters
+					if(params is Array)
+					{
+						parameters = null;
+						if(i < params.length)
+						{
+							parameters = params[i];
+						}
+					}
 				}
 				else if(queryObject is BreezeQueryRunner)
 				{
-					rawQuery = BreezeQueryRunner(queryObject).queryString;
+					rawQuery = queryObject;
 					queryDatabase = BreezeQueryRunner(queryObject).database;
-					parameters = BreezeQueryRunner(queryObject).parameters;
+					// Query runner already has its parameters set
 				}
 
 				// Invalid parameter
@@ -247,16 +257,7 @@ package breezedb.queries
 					throw new IllegalOperationError("All queries must use the same database connection.")
 				}
 
-				if((params == parameters) && (params is Array))
-				{
-					parameters = null;
-					if(i < params.length)
-					{
-						parameters = params[i];
-					}
-				}
-
-				statement.addQuery(rawQuery, parameters);
+				statement.addQuery(rawQuery, parameters, transaction);
 			}
 
 			GarbagePrevention.instance.add(this);

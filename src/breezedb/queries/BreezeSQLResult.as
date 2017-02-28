@@ -101,6 +101,15 @@ package breezedb.queries
 			_data = new Collection();
 			return _data;
 		}
+
+
+		/**
+		 * Provides access to the original SQL result.
+		 */
+		internal function get sqlResult():SQLResult
+		{
+			return _result;
+		}
 	}
 	
 }

@@ -26,12 +26,13 @@
 package breezedb.queries
 {
 	import breezedb.IBreezeDatabase;
+	import breezedb.collections.Collection;
 	import breezedb.utils.Callback;
 	import breezedb.utils.GarbagePrevention;
 
+	import flash.data.SQLResult;
 	import flash.data.SQLStatement;
 	import flash.errors.IllegalOperationError;
-	import flash.events.SQLEvent;
 
 	internal class BreezeSQLMultiStatement
 	{
@@ -42,14 +43,14 @@ package breezedb.queries
 
 		private var _db:IBreezeDatabase;
 		private var _callback:Function;
-		private var _queries:Vector.<BreezeSQLStatement>;
+		private var _queries:Array;
 		private var _results:Vector.<BreezeQueryResult>;
 		private var _fatalError:Error;
 
 
 		public function BreezeSQLMultiStatement()
 		{
-			_queries = new <BreezeSQLStatement>[];
+			_queries = [];
 			_results = new <BreezeQueryResult>[];
 		}
 		
@@ -62,20 +63,44 @@ package breezedb.queries
 		 *
 		 */
 		
-		
-		public function addQuery(query:String, params:Object = null):void
+
+		/**
+		 * Adds a query to the list of queries to be executed.
+		 *
+		 * @param query Either a raw query (String) or delayed BreezeQueryRunner.
+		 * @param params Parameters for the raw query.
+		 * @param transaction true if the multi-statement will be run within a transaction. In that case,
+		 *        any multi-query runners cannot run within a transaction.
+		 */
+		public function addQuery(query:*, params:Object = null, transaction:Boolean = false):void
 		{
-			var statement:BreezeSQLStatement = new BreezeSQLStatement(onQueryCompleted);
-			statement.text = query;
-			if(params != null)
+			// Raw query, create SQL statement
+			if(query is String)
 			{
-				for(var key:String in params)
+				var statement:BreezeSQLStatement = new BreezeSQLStatement(onRawQueryCompleted);
+				statement.text = query;
+				if(params != null)
 				{
-					var paramKey:String = ((key.charAt(0) == ":") ? "" : ":") + key;
-					statement.parameters[paramKey] = params[key];
+					for(var key:String in params)
+					{
+						var paramKey:String = ((key.charAt(0) == ":") ? "" : ":") + key;
+						statement.parameters[paramKey] = params[key];
+					}
 				}
+				_queries[_queries.length] = statement;
 			}
-			_queries[_queries.length] = statement;
+			// Query runner is executed as is, no SQL statement is created for it
+			// because the runner can execute multiple queries itself
+			else if(query is BreezeQueryRunner)
+			{
+				// Run the query in transaction only if this multi-statement is not run in transaction
+				BreezeQueryRunner(query).setMultiQueryMethod(transaction ? BreezeQueryRunner.MULTI_QUERY_FAIL_ON_ERROR : BreezeQueryRunner.MULTI_QUERY_TRANSACTION);
+				_queries[_queries.length] = query;
+			}
+			else
+			{
+				throw new ArgumentError("Parameter query must be a String or BreezeQueryRunner");
+			}
 		}
 		
 		
@@ -130,13 +155,64 @@ package breezedb.queries
 		}
 		
 		
-		private function onQueryCompleted(error:Error, statement:SQLStatement):void
+		private function onRawQueryCompleted(error:Error, statement:SQLStatement):void
 		{
-			_results[_currentIndex] = new BreezeQueryResult(statement.getResult(), error);
+			var result:BreezeQueryResult = new BreezeQueryResult(statement.getResult(), error);
+			addResult(result);
+		}
+		
+		
+		private function onQueryRunnerCompleted(error:Error, queryResult:* = null):void
+		{
+			var result:BreezeQueryResult = null;
 
-			if(error != null && (_failOnError || _transaction))
+			// Generic result
+			if(queryResult is BreezeSQLResult)
 			{
-				_fatalError = error;
+				result = new BreezeQueryResult(BreezeSQLResult(queryResult).sqlResult, error);
+			}
+			// SELECT result
+			else if(queryResult is Collection)
+			{
+				result = new BreezeQueryResult(new SQLResult(Collection(queryResult).all), error);
+			}
+			// DELETE, UPDATE or aggregate result
+			else if(queryResult is Number)
+			{
+				var rowsAffected:int = (queryResult is int) ? queryResult : 0;
+				result = new BreezeQueryResult(new SQLResult([queryResult], rowsAffected), error);
+			}
+			// Multi-query result
+			else if(queryResult is Vector.<BreezeQueryResult>)
+			{
+				var multiResult:Vector.<BreezeQueryResult> = queryResult as Vector.<BreezeQueryResult>;
+				if(multiResult.length > 0)
+				{
+					result = multiResult[0];
+				}
+			}
+			// Single object, e.g. when executing first()
+			else if(queryResult != null)
+			{
+				result = new BreezeQueryResult(new SQLResult([queryResult]), error);
+			}
+
+			if(result == null)
+			{
+				result = new BreezeQueryResult(new SQLResult(), error);
+			}
+
+			addResult(result);
+		}
+
+
+		private function addResult(result:BreezeQueryResult):void
+		{
+			_results[_currentIndex] = result;
+
+			if(result.error != null && (_failOnError || _transaction))
+			{
+				_fatalError = result.error;
 				if(_transaction)
 				{
 					_db.rollBack(onTransactionEnded);
@@ -188,9 +264,20 @@ package breezedb.queries
 				return;
 			}
 
-			var statement:BreezeSQLStatement = _queries[++_currentIndex];
-			statement.sqlConnection = _db.connection;
-			statement.execute();
+			var query:* = _queries[++_currentIndex];
+
+			// Execute SQL statement
+			if(query is BreezeSQLStatement)
+			{
+				var statement:BreezeSQLStatement = query as BreezeSQLStatement;
+				statement.sqlConnection = _db.connection;
+				statement.execute();
+			}
+			// Otherwise execute delayed query runner
+			else
+			{
+				BreezeQueryRunner(query).exec(onQueryRunnerCompleted);
+			}
 		}
 
 
