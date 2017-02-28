@@ -29,6 +29,9 @@ package tests
 	import breezedb.IBreezeDatabase;
 	import breezedb.collections.Collection;
 	import breezedb.queries.BreezeInnerQueryBuilder;
+	import breezedb.queries.BreezeQueryBuilder;
+	import breezedb.queries.BreezeQueryResult;
+	import breezedb.queries.BreezeQueryRunner;
 	import breezedb.schemas.TableBlueprint;
 
 	import breezetest.Assert;
@@ -48,12 +51,31 @@ package tests
 			{ title: "Camp Fire",   views: 13,  downloads: 13,  likes: 2,  creation_date: new Date(2016, 8, 27) },
 			{ title: "Sunset",      views: 24,  downloads: 10,  likes: 10, creation_date: new Date(2015, 11, 11) }
 		];
-		private const _tableName:String = "photos";
+		private const _employees:Array = [
+			{ id: 1, name: "John", salary: 14000 },
+			{ id: 2, name: "Ema", salary: 17000 },
+			{ id: 3, name: "Lucas", salary: 15000 },
+			{ id: 4, name: "Bill", salary: 28000 },
+			{ id: 5, name: "Emily", salary: 21000 }
+		];
+		private const _departments:Array = [
+			{dept_id: 1, dept_name: "IT", emp_id: 4, build_id: 1},
+			{dept_id: 2, dept_name: "Marketing", emp_id: 5, build_id: 2},
+			{dept_id: 3, dept_name: "Finance", emp_id: 2, build_id: 2}
+		];
+		private const _buildings:Array = [
+			{build_id: 1, address: "47 Water St"},
+			{build_id: 2, address: "71 Willoughby St"}
+		];
+		private const _photosTable:String = "photos";
+		private const _employeesTable:String = "employees";
+		private const _departmentsTable:String = "departments";
+		private const _buildingsTable:String = "buildings";
 
 
 		public function setupClass(async:Async):void
 		{
-			async.timeout = 2000;
+			async.timeout = 5000;
 
 			_db = BreezeDb.getDb("query-builder-test");
 			_db.setup(onDatabaseSetup);
@@ -65,8 +87,8 @@ package tests
 			Assert.isNull(error);
 			Assert.isTrue(_db.isSetup);
 
-			// Create test table
-			_db.schema.createTable(_tableName, function(table:TableBlueprint):void
+			// Create tables
+			var createPhotos:BreezeQueryRunner = _db.schema.createTable(_photosTable, function(table:TableBlueprint):void
 			{
 				table.increments("id");
 				table.string("title").defaultNull();
@@ -74,21 +96,47 @@ package tests
 				table.integer("downloads").defaultTo(0);
 				table.integer("likes").defaultTo(0);
 				table.date("creation_date");
-			}, onTableCreated);
+			}, BreezeDb.DELAY);
+
+			var createEmployees:BreezeQueryRunner = _db.schema.createTable(_employeesTable, function(table:TableBlueprint):void
+			{
+				table.increments("id");
+				table.string("name").notNull();
+				table.integer("salary").defaultTo(0);
+			}, BreezeDb.DELAY);
+
+			var createDepartments:BreezeQueryRunner = _db.schema.createTable(_departmentsTable, function(table:TableBlueprint):void
+			{
+				table.increments("dept_id");
+				table.string("dept_name").notNull();
+				table.integer("emp_id");
+				table.integer("build_id");
+			}, BreezeDb.DELAY);
+
+			var createBuildings:BreezeQueryRunner = _db.schema.createTable(_buildingsTable, function(table:TableBlueprint):void
+			{
+				table.increments("build_id");
+				table.string("address").notNull();
+			}, BreezeDb.DELAY);
+
+			// Insert initial data
+			var insertPhotos:BreezeQueryBuilder = _db.table(_photosTable).insert(_photos, BreezeDb.DELAY);
+			var insertEmployees:BreezeQueryBuilder = _db.table(_employeesTable).insert(_employees, BreezeDb.DELAY);
+			var insertDepartments:BreezeQueryBuilder = _db.table(_departmentsTable).insert(_departments, BreezeDb.DELAY);
+			var insertBuildings:BreezeQueryBuilder = _db.table(_buildingsTable).insert(_buildings, BreezeDb.DELAY);
+
+			_db.multiQueryFailOnError([
+				createPhotos, createEmployees, createDepartments, createBuildings,
+				insertPhotos, insertEmployees, insertDepartments, insertBuildings
+			], onInitialDataCreated);
 		}
 
 
-		private function onTableCreated(error:Error):void
+		private function onInitialDataCreated(error:Error, results:Vector.<BreezeQueryResult>):void
 		{
 			Assert.isNull(error);
-
-			_db.table(_tableName).insert(_photos, onInsertInitialDataCompleted);
-		}
-
-
-		private function onInsertInitialDataCompleted(error:Error):void
-		{
-			Assert.isNull(error);
+			Assert.isNotNull(results);
+			Assert.equals(8, results.length);
 
 			currentAsync.complete();
 		}
@@ -98,7 +146,7 @@ package tests
 		{
 			async.timeout = 2000;
 
-			_db.table(_tableName).first(onFirstCompleted);
+			_db.table(_photosTable).first(onFirstCompleted);
 		}
 
 
@@ -121,7 +169,7 @@ package tests
 		{
 			async.timeout = 2000;
 
-			_db.table(_tableName).count(onCountCompleted);
+			_db.table(_photosTable).count(onCountCompleted);
 		}
 
 
@@ -138,7 +186,7 @@ package tests
 		{
 			async.timeout = 2000;
 
-			_db.table(_tableName).sum("views", onSumViewsCompleted);
+			_db.table(_photosTable).sum("views", onSumViewsCompleted);
 		}
 
 
@@ -162,7 +210,7 @@ package tests
 		{
 			async.timeout = 2000;
 
-			_db.table(_tableName).sum("viewz", onInvalidSumCompleted);
+			_db.table(_photosTable).sum("viewz", onInvalidSumCompleted);
 		}
 
 
@@ -179,7 +227,7 @@ package tests
 		{
 			async.timeout = 2000;
 
-			_db.table(_tableName).avg("downloads", onAvgDownloadsCompleted);
+			_db.table(_photosTable).avg("downloads", onAvgDownloadsCompleted);
 		}
 
 
@@ -204,7 +252,7 @@ package tests
 		{
 			async.timeout = 2000;
 
-			_db.table(_tableName).avg("downloadz", onInvalidAvgCompleted);
+			_db.table(_photosTable).avg("downloadz", onInvalidAvgCompleted);
 		}
 
 
@@ -221,7 +269,7 @@ package tests
 		{
 			async.timeout = 2000;
 
-			_db.table(_tableName).min("downloads", onMinDownloadsCompleted);
+			_db.table(_photosTable).min("downloads", onMinDownloadsCompleted);
 		}
 
 
@@ -238,7 +286,7 @@ package tests
 		{
 			async.timeout = 2000;
 
-			_db.table(_tableName).min("downloadz", onInvalidMinCompleted);
+			_db.table(_photosTable).min("downloadz", onInvalidMinCompleted);
 		}
 
 
@@ -255,7 +303,7 @@ package tests
 		{
 			async.timeout = 2000;
 
-			_db.table(_tableName).max("views", onMaxViewsCompleted);
+			_db.table(_photosTable).max("views", onMaxViewsCompleted);
 		}
 
 
@@ -272,7 +320,7 @@ package tests
 		{
 			async.timeout = 2000;
 
-			_db.table(_tableName).max("viewz", onInvalidMaxCompleted);
+			_db.table(_photosTable).max("viewz", onInvalidMaxCompleted);
 		}
 
 
@@ -289,7 +337,7 @@ package tests
 		{
 			async.timeout = 2000;
 
-			_db.table(_tableName).select("id", "title as name").fetch(onSelectCompleted);
+			_db.table(_photosTable).select("id", "title as name").fetch(onSelectCompleted);
 		}
 
 
@@ -317,7 +365,7 @@ package tests
 		{
 			async.timeout = 2000;
 
-			_db.table(_tableName).select("idz").fetch(onInvalidSelectCompleted);
+			_db.table(_photosTable).select("idz").fetch(onInvalidSelectCompleted);
 		}
 
 
@@ -335,7 +383,7 @@ package tests
 		{
 			async.timeout = 2000;
 
-			_db.table(_tableName).distinct("downloads").fetch(onDistinctCompleted);
+			_db.table(_photosTable).distinct("downloads").fetch(onDistinctCompleted);
 		}
 
 
@@ -361,7 +409,7 @@ package tests
 		{
 			async.timeout = 2000;
 
-			_db.table(_tableName).chunk(1, onChunkCompleted);
+			_db.table(_photosTable).chunk(1, onChunkCompleted);
 		}
 
 
@@ -393,7 +441,7 @@ package tests
 		{
 			async.timeout = 2000;
 
-			_db.table(_tableName).where("id", 2).fetch(onWhereEqualCompleted);
+			_db.table(_photosTable).where("id", 2).fetch(onWhereEqualCompleted);
 		}
 		
 		
@@ -409,7 +457,7 @@ package tests
 			Assert.equals(photo2.views, results[0].views);
 			Assert.equals(photo2.downloads, results[0].downloads);
 
-			_db.table(_tableName).where("id", ">", 2).fetch(onWhereGreaterThanCompleted);
+			_db.table(_photosTable).where("id", ">", 2).fetch(onWhereGreaterThanCompleted);
 		}
 
 
@@ -430,7 +478,7 @@ package tests
 				Assert.equals(photo.downloads, results[i].downloads);
 			}
 
-			_db.table(_tableName).where("id = 2").fetch(onRawWhereCompleted);
+			_db.table(_photosTable).where("id = 2").fetch(onRawWhereCompleted);
 		}
 
 
@@ -446,7 +494,7 @@ package tests
 			Assert.equals(photo2.views, results[0].views);
 			Assert.equals(photo2.downloads, results[0].downloads);
 
-			_db.table(_tableName).where("id", ">", 2).where("downloads", ">", 0).fetch(onWhereChainedCompleted);
+			_db.table(_photosTable).where("id", ">", 2).where("downloads", ">", 0).fetch(onWhereChainedCompleted);
 		}
 
 
@@ -470,7 +518,7 @@ package tests
 			Assert.equals(photo5.views, results[1].views);
 			Assert.equals(photo5.downloads, results[1].downloads);
 
-			_db.table(_tableName).where([["id", 2], ["title", "=", "Flowers"]]).fetch(onWhereArrayCompleted);
+			_db.table(_photosTable).where([["id", 2], ["title", "=", "Flowers"]]).fetch(onWhereArrayCompleted);
 		}
 
 
@@ -492,7 +540,7 @@ package tests
 
 		public function testNestedWhere(async:Async):void
 		{
-			_db.table(_tableName)
+			_db.table(_photosTable)
 					.where("id", 2)
 					.orWhere(function(query:BreezeInnerQueryBuilder):void
 					{
@@ -530,7 +578,7 @@ package tests
 		{
 			async.timeout = 2000;
 
-			_db.table(_tableName).where("id", 2).orWhere("id", 5).fetch(onWhereOrWhereCompleted);
+			_db.table(_photosTable).where("id", 2).orWhere("id", 5).fetch(onWhereOrWhereCompleted);
 		}
 
 
@@ -560,7 +608,7 @@ package tests
 		{
 			async.timeout = 2000;
 
-			_db.table(_tableName).whereBetween("views", 10, 30).fetch(onWhereBetweenCompleted);
+			_db.table(_photosTable).whereBetween("views", 10, 30).fetch(onWhereBetweenCompleted);
 		}
 
 
@@ -590,7 +638,7 @@ package tests
 		{
 			async.timeout = 2000;
 
-			_db.table(_tableName).whereNotBetween("views", 10, 30).fetch(onWhereNotBetweenCompleted);
+			_db.table(_photosTable).whereNotBetween("views", 10, 30).fetch(onWhereNotBetweenCompleted);
 		}
 
 
@@ -626,7 +674,7 @@ package tests
 		{
 			async.timeout = 2000;
 
-			_db.table(_tableName).whereIn("title", ["Camp Fire", "Sunset"]).fetch(onWhereInCompleted);
+			_db.table(_photosTable).whereIn("title", ["Camp Fire", "Sunset"]).fetch(onWhereInCompleted);
 		}
 
 
@@ -656,7 +704,7 @@ package tests
 		{
 			async.timeout = 2000;
 
-			_db.table(_tableName).whereNotIn("title", ["Camp Fire", "Sunset"]).fetch(onWhereNotInCompleted);
+			_db.table(_photosTable).whereNotIn("title", ["Camp Fire", "Sunset"]).fetch(onWhereNotInCompleted);
 		}
 
 
@@ -692,7 +740,7 @@ package tests
 		{
 			async.timeout = 2000;
 
-			_db.table(_tableName).whereDate("creation_date", new Date(2014, 1, 25)).fetch(onWhereDateEqualsCompleted);
+			_db.table(_photosTable).whereDate("creation_date", new Date(2014, 1, 25)).fetch(onWhereDateEqualsCompleted);
 		}
 
 
@@ -708,7 +756,7 @@ package tests
 			Assert.equals(photo1.views, results[0].views);
 			Assert.equals(photo1.downloads, results[0].downloads);
 
-			_db.table(_tableName).whereDate("creation_date", "<", "2015-01-01").fetch(onWhereDateLessThanCompleted);
+			_db.table(_photosTable).whereDate("creation_date", "<", "2015-01-01").fetch(onWhereDateLessThanCompleted);
 		}
 
 
@@ -732,7 +780,7 @@ package tests
 		{
 			async.timeout = 2000;
 
-			_db.table(_tableName).whereDay("creation_date", 25).fetch(onWhereDayEqualsCompleted);
+			_db.table(_photosTable).whereDay("creation_date", 25).fetch(onWhereDayEqualsCompleted);
 		}
 
 
@@ -748,7 +796,7 @@ package tests
 			Assert.equals(photo1.views, results[0].views);
 			Assert.equals(photo1.downloads, results[0].downloads);
 
-			_db.table(_tableName).whereDay("creation_date", ">", new Date(2016, 5, 24)).fetch(onWhereDayGreaterThanCompleted);
+			_db.table(_photosTable).whereDay("creation_date", ">", new Date(2016, 5, 24)).fetch(onWhereDayGreaterThanCompleted);
 		}
 
 
@@ -778,7 +826,7 @@ package tests
 		{
 			async.timeout = 2000;
 
-			_db.table(_tableName).whereMonth("creation_date", 6).fetch(onWhereMonthEqualsCompleted);
+			_db.table(_photosTable).whereMonth("creation_date", 6).fetch(onWhereMonthEqualsCompleted);
 		}
 
 
@@ -794,7 +842,7 @@ package tests
 			Assert.equals(photo3.views, results[0].views);
 			Assert.equals(photo3.downloads, results[0].downloads);
 
-			_db.table(_tableName).whereMonth("creation_date", ">", new Date(2015, 6, 15)).fetch(onWhereMonthGreaterThanCompleted);
+			_db.table(_photosTable).whereMonth("creation_date", ">", new Date(2015, 6, 15)).fetch(onWhereMonthGreaterThanCompleted);
 		}
 
 
@@ -824,7 +872,7 @@ package tests
 		{
 			async.timeout = 2000;
 
-			_db.table(_tableName).whereYear("creation_date", 2015).fetch(onWhereYearEqualsCompleted);
+			_db.table(_photosTable).whereYear("creation_date", 2015).fetch(onWhereYearEqualsCompleted);
 		}
 
 
@@ -846,7 +894,7 @@ package tests
 			Assert.equals(photo5.views, results[1].views);
 			Assert.equals(photo5.downloads, results[1].downloads);
 
-			_db.table(_tableName).whereYear("creation_date", "<", new Date(2015, 1, 1)).fetch(onWhereYearLessThanCompleted);
+			_db.table(_photosTable).whereYear("creation_date", "<", new Date(2015, 1, 1)).fetch(onWhereYearLessThanCompleted);
 		}
 
 
@@ -870,7 +918,7 @@ package tests
 		{
 			async.timeout = 2000;
 
-			_db.table(_tableName).whereColumn("views", "downloads").fetch(onWhereViewsEqualDownloadsCompleted);
+			_db.table(_photosTable).whereColumn("views", "downloads").fetch(onWhereViewsEqualDownloadsCompleted);
 		}
 
 
@@ -894,7 +942,7 @@ package tests
 			Assert.equals(photo4.downloads, results[1].downloads);
 			Assert.equals(results[1].views, results[1].downloads);
 
-			_db.table(_tableName).whereColumn("likes", "<", "downloads").fetch(onWhereLikesLessThanDownloadsCompleted);
+			_db.table(_photosTable).whereColumn("likes", "<", "downloads").fetch(onWhereLikesLessThanDownloadsCompleted);
 		}
 
 
@@ -918,7 +966,7 @@ package tests
 			Assert.equals(photo4.downloads, results[1].downloads);
 			Assert.isTrue(results[1].likes < results[1].downloads);
 
-			_db.table(_tableName).whereColumn([["views", "downloads"], ["likes", "<", "downloads"]]).fetch(onWhereViewsEqualDownloadsAndLikesLessThanDownloadsCompleted);
+			_db.table(_photosTable).whereColumn([["views", "downloads"], ["likes", "<", "downloads"]]).fetch(onWhereViewsEqualDownloadsAndLikesLessThanDownloadsCompleted);
 		}
 
 
@@ -944,7 +992,7 @@ package tests
 		{
 			async.timeout = 2000;
 
-			_db.table(_tableName).orderBy("views", "ASC", "downloads", "ASC").fetch(onOrderByViewsDownloadsAscCompleted);
+			_db.table(_photosTable).orderBy("views", "ASC", "downloads", "ASC").fetch(onOrderByViewsDownloadsAscCompleted);
 		}
 
 
@@ -969,7 +1017,7 @@ package tests
 			Assert.equals(_photos[4].views, results[2].views);
 			Assert.equals(_photos[4].downloads, results[2].downloads);
 
-			_db.table(_tableName).orderBy("views", "ASC", "downloads", "DESC").fetch(onOrderByViewsDownloadsDescCompleted);
+			_db.table(_photosTable).orderBy("views", "ASC", "downloads", "DESC").fetch(onOrderByViewsDownloadsDescCompleted);
 		}
 
 
@@ -1002,7 +1050,7 @@ package tests
 		{
 			async.timeout = 2000;
 
-			_db.table(_tableName)
+			_db.table(_photosTable)
 					.select("SUM(views) as total_views, strftime('%Y', creation_date) as year_created")
 					.groupBy("year_created")
 					.orderBy("total_views", "ASC")
@@ -1033,7 +1081,7 @@ package tests
 		{
 			async.timeout = 2000;
 
-			_db.table(_tableName)
+			_db.table(_photosTable)
 					.select("SUM(views) as total_views, strftime('%Y', creation_date) as year_created")
 					.groupBy("year_created")
 					.orderBy("total_views", "ASC")
@@ -1062,7 +1110,7 @@ package tests
 		{
 			async.timeout = 2000;
 
-			_db.table(_tableName)
+			_db.table(_photosTable)
 					.select("SUM(views) as total_views, strftime('%Y', creation_date) as year_created")
 					.groupBy("year_created")
 					.orderBy("total_views", "ASC")
@@ -1092,7 +1140,7 @@ package tests
 		{
 			async.timeout = 2000;
 
-			_db.table(_tableName).limit(2).fetch(onLimitCompleted);
+			_db.table(_photosTable).limit(2).fetch(onLimitCompleted);
 		}
 
 
@@ -1122,7 +1170,7 @@ package tests
 		{
 			async.timeout = 2000;
 
-			_db.table(_tableName).limit(2).offset(2).fetch(onOffsetCompleted);
+			_db.table(_photosTable).limit(2).offset(2).fetch(onOffsetCompleted);
 		}
 
 
@@ -1152,7 +1200,7 @@ package tests
 		{
 			async.timeout = 2000;
 
-			_db.table(_tableName).insert({ id: 6, title: "Morning Dew", views: 3, downloads: 0, likes: 0, creation_date: new Date() }, onSingleInsertCompleted);
+			_db.table(_photosTable).insert({ id: 6, title: "Morning Dew", views: 3, downloads: 0, likes: 0, creation_date: new Date() }, onSingleInsertCompleted);
 		}
 
 
@@ -1161,7 +1209,7 @@ package tests
 			Assert.isNull(error);
 
 			// Check the item has been inserted
-			_db.table(_tableName).select("id", "title").where("id", 6).fetch(onSingleInsertCheckCompleted);
+			_db.table(_photosTable).select("id", "title").where("id", 6).fetch(onSingleInsertCheckCompleted);
 		}
 
 
@@ -1174,7 +1222,7 @@ package tests
 			Assert.equals(6, results[0].id);
 			Assert.equals("Morning Dew", results[0].title);
 
-			_db.table(_tableName).where("id", 6).remove(onSingleRemoveCompleted);
+			_db.table(_photosTable).where("id", 6).remove(onSingleRemoveCompleted);
 		}
 		
 		
@@ -1183,7 +1231,7 @@ package tests
 			Assert.isNull(error);
 			Assert.equals(1, deleted);
 
-			_db.table(_tableName).insert([
+			_db.table(_photosTable).insert([
 				{ id: 7, title: "Morning Dew", views: 3, downloads: 0, likes: 0, creation_date: new Date() },
 				{ id: 8, title: "Night Sky", views: 10, downloads: 5, likes: 2, creation_date: new Date() },
 			], onMultiInsertCompleted);
@@ -1195,7 +1243,7 @@ package tests
 			Assert.isNull(error);
 
 			// Check the two items have been inserted
-			_db.table(_tableName)
+			_db.table(_photosTable)
 					.select("id", "title")
 					.where("id", 7)
 					.orWhere("id", 8)
@@ -1215,7 +1263,7 @@ package tests
 			Assert.equals(8, results[1].id);
 			Assert.equals("Night Sky", results[1].title);
 
-			_db.table(_tableName)
+			_db.table(_photosTable)
 					.where("id", 7)
 					.orWhere("id", 8)
 					.remove(onMultiRemoveCompleted);
@@ -1228,7 +1276,7 @@ package tests
 			Assert.equals(2, deleted);
 
 			// Insert and get id
-			_db.table(_tableName)
+			_db.table(_photosTable)
 					.insertGetId({ title: "Night Sky", views: 10, downloads: 5, likes: 2, creation_date: new Date() },
 					onInsertGetIdCompleted);
 		}
@@ -1239,7 +1287,7 @@ package tests
 			Assert.isNull(error);
 			Assert.equals(9, newId);
 
-			_db.table(_tableName).where("id", 9).remove(onTempInsertRemoveCompleted);
+			_db.table(_photosTable).where("id", 9).remove(onTempInsertRemoveCompleted);
 		}
 
 
@@ -1256,7 +1304,7 @@ package tests
 		{
 			async.timeout = 2000;
 
-			_db.table(_tableName)
+			_db.table(_photosTable)
 					.where("id", 1)
 					.update({ title: "Hills", likes: 10 }, onUpdateCompleted);
 		}
@@ -1268,7 +1316,7 @@ package tests
 			Assert.equals(1, affectedRows);
 
 			// Check that the title has been updated
-			_db.table(_tableName)
+			_db.table(_photosTable)
 					.select("id", "title", "likes")
 					.where("id", 1)
 					.fetch(onUpdateCheckCompleted);
@@ -1286,7 +1334,7 @@ package tests
 			Assert.equals(10, results[0].likes);
 
 			// Change back to "Mountains"
-			_db.table(_tableName)
+			_db.table(_photosTable)
 					.where("id", 1)
 					.update({ title: "Mountains", likes: 4 }, onRollBackUpdateCompleted);
 		}
@@ -1305,7 +1353,7 @@ package tests
 		{
 			async.timeout = 2000;
 
-			_db.table(_tableName)
+			_db.table(_photosTable)
 					.where("id", 1)
 					.increment("views", onSimpleIncrementCompleted);
 		}
@@ -1316,7 +1364,7 @@ package tests
 			Assert.isNull(error);
 
 			// Check that the views count has been incremented by 1
-			_db.table(_tableName)
+			_db.table(_photosTable)
 					.select("id", "views")
 					.where("id", 1)
 					.fetch(onSimpleIncrementCheckCompleted);
@@ -1332,7 +1380,7 @@ package tests
 			Assert.equals(1, results[0].id);
 			Assert.equals(_photos[0].views + 1, results[0].views);
 
-			_db.table(_tableName)
+			_db.table(_photosTable)
 					.where("id", 1)
 					.increment("views", 4, onSpecificIncrementCompleted);
 		}
@@ -1343,7 +1391,7 @@ package tests
 			Assert.isNull(error);
 
 			// Check that the views count has been further incremented by 4
-			_db.table(_tableName)
+			_db.table(_photosTable)
 					.select("id", "views")
 					.where("id", 1)
 					.fetch(onSpecificIncrementCheckCompleted);
@@ -1359,7 +1407,7 @@ package tests
 			Assert.equals(1, results[0].id);
 			Assert.equals(_photos[0].views + 5, results[0].views);
 
-			_db.table(_tableName)
+			_db.table(_photosTable)
 					.where("id", 1)
 					.increment("views", { title: "Mount Everest" }, onIncrementAndUpdateCompleted);
 		}
@@ -1370,7 +1418,7 @@ package tests
 			Assert.isNull(error);
 
 			// Check that the views count has been further incremented by 1 and the title has been updated
-			_db.table(_tableName)
+			_db.table(_photosTable)
 					.select("id", "title", "views")
 					.where("id", 1)
 					.fetch(onIncrementAndUpdateCheckCompleted);
@@ -1388,7 +1436,7 @@ package tests
 			Assert.equals("Mount Everest", results[0].title);
 
 			// Continue with decrement
-			_db.table(_tableName)
+			_db.table(_photosTable)
 					.where("id", 1)
 					.decrement("views", onSimpleDecrementCompleted);
 		}
@@ -1399,7 +1447,7 @@ package tests
 			Assert.isNull(error);
 
 			// Check that the views count has been decremented by 1
-			_db.table(_tableName)
+			_db.table(_photosTable)
 					.select("id", "views")
 					.where("id", 1)
 					.fetch(onSimpleDecrementCheckCompleted);
@@ -1415,7 +1463,7 @@ package tests
 			Assert.equals(1, results[0].id);
 			Assert.equals(_photos[0].views + 5, results[0].views);
 
-			_db.table(_tableName)
+			_db.table(_photosTable)
 					.where("id", 1)
 					.decrement("views", 4, onSpecificDecrementCompleted);
 		}
@@ -1426,7 +1474,7 @@ package tests
 			Assert.isNull(error);
 
 			// Check that the views count has been further decremented by 4
-			_db.table(_tableName)
+			_db.table(_photosTable)
 					.select("id", "views")
 					.where("id", 1)
 					.fetch(onSpecificDecrementCheckCompleted);
@@ -1442,7 +1490,7 @@ package tests
 			Assert.equals(1, results[0].id);
 			Assert.equals(_photos[0].views + 1, results[0].views);
 
-			_db.table(_tableName)
+			_db.table(_photosTable)
 					.where("id", 1)
 					.decrement("views", { title: "Mountains" }, onDecrementAndUpdateCompleted);
 		}
@@ -1453,7 +1501,7 @@ package tests
 			Assert.isNull(error);
 
 			// Check that the views count has been further decremented by 1 and the title has been updated
-			_db.table(_tableName)
+			_db.table(_photosTable)
 					.select("id", "title", "views")
 					.where("id", 1)
 					.fetch(onDecrementAndUpdateCheckCompleted);
@@ -1469,6 +1517,231 @@ package tests
 			Assert.equals(1, results[0].id);
 			Assert.equals(_photos[0].views, results[0].views);
 			Assert.equals(_photos[0].title, results[0].title);
+
+			currentAsync.complete();
+		}
+
+
+		public function testInnerJoin(async:Async):void
+		{
+			Assert.throwsError(function():void
+			{
+				_db.table(_employeesTable)
+						.join("departments;", _employeesTable + ".id = " + _departmentsTable + ".emp_id")
+						.fetch(null);
+			}, ArgumentError);
+
+			Assert.throwsError(function():void
+			{
+				_db.table(_employeesTable)
+						.join(_departmentsTable, _employeesTable + ".id;")
+						.fetch(null);
+			}, ArgumentError);
+
+			Assert.throwsError(function():void
+			{
+				_db.table(_employeesTable)
+						.join("", _employeesTable + ".id = " + _departmentsTable + ".emp_id")
+						.fetch(null);
+			}, ArgumentError);
+
+			_db.table(_employeesTable)
+					.join(_departmentsTable, _employeesTable + ".id = " + _departmentsTable + ".emp_id")
+					.fetch(onInnerJoinCompleted);
+		}
+
+
+		private function onInnerJoinCompleted(error:Error, results:Collection):void
+		{
+			Assert.isNull(error);
+			Assert.isNotNull(results);
+			Assert.equals(3, results.length);
+
+			var joined:Object = results[0];
+			Assert.equals(4, joined.id);
+			Assert.equals(4, joined.emp_id);
+			Assert.equals(1, joined.dept_id);
+			Assert.equals("IT", joined.dept_name);
+			Assert.equals("Bill", joined.name);
+			Assert.equals(28000, joined.salary);
+
+			joined = results[1];
+			Assert.equals(5, joined.id);
+			Assert.equals(5, joined.emp_id);
+			Assert.equals(2, joined.dept_id);
+			Assert.equals("Marketing", joined.dept_name);
+			Assert.equals("Emily", joined.name);
+			Assert.equals(21000, joined.salary);
+
+			joined = results[2];
+			Assert.equals(2, joined.id);
+			Assert.equals(2, joined.emp_id);
+			Assert.equals(3, joined.dept_id);
+			Assert.equals("Finance", joined.dept_name);
+			Assert.equals("Ema", joined.name);
+			Assert.equals(17000, joined.salary);
+
+			currentAsync.complete();
+		}
+
+
+		public function testLeftOuterJoin(async:Async):void
+		{
+			Assert.throwsError(function():void
+			{
+				_db.table(_employeesTable)
+						.leftJoin("departments;", _employeesTable + ".id = " + _departmentsTable + ".emp_id")
+						.fetch(null);
+			}, ArgumentError);
+
+			Assert.throwsError(function():void
+			{
+				_db.table(_employeesTable)
+						.leftJoin(_departmentsTable, _employeesTable + ".id;")
+						.fetch(null);
+			}, ArgumentError);
+
+			Assert.throwsError(function():void
+			{
+				_db.table(_employeesTable)
+						.leftJoin("", _employeesTable + ".id = " + _departmentsTable + ".emp_id")
+						.fetch(null);
+			}, ArgumentError);
+
+			_db.table(_employeesTable)
+					.leftJoin(_departmentsTable, _employeesTable + ".id = " + _departmentsTable + ".emp_id")
+					.fetch(onLeftOuterJoinCompleted);
+		}
+
+
+		private function onLeftOuterJoinCompleted(error:Error, results:Collection):void
+		{
+			Assert.isNull(error);
+			Assert.isNotNull(results);
+			Assert.equals(_employees.length, results.length);
+
+			var joined:Object = results[0];
+			Assert.equals(1, joined.id);
+			Assert.isNull(joined.emp_id);
+			Assert.isNull(joined.dept_id);
+			Assert.isNull(joined.dept_name);
+			Assert.equals("John", joined.name);
+			Assert.equals(14000, joined.salary);
+
+			joined = results[1];
+			Assert.equals(2, joined.id);
+			Assert.equals(2, joined.emp_id);
+			Assert.equals(3, joined.dept_id);
+			Assert.equals("Finance", joined.dept_name);
+			Assert.equals("Ema", joined.name);
+			Assert.equals(17000, joined.salary);
+
+			joined = results[2];
+			Assert.equals(3, joined.id);
+			Assert.isNull(joined.emp_id);
+			Assert.isNull(joined.dept_id);
+			Assert.isNull(joined.dept_name);
+			Assert.equals("Lucas", joined.name);
+			Assert.equals(15000, joined.salary);
+
+			joined = results[3];
+			Assert.equals(4, joined.id);
+			Assert.equals(4, joined.emp_id);
+			Assert.equals(1, joined.dept_id);
+			Assert.equals("IT", joined.dept_name);
+			Assert.equals("Bill", joined.name);
+			Assert.equals(28000, joined.salary);
+
+			joined = results[4];
+			Assert.equals(5, joined.id);
+			Assert.equals(5, joined.emp_id);
+			Assert.equals(2, joined.dept_id);
+			Assert.equals("Marketing", joined.dept_name);
+			Assert.equals("Emily", joined.name);
+			Assert.equals(21000, joined.salary);
+
+			currentAsync.complete();
+		}
+
+
+		public function testCrossJoin(async:Async):void
+		{
+			Assert.throwsError(function():void
+			{
+				_db.table(_employeesTable)
+						.crossJoin("departments;")
+						.fetch(null);
+			}, ArgumentError);
+
+			Assert.throwsError(function():void
+			{
+				_db.table(_employeesTable)
+						.crossJoin("")
+						.fetch(null);
+			}, ArgumentError);
+
+			_db.table(_employeesTable)
+					.crossJoin(_departmentsTable)
+					.fetch(onCrossJoinCompleted);
+		}
+
+
+		private function onCrossJoinCompleted(error:Error, results:Collection):void
+		{
+			Assert.isNull(error);
+			Assert.isNotNull(results);
+			Assert.equals(_employees.length * _departments.length, results.length);
+
+			var i:int = 0;
+			for(var n:int = 0; n < _employees.length;)
+			{
+				var employee:Object = _employees[i++];
+				for(var j:int = 0; j < _departments.length; ++j)
+				{
+					var dept:Object = _departments[j];
+					var joined:Object = results[n++];
+					Assert.equals(employee.id, joined.id);
+					Assert.equals(employee.name, joined.name);
+					Assert.equals(employee.salary, joined.salary);
+					Assert.equals(dept.dept_id, joined.dept_id);
+					Assert.equals(dept.dept_name, joined.dept_name);
+				}
+			}
+
+			currentAsync.complete();
+		}
+
+
+		public function testMultiTableJoin(async:Async):void
+		{
+			_db.table(_departmentsTable)
+					.select(_employeesTable + ".name as emp_name", "dept_name", "address")
+					.join(_employeesTable, _employeesTable + ".id = " + _departmentsTable + ".emp_id")
+					.join(_buildingsTable, _buildingsTable + ".build_id = " + _departmentsTable + ".build_id")
+					.fetch(onMultiTableJoinCompleted);
+		}
+
+
+		private function onMultiTableJoinCompleted(error:Error, results:Collection):void
+		{
+			Assert.isNull(error);
+			Assert.isNotNull(results);
+			Assert.equals(3, results.length);
+
+			var joined:Object = results[0];
+			Assert.equals("IT", joined.dept_name);
+			Assert.equals("Bill", joined.emp_name);
+			Assert.equals("47 Water St", joined.address);
+
+			joined = results[1];
+			Assert.equals("Marketing", joined.dept_name);
+			Assert.equals("Emily", joined.emp_name);
+			Assert.equals("71 Willoughby St", joined.address);
+
+			joined = results[2];
+			Assert.equals("Finance", joined.dept_name);
+			Assert.equals("Ema", joined.emp_name);
+			Assert.equals("71 Willoughby St", joined.address);
 
 			currentAsync.complete();
 		}
