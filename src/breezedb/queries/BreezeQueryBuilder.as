@@ -29,6 +29,8 @@ package breezedb.queries
 	import breezedb.IBreezeDatabase;
 	import breezedb.collections.Collection;
 
+	import flash.errors.IllegalOperationError;
+
 	import flash.globalization.DateTimeFormatter;
 
 	/**
@@ -41,6 +43,7 @@ package breezedb.queries
 		private var _tableName:String;
 
 		private var _update:String = null;
+		private var _union:Vector.<BreezeUnionStatement>;
 		private var _join:Vector.<BreezeJoinStatement>;
 		private var _select:Array = [];
 		private var _insert:Array = [];
@@ -56,7 +59,8 @@ package breezedb.queries
 		private var _chunkQueryReference:BreezeQueryReference;
 		private var _aggregate:String = null;
 
-		private var _parametersIndex:uint = 0;
+		// Static makes the index unique across all query builders (useful when making UNION queries)
+		private static var _parametersIndex:uint = 0;
 		
 		public function BreezeQueryBuilder(db:IBreezeDatabase, tableName:String)
 		{
@@ -64,6 +68,7 @@ package breezedb.queries
 			_tableName = tableName;
 			_queryType = QUERY_SELECT;
 			_queryParams = {};
+			_union = new <BreezeUnionStatement>[];
 			_join = new <BreezeJoinStatement>[];
 			_where = new <BreezeInnerQueryBuilder>[];
 			_where[0] = new BreezeInnerQueryBuilder(_queryParams, _parametersIndex);
@@ -557,6 +562,18 @@ package breezedb.queries
 
 			return this;
 		}
+		
+		
+		public function union(query:BreezeQueryBuilder):BreezeQueryBuilder
+		{
+			return unionInternal(query);
+		}
+
+
+		public function unionAll(query:BreezeQueryBuilder):BreezeQueryBuilder
+		{
+			return unionInternal(query, true);
+		}
 
 
 		/**
@@ -655,6 +672,32 @@ package breezedb.queries
 				}
 
 				addQueryPart(parts, tmpOrWhere.join(" OR "));
+			}
+
+			// UNION
+			if(_union.length > 0)
+			{
+				for each(var union:BreezeUnionStatement in _union)
+				{
+					addQueryPart(parts, "UNION");
+					if(union.all)
+					{
+						addQueryPart(parts, "ALL");
+					}
+					addQueryPart(parts, union.query.queryString);
+
+					// Add the other query parameters to this query
+					var newParams:Object = union.query._queryParams;
+					for(var paramKey:String in newParams)
+					{
+						// Cannot overwrite existing parameter
+						if(paramKey in _queryParams)
+						{
+							throw new Error("Duplicate parameter name encountered in union query.");
+						}
+						_queryParams[paramKey] = newParams[paramKey];
+					}
+				}
 			}
 
 			// GROUP BY
@@ -837,7 +880,7 @@ package breezedb.queries
 
 
 		/**
-		 * Internal implementation for <code>increment</code> and <code>decrement</code> methods.
+		 * Internal implementation for 'increment' and 'decrement' methods.
 		 */
 		private function incrementOrDecrement(column:String, param1:*, param2:*, callback:*, operator:String):void
 		{
@@ -877,6 +920,35 @@ package breezedb.queries
 			}
 
 			executeIfNeeded(callback);
+		}
+
+
+		/**
+		 * Internal implementation for 'union' and 'unionAll' methods.
+		 */
+		private function unionInternal(query:BreezeQueryBuilder, unionAll:Boolean = false):BreezeQueryBuilder
+		{
+			if(query == null)
+			{
+				throw new ArgumentError("Parameter query cannot be null.");
+			}
+
+			if(query._db != _db)
+			{
+				throw new ArgumentError("The given query uses different database connection.");
+			}
+
+			for each(var existingUnion:BreezeUnionStatement in _union)
+			{
+				if(existingUnion.query == query)
+				{
+					throw new IllegalOperationError("The given query is already part of union.")
+				}
+			}
+
+			_union[_union.length] = new BreezeUnionStatement(query, unionAll);
+
+			return this;
 		}
 
 
