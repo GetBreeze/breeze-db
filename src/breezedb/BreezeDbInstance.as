@@ -137,6 +137,10 @@ package breezedb
 		 */
 		public function table(tableName:String):BreezeQueryBuilder
 		{
+			if(!isSetup)
+			{
+				throw new IllegalOperationError("There is no active database connection.");
+			}
 			return new BreezeQueryBuilder(this, tableName);
 		}
 
