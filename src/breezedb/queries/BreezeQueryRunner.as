@@ -93,7 +93,7 @@ package breezedb.queries
 		/**
 		 * @private
 		 */
-		protected var _queryParams:*;
+		protected var _queryParams:Object;
 
 		/**
 		 * @private
