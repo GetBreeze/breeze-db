@@ -37,11 +37,14 @@ package tests
 	import breezetest.Assert;
 	import breezetest.async.Async;
 
+	import flash.errors.IllegalOperationError;
+
 	public class TestQueryBuilder
 	{
 		public var currentAsync:Async;
 
 		private var _db:IBreezeDatabase;
+		private var _emptyDb:IBreezeDatabase;
 		private var _numChunks:int = 0;
 
 		private const _photos:Array = [
@@ -87,8 +90,24 @@ package tests
 			Assert.isNull(error);
 			Assert.isTrue(_db.isSetup);
 
+			_emptyDb = BreezeDb.getDb("empty-db");
+			_emptyDb.setup(onEmptyDatabaseSetup);
+		}
+
+
+		private function onEmptyDatabaseSetup(error:Error):void
+		{
+			Assert.isNull(error);
+			Assert.isTrue(_emptyDb.isSetup);
+
+			createInitialData();
+		}
+
+
+		private function createInitialData():void
+		{
 			// Create tables
-			var createPhotos:BreezeQueryRunner = _db.schema.createTable(_photosTable, function(table:TableBlueprint):void
+			var createPhotos:BreezeQueryRunner = _db.schema.createTable(_photosTable, function (table:TableBlueprint):void
 			{
 				table.increments("id");
 				table.string("title").defaultNull();
@@ -98,14 +117,14 @@ package tests
 				table.date("creation_date");
 			}, BreezeDb.DELAY);
 
-			var createEmployees:BreezeQueryRunner = _db.schema.createTable(_employeesTable, function(table:TableBlueprint):void
+			var createEmployees:BreezeQueryRunner = _db.schema.createTable(_employeesTable, function (table:TableBlueprint):void
 			{
 				table.increments("id");
 				table.string("name").notNull();
 				table.integer("salary").defaultTo(0);
 			}, BreezeDb.DELAY);
 
-			var createDepartments:BreezeQueryRunner = _db.schema.createTable(_departmentsTable, function(table:TableBlueprint):void
+			var createDepartments:BreezeQueryRunner = _db.schema.createTable(_departmentsTable, function (table:TableBlueprint):void
 			{
 				table.increments("dept_id");
 				table.string("dept_name").notNull();
@@ -113,7 +132,7 @@ package tests
 				table.integer("build_id");
 			}, BreezeDb.DELAY);
 
-			var createBuildings:BreezeQueryRunner = _db.schema.createTable(_buildingsTable, function(table:TableBlueprint):void
+			var createBuildings:BreezeQueryRunner = _db.schema.createTable(_buildingsTable, function (table:TableBlueprint):void
 			{
 				table.increments("build_id");
 				table.string("address").notNull();
@@ -1742,6 +1761,129 @@ package tests
 			Assert.equals("Finance", joined.dept_name);
 			Assert.equals("Ema", joined.emp_name);
 			Assert.equals("71 Willoughby St", joined.address);
+
+			currentAsync.complete();
+		}
+
+
+		public function testUnion(async:Async):void
+		{
+			var query1:BreezeQueryBuilder = _db.table(_photosTable)
+					.select("id", "title", "views", "downloads")
+					.where("id", 1);
+			var query2:BreezeQueryBuilder = _db.table(_photosTable)
+					.select("id", "title", "views", "downloads")
+					.where("id", 1)
+					.orWhere("id", 5);
+			var query3:BreezeQueryBuilder = _db.table(_photosTable)
+					.select("id", "title", "views", "downloads")
+					.where("id", 4);
+			var query4:BreezeQueryBuilder = _emptyDb.table(_photosTable)
+					.select("id", "title", "views", "downloads")
+					.where("id", 1);
+
+			// Cannot union queries that are using different databases
+			Assert.throwsError(function():void
+			{
+				query1.union(query4).fetch();
+			}, ArgumentError);
+
+			query1.union(query2);
+			query1.union(query3);
+
+			// Cannot union the same query again
+			Assert.throwsError(function():void
+			{
+				query1.union(query2).fetch();
+			}, IllegalOperationError);
+
+			query1.exec(onUnionCompleted);
+		}
+
+
+		private function onUnionCompleted(error:Error, results:Collection):void
+		{
+			Assert.isNull(error);
+			Assert.isNotNull(results);
+			Assert.equals(3, results.length);
+
+			var photo1:Object = _photos[0]; // Photo id 1
+			Assert.equals(1, results[0].id);
+			Assert.equals(photo1.title, results[0].title);
+			Assert.equals(photo1.views, results[0].views);
+			Assert.equals(photo1.downloads, results[0].downloads);
+
+			var photo4:Object = _photos[3]; // Photo id 4
+			Assert.equals(4, results[1].id);
+			Assert.equals(photo4.title, results[1].title);
+			Assert.equals(photo4.views, results[1].views);
+			Assert.equals(photo4.downloads, results[1].downloads);
+
+			var photo5:Object = _photos[4]; // Photo id 5
+			Assert.equals(5, results[2].id);
+			Assert.equals(photo5.title, results[2].title);
+			Assert.equals(photo5.views, results[2].views);
+			Assert.equals(photo5.downloads, results[2].downloads);
+
+			currentAsync.complete();
+		}
+
+
+		public function testUnionAll(async:Async):void
+		{
+			var query1:BreezeQueryBuilder = _db.table(_photosTable)
+					.select("id", "title", "views", "downloads")
+					.where("id", 1);
+			var query2:BreezeQueryBuilder = _db.table(_photosTable)
+					.select("id", "title", "views", "downloads")
+					.where("id", 1)
+					.orWhere("id", 5);
+			var query3:BreezeQueryBuilder = _emptyDb.table(_photosTable)
+					.select("id", "title", "views", "downloads")
+					.where("id", 1);
+
+			// Cannot union queries that are using different databases
+			Assert.throwsError(function():void
+			{
+				query1.unionAll(query3).fetch();
+			}, ArgumentError);
+
+			query1.unionAll(query2);
+
+			// Cannot union the same query again
+			Assert.throwsError(function():void
+			{
+				query1.unionAll(query2).fetch();
+			}, IllegalOperationError);
+
+			query1.exec(onUnionAllCompleted);
+		}
+
+
+		private function onUnionAllCompleted(error:Error, results:Collection):void
+		{
+			Assert.isNull(error);
+			Assert.isNotNull(results);
+			Assert.equals(3, results.length);
+
+			// Photo 1 should be included twice
+
+			var photo1:Object = _photos[0]; // Photo id 1
+			Assert.equals(1, results[0].id);
+			Assert.equals(photo1.title, results[0].title);
+			Assert.equals(photo1.views, results[0].views);
+			Assert.equals(photo1.downloads, results[0].downloads);
+
+			Assert.equals(1, results[1].id);
+			Assert.equals(photo1.title, results[1].title);
+			Assert.equals(photo1.views, results[1].views);
+			Assert.equals(photo1.downloads, results[1].downloads);
+
+			var photo5:Object = _photos[4]; // Photo id 5
+			Assert.equals(5, results[2].id);
+			Assert.equals(photo5.title, results[2].title);
+			Assert.equals(photo5.views, results[2].views);
+			Assert.equals(photo5.downloads, results[2].downloads);
 
 			currentAsync.complete();
 		}
