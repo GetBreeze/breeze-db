@@ -562,6 +562,19 @@ package breezedb.queries
 		/**
 		 * @inheritDoc
 		 */
+		override public function exec(callback:Function = null):BreezeQueryReference
+		{
+			if(_queryString == null)
+			{
+				_queryString = queryString;
+			}
+			return super.exec(callback);
+		}
+
+
+		/**
+		 * @inheritDoc
+		 */
 		override public function get queryString():String
 		{
 			_queryString = "";
