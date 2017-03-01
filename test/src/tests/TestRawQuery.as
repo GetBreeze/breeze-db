@@ -48,6 +48,7 @@ package tests
 		public var currentAsync:Async;
 
 		private var _db:IBreezeDatabase;
+		private var _emptyDb:IBreezeDatabase;
 		private var _numInserts:int = 0;
 
 		private const _photos:Array = [
@@ -72,6 +73,16 @@ package tests
 		{
 			Assert.isNull(error);
 			Assert.isTrue(_db.isSetup);
+
+			_emptyDb = BreezeDb.getDb("empty-db");
+			_emptyDb.setup(onEmptyDatabaseSetup);
+		}
+
+
+		private function onEmptyDatabaseSetup(error:Error):void
+		{
+			Assert.isNull(error);
+			Assert.isTrue(_emptyDb.isSetup);
 
 			// Create test table
 			_db.schema.createTable(_tableName, function(table:TableBlueprint):void
@@ -371,7 +382,7 @@ package tests
 		{
 			var query1:BreezeQueryBuilder = _db.table("photos").where("id", 1).update({title: "Hills"}, BreezeDb.DELAY);
 			var query2:BreezeQueryRunner = _db.table("photos").where("id", 2).fetch(BreezeDb.DELAY);
-			var query3:BreezeQueryRunner = BreezeDb.getDb("different-database").table("photos").fetch(BreezeDb.DELAY);
+			var query3:BreezeQueryRunner = _emptyDb.table("photos").fetch(BreezeDb.DELAY);
 
 			var query:BreezeRawQuery = new BreezeRawQuery(_db);
 
