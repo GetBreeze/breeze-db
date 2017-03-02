@@ -246,6 +246,9 @@ package breezedb.queries
 		}
 
 
+		/**
+		 * @private
+		 */
 		protected function finishProxiedQuery(params:Array):*
 		{
 			_queryReference.removeEventListener(BreezeQueryReference.CANCEL, onQueryCancelled);
@@ -260,18 +263,27 @@ package breezedb.queries
 		}
 
 
+		/**
+		 * @private
+		 */
 		internal function setMultiQueryMethod(value:int):void
 		{
 			_multiQueryMethod = value;
 		}
 
 
+		/**
+		 * @private
+		 */
 		internal function get database():IBreezeDatabase
 		{
 			return _db;
 		}
 
 
+		/**
+		 * @private
+		 */
 		internal function get parameters():Object
 		{
 			return _queryParams;
