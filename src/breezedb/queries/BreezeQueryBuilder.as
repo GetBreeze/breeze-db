@@ -75,7 +75,7 @@ package breezedb.queries
 		}
 
 
-		public function first(callback:* = null):BreezeQueryRunner
+		public function first(callback:* = null):BreezeQueryBuilder
 		{
 			limit(1);
 
@@ -87,7 +87,7 @@ package breezedb.queries
 		}
 		
 		
-		public function count(callback:* = null):BreezeQueryRunner
+		public function count(callback:* = null):BreezeQueryBuilder
 		{
 			_aggregate = "total";
 			_callbackProxy = onAggregateCompleted;
@@ -99,7 +99,7 @@ package breezedb.queries
 		}
 
 
-		public function max(column:String, callback:* = null):BreezeQueryRunner
+		public function max(column:String, callback:* = null):BreezeQueryBuilder
 		{
 			validateColumnName(column);
 
@@ -113,7 +113,7 @@ package breezedb.queries
 		}
 
 
-		public function min(column:String, callback:* = null):BreezeQueryRunner
+		public function min(column:String, callback:* = null):BreezeQueryBuilder
 		{
 			validateColumnName(column);
 
@@ -127,7 +127,7 @@ package breezedb.queries
 		}
 
 
-		public function sum(column:String, callback:* = null):BreezeQueryRunner
+		public function sum(column:String, callback:* = null):BreezeQueryBuilder
 		{
 			validateColumnName(column);
 
@@ -141,7 +141,7 @@ package breezedb.queries
 		}
 
 
-		public function avg(column:String, callback:* = null):BreezeQueryRunner
+		public function avg(column:String, callback:* = null):BreezeQueryBuilder
 		{
 			validateColumnName(column);
 
@@ -176,7 +176,7 @@ package breezedb.queries
 		}
 		
 		
-		public function chunk(limit:uint, callback:* = null):BreezeQueryRunner
+		public function chunk(limit:uint, callback:* = null):BreezeQueryBuilder
 		{
 			_chunkLimit = limit;
 			_callbackProxy = onChunkCompleted;
@@ -527,7 +527,7 @@ package breezedb.queries
 		}
 
 
-		public function fetch(callback:* = null):BreezeQueryRunner
+		public function fetch(callback:* = null):BreezeQueryBuilder
 		{
 			executeIfNeeded(callback);
 			return this;
