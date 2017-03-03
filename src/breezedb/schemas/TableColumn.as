@@ -47,6 +47,10 @@ package breezedb.schemas
 		public function TableColumn(name:String, dataType:int, creationMode:Boolean)
 		{
 			_name = name;
+			if(_name.indexOf("[") < 0)
+			{
+				_name = "[" + _name + "]";
+			}
 			_dataType = dataType;
 			_creationMode = creationMode;
 		}

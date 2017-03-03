@@ -251,7 +251,7 @@ package breezedb.schemas
 			}
 			columnsString += ")";
 
-			_createIndex += indexName;
+			_createIndex += "[" + indexName + "]";
 			_createIndex += " ON " + _tableName + " ";
 			_createIndex += columnsString + ";";
 		}
@@ -337,6 +337,10 @@ package breezedb.schemas
 		internal function setTable(tableName:String):void
 		{
 			_tableName = tableName;
+			if(_tableName.indexOf("[") < 0)
+			{
+				_tableName = "[" + _tableName + "]";
+			}
 		}
 
 
