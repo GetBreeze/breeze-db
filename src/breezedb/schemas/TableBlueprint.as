@@ -216,7 +216,7 @@ package breezedb.schemas
 				throw new ArgumentError("At least one column name must be specified.");
 			}
 
-			_createIndex = "CREATE " + (unique ? "UNIQUE " : "") + "INDEX ";
+			_createIndex = "CREATE " + (unique ? "UNIQUE " : "") + "INDEX IF NOT EXISTS ";
 
 			var customIndexName:Boolean = indexName != null;
 			if(!customIndexName)
@@ -350,7 +350,7 @@ package breezedb.schemas
 			{
 				if(_statement == CREATE)
 				{
-					result = (_statement == CREATE) ? "CREATE TABLE " + _tableName + "(" : "";
+					result = (_statement == CREATE) ? "CREATE TABLE IF NOT EXISTS " + _tableName + " (" : "";
 				}
 
 				var primaryKeys:Vector.<TableColumn> = this.primaryKeys;
