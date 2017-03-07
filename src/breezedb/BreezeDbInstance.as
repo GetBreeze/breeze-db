@@ -25,6 +25,8 @@
 
 package breezedb
 {
+	import breezedb.events.BreezeDatabaseEvent;
+	import breezedb.events.BreezeQueryEvent;
 	import breezedb.queries.BreezeQueryBuilder;
 	import breezedb.queries.BreezeQueryReference;
 	import breezedb.queries.BreezeRawQuery;
@@ -48,9 +50,13 @@ package breezedb
 		private var _file:File;
 		private var _encryptionKey:String;
 
+		// Transaction callbacks
+		private var _beginCallback:Function;
+		private var _commitCallback:Function;
+		private var _rollBackCallback:Function;
+
 		private var _setupCallback:Function;
 		private var _closeCallback:Function;
-		private var _transactionCallback:Function;
 		private var _sqlConnection:SQLConnection;
 
 		public function BreezeDbInstance(name:String)
@@ -160,10 +166,10 @@ package breezedb
 				throw new IllegalOperationError("There is no active database connection.");
 			}
 
-			_transactionCallback = callback;
+			_beginCallback = callback;
 
 			_sqlConnection.addEventListener(SQLEvent.BEGIN, onTransactionBegan);
-			_sqlConnection.addEventListener(SQLErrorEvent.ERROR, onTransactionError);
+			_sqlConnection.addEventListener(SQLErrorEvent.ERROR, onTransactionBeginError);
 			_sqlConnection.begin();
 		}
 
@@ -183,10 +189,10 @@ package breezedb
 				throw new IllegalOperationError("There is no active database connection.");
 			}
 
-			_transactionCallback = callback;
+			_commitCallback = callback;
 
 			_sqlConnection.addEventListener(SQLEvent.COMMIT, onTransactionCommitted);
-			_sqlConnection.addEventListener(SQLErrorEvent.ERROR, onTransactionError);
+			_sqlConnection.addEventListener(SQLErrorEvent.ERROR, onTransactionCommitError);
 			_sqlConnection.commit();
 		}
 
@@ -206,10 +212,10 @@ package breezedb
 				throw new IllegalOperationError("There is no active database connection.");
 			}
 
-			_transactionCallback = callback;
+			_rollBackCallback = callback;
 
 			_sqlConnection.addEventListener(SQLEvent.ROLLBACK, onTransactionRolledBack);
-			_sqlConnection.addEventListener(SQLErrorEvent.ERROR, onTransactionError);
+			_sqlConnection.addEventListener(SQLErrorEvent.ERROR, onTransactionRollBackError);
 			_sqlConnection.rollback();
 		}
 
@@ -256,7 +262,10 @@ package breezedb
 		 */
 		public function query(rawQuery:String, params:* = null, callback:Function = null):BreezeQueryReference
 		{
-			return new BreezeRawQuery(this).query(rawQuery, params, callback);
+			var query:BreezeRawQuery = new BreezeRawQuery(this);
+			query.addEventListener(BreezeQueryEvent.ERROR, onRawQueryCompleted, false, 0, true);
+			query.addEventListener(BreezeQueryEvent.SUCCESS, onRawQueryCompleted, false, 0, true);
+			return query.query(rawQuery, params, callback);
 		}
 
 
@@ -265,7 +274,10 @@ package breezedb
 		 */
 		public function select(rawQuery:String, params:* = null, callback:Function = null):BreezeQueryReference
 		{
-			return new BreezeRawQuery(this).select(rawQuery, params, callback);
+			var query:BreezeRawQuery = new BreezeRawQuery(this);
+			query.addEventListener(BreezeQueryEvent.ERROR, onRawQueryCompleted, false, 0, true);
+			query.addEventListener(BreezeQueryEvent.SUCCESS, onRawQueryCompleted, false, 0, true);
+			return query.select(rawQuery, params, callback);
 		}
 
 
@@ -274,7 +286,10 @@ package breezedb
 		 */
 		public function insert(rawQuery:String, params:* = null, callback:Function = null):BreezeQueryReference
 		{
-			return new BreezeRawQuery(this).insert(rawQuery, params, callback);
+			var query:BreezeRawQuery = new BreezeRawQuery(this);
+			query.addEventListener(BreezeQueryEvent.ERROR, onRawQueryCompleted, false, 0, true);
+			query.addEventListener(BreezeQueryEvent.SUCCESS, onRawQueryCompleted, false, 0, true);
+			return query.insert(rawQuery, params, callback);
 		}
 
 
@@ -283,7 +298,10 @@ package breezedb
 		 */
 		public function update(rawQuery:String, params:* = null, callback:Function = null):BreezeQueryReference
 		{
-			return new BreezeRawQuery(this).update(rawQuery, params, callback);
+			var query:BreezeRawQuery = new BreezeRawQuery(this);
+			query.addEventListener(BreezeQueryEvent.ERROR, onRawQueryCompleted, false, 0, true);
+			query.addEventListener(BreezeQueryEvent.SUCCESS, onRawQueryCompleted, false, 0, true);
+			return query.update(rawQuery, params, callback);
 		}
 
 
@@ -292,7 +310,10 @@ package breezedb
 		 */
 		public function remove(rawQuery:String, params:* = null, callback:Function = null):BreezeQueryReference
 		{
-			return new BreezeRawQuery(this).remove(rawQuery, params, callback);
+			var query:BreezeRawQuery = new BreezeRawQuery(this);
+			query.addEventListener(BreezeQueryEvent.ERROR, onRawQueryCompleted, false, 0, true);
+			query.addEventListener(BreezeQueryEvent.SUCCESS, onRawQueryCompleted, false, 0, true);
+			return query.remove(rawQuery, params, callback);
 		}
 
 
@@ -301,7 +322,10 @@ package breezedb
 		 */
 		public function multiQuery(rawQueries:Array, params:* = null, callback:Function = null):BreezeQueryReference
 		{
-			return new BreezeRawQuery(this).multiQuery(rawQueries, params, callback);
+			var query:BreezeRawQuery = new BreezeRawQuery(this);
+			query.addEventListener(BreezeQueryEvent.ERROR, onRawQueryCompleted, false, 0, true);
+			query.addEventListener(BreezeQueryEvent.SUCCESS, onRawQueryCompleted, false, 0, true);
+			return query.multiQuery(rawQueries, params, callback);
 		}
 
 
@@ -310,7 +334,10 @@ package breezedb
 		 */
 		public function multiQueryFailOnError(rawQueries:Array, params:* = null, callback:Function = null):BreezeQueryReference
 		{
-			return new BreezeRawQuery(this).multiQueryFailOnError(rawQueries, params, callback);
+			var query:BreezeRawQuery = new BreezeRawQuery(this);
+			query.addEventListener(BreezeQueryEvent.ERROR, onRawQueryCompleted, false, 0, true);
+			query.addEventListener(BreezeQueryEvent.SUCCESS, onRawQueryCompleted, false, 0, true);
+			return query.multiQueryFailOnError(rawQueries, params, callback);
 		}
 
 
@@ -319,7 +346,10 @@ package breezedb
 		 */
 		public function multiQueryTransaction(rawQueries:Array, params:* = null, callback:Function = null):BreezeQueryReference
 		{
-			return new BreezeRawQuery(this).multiQueryTransaction(rawQueries, params, callback);
+			var query:BreezeRawQuery = new BreezeRawQuery(this);
+			query.addEventListener(BreezeQueryEvent.ERROR, onRawQueryCompleted, false, 0, true);
+			query.addEventListener(BreezeQueryEvent.SUCCESS, onRawQueryCompleted, false, 0, true);
+			return query.multiQueryTransaction(rawQueries, params, callback);
 		}
 
 
@@ -340,6 +370,8 @@ package breezedb
 			_isSetup = true;
 			_isSettingUp = false;
 
+			dispatchDatabaseEvent(BreezeDatabaseEvent.SETUP_SUCCESS);
+
 			var callback:Function = _setupCallback;
 			_setupCallback = null;
 			callback(null);
@@ -353,6 +385,8 @@ package breezedb
 
 			_isSetup = false;
 			_isSettingUp = false;
+
+			dispatchDatabaseEvent(BreezeDatabaseEvent.SETUP_ERROR, event.error);
 
 			var callback:Function = _setupCallback;
 			_setupCallback = null;
@@ -368,6 +402,8 @@ package breezedb
 			_isSetup = false;
 			_isClosing = false;
 
+			dispatchDatabaseEvent(BreezeDatabaseEvent.CLOSE_SUCCESS);
+
 			var callback:Function = _closeCallback;
 			_closeCallback = null;
 			callback(null);
@@ -381,6 +417,8 @@ package breezedb
 
 			_isClosing = false;
 
+			dispatchDatabaseEvent(BreezeDatabaseEvent.CLOSE_ERROR, event.error);
+
 			var callback:Function = _closeCallback;
 			_closeCallback = null;
 			callback(event.error);
@@ -390,47 +428,85 @@ package breezedb
 		private function onTransactionBegan(event:SQLEvent):void
 		{
 			_sqlConnection.removeEventListener(SQLEvent.BEGIN, onTransactionBegan);
-			_sqlConnection.removeEventListener(SQLErrorEvent.ERROR, onTransactionError);
+			_sqlConnection.removeEventListener(SQLErrorEvent.ERROR, onTransactionBeginError);
 
-			triggerTransactionCallback();
+			dispatchDatabaseEvent(BreezeDatabaseEvent.BEGIN_SUCCESS);
+
+			var callback:Function = _beginCallback;
+			_beginCallback = null;
+			triggerTransactionCallback(callback);
+		}
+
+
+		private function onTransactionBeginError(event:SQLErrorEvent):void
+		{
+			_sqlConnection.removeEventListener(SQLEvent.BEGIN, onTransactionBegan);
+			_sqlConnection.removeEventListener(SQLErrorEvent.ERROR, onTransactionBeginError);
+
+			dispatchDatabaseEvent(BreezeDatabaseEvent.BEGIN_ERROR, event.error);
+
+			var callback:Function = _beginCallback;
+			_beginCallback = null;
+			triggerTransactionCallback(callback, event.error);
 		}
 
 
 		private function onTransactionCommitted(event:SQLEvent):void
 		{
 			_sqlConnection.removeEventListener(SQLEvent.COMMIT, onTransactionCommitted);
-			_sqlConnection.removeEventListener(SQLErrorEvent.ERROR, onTransactionError);
+			_sqlConnection.removeEventListener(SQLErrorEvent.ERROR, onTransactionCommitError);
 
-			triggerTransactionCallback();
+			dispatchDatabaseEvent(BreezeDatabaseEvent.COMMIT_SUCCESS);
+
+			var callback:Function = _commitCallback;
+			_commitCallback = null;
+			triggerTransactionCallback(callback);
+		}
+
+
+		private function onTransactionCommitError(event:SQLErrorEvent):void
+		{
+			_sqlConnection.removeEventListener(SQLEvent.COMMIT, onTransactionBegan);
+			_sqlConnection.removeEventListener(SQLErrorEvent.ERROR, onTransactionCommitError);
+
+			dispatchDatabaseEvent(BreezeDatabaseEvent.COMMIT_ERROR, event.error);
+
+			var callback:Function = _commitCallback;
+			_commitCallback = null;
+			triggerTransactionCallback(callback, event.error);
 		}
 
 
 		private function onTransactionRolledBack(event:SQLEvent):void
 		{
 			_sqlConnection.removeEventListener(SQLEvent.ROLLBACK, onTransactionRolledBack);
-			_sqlConnection.removeEventListener(SQLErrorEvent.ERROR, onTransactionError);
+			_sqlConnection.removeEventListener(SQLErrorEvent.ERROR, onTransactionRollBackError);
 
-			triggerTransactionCallback();
+			dispatchDatabaseEvent(BreezeDatabaseEvent.ROLL_BACK_SUCCESS);
+
+			var callback:Function = _rollBackCallback;
+			_rollBackCallback = null;
+			triggerTransactionCallback(callback);
 		}
 
 
-		private function onTransactionError(event:SQLErrorEvent):void
+		private function onTransactionRollBackError(event:SQLErrorEvent):void
 		{
-			_sqlConnection.removeEventListener(SQLEvent.BEGIN, onTransactionBegan);
-			_sqlConnection.removeEventListener(SQLEvent.COMMIT, onTransactionCommitted);
-			_sqlConnection.removeEventListener(SQLEvent.ROLLBACK, onTransactionRolledBack);
-			_sqlConnection.removeEventListener(SQLErrorEvent.ERROR, onTransactionError);
+			_sqlConnection.removeEventListener(SQLEvent.ROLLBACK, onTransactionBegan);
+			_sqlConnection.removeEventListener(SQLErrorEvent.ERROR, onTransactionRollBackError);
 
-			triggerTransactionCallback(event.error);
+			dispatchDatabaseEvent(BreezeDatabaseEvent.ROLL_BACK_ERROR, event.error);
+
+			var callback:Function = _rollBackCallback;
+			_rollBackCallback = null;
+			triggerTransactionCallback(callback, event.error);
 		}
 
 
-		private function triggerTransactionCallback(error:Error = null):void
+		private function triggerTransactionCallback(callback:Function, error:Error = null):void
 		{
-			if(_transactionCallback != null)
+			if(callback != null)
 			{
-				var callback:Function = _transactionCallback;
-				_transactionCallback = null;
 				if(callback.length == 1)
 				{
 					callback(error);
@@ -482,6 +558,24 @@ package breezedb
 				}
 			}
 			return result;
+		}
+
+
+		private function onRawQueryCompleted(event:BreezeQueryEvent):void
+		{
+			if(hasEventListener(event.type))
+			{
+				dispatchEvent(new BreezeQueryEvent(event.type, event.error, event.result, event.query));
+			}
+		}
+
+
+		private function dispatchDatabaseEvent(eventType:String, error:Error = null):void
+		{
+			if(hasEventListener(eventType))
+			{
+				dispatchEvent(new BreezeDatabaseEvent(eventType, error));
+			}
 		}
 
 
