@@ -28,17 +28,25 @@ package tests
 	import breezedb.BreezeDb;
 	import breezedb.IBreezeDatabase;
 	import breezedb.collections.Collection;
+	import breezedb.events.BreezeDatabaseEvent;
+	import breezedb.events.BreezeQueryEvent;
 	import breezedb.schemas.TableBlueprint;
 
 	import breezetest.Assert;
 	import breezetest.async.Async;
 
 	import flash.errors.IllegalOperationError;
-
 	import flash.filesystem.File;
-	
+
 	public class TestDatabase
 	{
+
+		private var _numRawQueryExecutedEvents:int;
+		private var _numTransactionBeginEvents:int;
+		private var _numTransactionCommitEvents:int;
+		private var _numTransactionRollBackEvents:int;
+		private var _numDbSetupEvents:int;
+		private var _numDbCloseEvents:int;
 
 		public var currentAsync:Async;
 		public var _transactionDb:IBreezeDatabase;
@@ -49,6 +57,11 @@ package tests
 
 			// Setup db in the default storage directory
 			Assert.isFalse(BreezeDb.db.isSetup);
+
+			BreezeDb.db.addEventListener(BreezeDatabaseEvent.SETUP_ERROR, onDbSetupErrorEvent);
+			BreezeDb.db.addEventListener(BreezeDatabaseEvent.SETUP_SUCCESS, onDbSetupSuccessEvent);
+			BreezeDb.db.addEventListener(BreezeDatabaseEvent.CLOSE_ERROR, onDbCloseErrorEvent);
+			BreezeDb.db.addEventListener(BreezeDatabaseEvent.CLOSE_SUCCESS, onDbCloseSuccessEvent);
 			BreezeDb.db.setup(onDefaultDbSetup);
 
 			// Cannot setup while another setup is in progress
@@ -57,6 +70,34 @@ package tests
 				Assert.isNotNull(error);
 				Assert.isType(error, IllegalOperationError);
 			});
+		}
+		
+		
+		private function onDbSetupErrorEvent(event:BreezeDatabaseEvent):void
+		{
+			Assert.fail("Setup error event should not be dispatched.");
+		}
+		
+		
+		private function onDbSetupSuccessEvent(event:BreezeDatabaseEvent):void
+		{
+			Assert.equals(BreezeDatabaseEvent.SETUP_SUCCESS, event.type);
+			
+			_numDbSetupEvents++;
+		}
+
+
+		private function onDbCloseErrorEvent(event:BreezeDatabaseEvent):void
+		{
+			Assert.fail("Close error event should not be dispatched.");
+		}
+
+
+		private function onDbCloseSuccessEvent(event:BreezeDatabaseEvent):void
+		{
+			Assert.equals(BreezeDatabaseEvent.CLOSE_SUCCESS, event.type);
+
+			_numDbCloseEvents++;
 		}
 
 
@@ -88,6 +129,8 @@ package tests
 			// Setup db in custom file
 			var file:File = File.applicationStorageDirectory.resolvePath("custom-db-file.sqlite");
 			var customDb:IBreezeDatabase = BreezeDb.getDb("custom-db");
+			customDb.addEventListener(BreezeDatabaseEvent.SETUP_ERROR, onDbSetupErrorEvent);
+			customDb.addEventListener(BreezeDatabaseEvent.SETUP_SUCCESS, onDbSetupSuccessEvent);
 			customDb.encryptionKey = "fDIOeVLyhh";
 
 			Assert.notSame(customDb, BreezeDb.db);
@@ -113,6 +156,8 @@ package tests
 				customDb.encryptionKey = "new-key";
 			});
 
+			customDb.addEventListener(BreezeDatabaseEvent.CLOSE_ERROR, onDbCloseErrorEvent);
+			customDb.addEventListener(BreezeDatabaseEvent.CLOSE_SUCCESS, onDbCloseSuccessEvent);
 			customDb.close(onCustomDbClosed);
 		}
 
@@ -125,6 +170,9 @@ package tests
 			Assert.isFalse(customDb.isSetup);
 
 			customDb.file.deleteFile();
+			
+			Assert.equals(2, _numDbSetupEvents);
+			Assert.equals(2, _numDbCloseEvents);
 
 			currentAsync.complete();
 		}
@@ -192,6 +240,14 @@ package tests
 		public function testTransaction(async:Async):void
 		{
 			_transactionDb = BreezeDb.getDb("transaction-test");
+			_transactionDb.addEventListener(BreezeQueryEvent.ERROR, onRawQueryExecutedEvent);
+			_transactionDb.addEventListener(BreezeQueryEvent.SUCCESS, onRawQueryExecutedEvent);
+			_transactionDb.addEventListener(BreezeDatabaseEvent.BEGIN_SUCCESS, onTransactionBeganEvent);
+			_transactionDb.addEventListener(BreezeDatabaseEvent.BEGIN_ERROR, onTransactionBeganEvent);
+			_transactionDb.addEventListener(BreezeDatabaseEvent.COMMIT_SUCCESS, onTransactionCommittedEvent);
+			_transactionDb.addEventListener(BreezeDatabaseEvent.COMMIT_ERROR, onTransactionCommittedEvent);
+			_transactionDb.addEventListener(BreezeDatabaseEvent.ROLL_BACK_SUCCESS, onTransactionRolledBackEvent);
+			_transactionDb.addEventListener(BreezeDatabaseEvent.ROLL_BACK_ERROR, onTransactionRolledBackEvent);
 			_transactionDb.setup(onTransactionDatabaseSetup);
 		}
 
@@ -295,7 +351,45 @@ package tests
 				_transactionDb.file.deleteFile();
 			}
 			_transactionDb = null;
+
+			Assert.equals(5, _numRawQueryExecutedEvents);
+			Assert.equals(2, _numTransactionBeginEvents);
+			Assert.equals(1, _numTransactionCommitEvents);
+			Assert.equals(1, _numTransactionRollBackEvents);
+
 			currentAsync.complete();
+		}
+
+
+		private function onRawQueryExecutedEvent(event:BreezeQueryEvent):void
+		{
+			Assert.equals(BreezeQueryEvent.SUCCESS, event.type);
+
+			_numRawQueryExecutedEvents++;
+		}
+
+
+		private function onTransactionBeganEvent(event:BreezeDatabaseEvent):void
+		{
+			Assert.equals(BreezeDatabaseEvent.BEGIN_SUCCESS, event.type);
+
+			_numTransactionBeginEvents++;
+		}
+
+
+		private function onTransactionCommittedEvent(event:BreezeDatabaseEvent):void
+		{
+			Assert.equals(BreezeDatabaseEvent.COMMIT_SUCCESS, event.type);
+
+			_numTransactionCommitEvents++;
+		}
+
+
+		private function onTransactionRolledBackEvent(event:BreezeDatabaseEvent):void
+		{
+			Assert.equals(BreezeDatabaseEvent.ROLL_BACK_SUCCESS, event.type);
+
+			_numTransactionRollBackEvents++;
 		}
 		
 	}
