@@ -27,17 +27,20 @@ package breezedb.queries
 {
 	import breezedb.IBreezeDatabase;
 	import breezedb.collections.Collection;
+	import breezedb.events.BreezeQueryEvent;
 	import breezedb.utils.Callback;
 	import breezedb.utils.GarbagePrevention;
 
 	import flash.data.SQLResult;
 	import flash.data.SQLStatement;
 	import flash.errors.IllegalOperationError;
+	import flash.events.EventDispatcher;
 
-	internal class BreezeSQLMultiStatement
+	internal class BreezeSQLMultiStatement extends EventDispatcher
 	{
 		private var _isRunning:Boolean;
 		private var _currentIndex:int = -1;
+		private var _currentRawQuery:String;
 		private var _failOnError:Boolean;
 		private var _transaction:Boolean;
 
@@ -210,6 +213,13 @@ package breezedb.queries
 		{
 			_results[_currentIndex] = result;
 
+			// Dispatch event for each sub-query
+			var eventType:String = (result.error == null) ? BreezeQueryEvent.SUCCESS : BreezeQueryEvent.ERROR;
+			if(hasEventListener(eventType))
+			{
+				dispatchEvent(new BreezeQueryEvent(eventType, result.error, result, _currentRawQuery));
+			}
+
 			if(result.error != null && (_failOnError || _transaction))
 			{
 				_fatalError = result.error;
@@ -271,11 +281,13 @@ package breezedb.queries
 			{
 				var statement:BreezeSQLStatement = query as BreezeSQLStatement;
 				statement.sqlConnection = _db.connection;
+				_currentRawQuery = statement.text;
 				statement.execute();
 			}
 			// Otherwise execute delayed query runner
 			else
 			{
+				_currentRawQuery = BreezeQueryRunner(query).queryString;
 				BreezeQueryRunner(query).exec(onQueryRunnerCompleted);
 			}
 		}
