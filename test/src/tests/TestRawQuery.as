@@ -28,6 +28,7 @@ package tests
 	import breezedb.BreezeDb;
 	import breezedb.IBreezeDatabase;
 	import breezedb.collections.Collection;
+	import breezedb.events.BreezeQueryEvent;
 	import breezedb.queries.BreezeQueryBuilder;
 	import breezedb.queries.BreezeQueryRunner;
 	import breezedb.queries.BreezeRawQuery;
@@ -50,6 +51,8 @@ package tests
 		private var _db:IBreezeDatabase;
 		private var _emptyDb:IBreezeDatabase;
 		private var _numInserts:int = 0;
+		private var _numRawQueryErrorEvents:int;
+		private var _numRawQuerySuccessEvents:int;
 
 		private const _photos:Array = [
 			{ title: "Mountains",   views: 35,  downloads: 10 },
@@ -161,7 +164,7 @@ package tests
 		{
 			Assert.isNull(error);
 			Assert.isNotNull(results);
-			Assert.isTrue(results.length > 0);
+			Assert.equals(4, results.length);
 
 			var query:BreezeRawQuery = new BreezeRawQuery(_db);
 			query.select("SELECT id, title, views FROM " + _tableName + " WHERE (id > :id)", { id: 2 }, onAdvancedSelectCompleted);
@@ -172,7 +175,7 @@ package tests
 		{
 			Assert.isNull(error);
 			Assert.isNotNull(results);
-			Assert.isTrue(results.length > 0);
+			Assert.equals(2, results.length);
 
 			currentAsync.complete();
 		}
@@ -248,6 +251,19 @@ package tests
 				Assert.notEquals("Camp Fire", results[i].title);
 				Assert.notEquals(4, results[i].id)
 			}
+
+			// Insert the removed row back
+			var query:BreezeRawQuery = new BreezeRawQuery(_db);
+			query.insert(
+					"INSERT INTO " + _tableName + " (title, views, downloads) VALUES (:title, :views, :downloads)",
+					_photos[3],
+					onRemoveRollBackCompleted);
+		}
+
+
+		private function onRemoveRollBackCompleted(error:Error):void
+		{
+			Assert.isNull(error);
 
 			currentAsync.complete();
 		}
@@ -442,6 +458,66 @@ package tests
 			Assert.equals(1, affectedRows);
 
 			currentAsync.complete();
+		}
+
+
+		public function testDispatchedEvents(async:Async):void
+		{
+			// Each sub-query should dispatch an event
+			var query:BreezeRawQuery = new BreezeRawQuery(_db);
+			query.addEventListener(BreezeQueryEvent.ERROR, onRawQueryErrorEvent);
+			query.addEventListener(BreezeQueryEvent.SUCCESS, onRawQuerySuccessEvent);
+			query.multiQueryTransaction([
+				"SELECT id, title FROM " + _tableName,
+				"DROP TABLEz " + _tableName, // forced error
+			], [{ title: "Mountains", id: 1}], onTestEventsMultiQueryCompleted);
+		}
+
+
+		private function onTestEventsMultiQueryCompleted(error:Error, results:Vector.<BreezeQueryResult>):void
+		{
+			Assert.isNotNull(error);
+			Assert.isNotNull(results);
+			Assert.equals(2, results.length);
+
+			var query:BreezeRawQuery = new BreezeRawQuery(_db);
+			query.addEventListener(BreezeQueryEvent.ERROR, onRawQueryErrorEvent);
+			query.addEventListener(BreezeQueryEvent.SUCCESS, onRawQuerySuccessEvent);
+			query.select("SELECT id, title FROM " + _tableName, onTestEventsRawQueryCompleted);
+		}
+
+
+		private function onTestEventsRawQueryCompleted(error:Error, results:Collection):void
+		{
+			Assert.isNull(error);
+			Assert.isNotNull(results);
+			Assert.equals(4, results.length);
+
+			Assert.equals(1, _numRawQueryErrorEvents);
+			Assert.equals(2, _numRawQuerySuccessEvents);
+
+			currentAsync.complete();
+		}
+
+
+		private function onRawQueryErrorEvent(event:BreezeQueryEvent):void
+		{
+			Assert.equals(BreezeQueryEvent.ERROR, event.type);
+			Assert.isNotNull(event.error);
+
+			_numRawQueryErrorEvents++;
+		}
+
+
+		private function onRawQuerySuccessEvent(event:BreezeQueryEvent):void
+		{
+			Assert.equals(BreezeQueryEvent.SUCCESS, event.type);
+			Assert.isNotNull(event.result);
+			Assert.isNotNull(event.result.data);
+			Assert.equals(4, event.result.data.length);
+			Assert.equals("SELECT id, title FROM " + _tableName, event.query);
+
+			_numRawQuerySuccessEvents++;
 		}
 
 
