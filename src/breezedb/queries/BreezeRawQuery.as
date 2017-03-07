@@ -26,6 +26,7 @@
 package breezedb.queries
 {
 	import breezedb.IBreezeDatabase;
+	import breezedb.events.BreezeQueryEvent;
 	import breezedb.utils.Callback;
 	import breezedb.utils.GarbagePrevention;
 
@@ -36,13 +37,14 @@ package breezedb.queries
 	import flash.data.SQLStatement;
 	import flash.data.SQLTableSchema;
 	import flash.errors.IllegalOperationError;
+	import flash.events.EventDispatcher;
 	import flash.events.SQLErrorEvent;
 	import flash.events.SQLEvent;
 
 	/**
 	 * @private
 	 */
-	public class BreezeRawQuery implements IRawQuery
+	public class BreezeRawQuery extends EventDispatcher implements IRawQuery
 	{
 		private static const RAW:int = 0;
 		private static const SELECT:int = 1;
@@ -53,6 +55,9 @@ package breezedb.queries
 		private var _queryType:int;
 		private var _isCancelled:Boolean;
 		private var _isCompleted:Boolean;
+
+		// The table / column we are looking for when querying schema
+		private var _tableName:String;
 		private var _columnName:String;
 
 		private var _db:IBreezeDatabase;
@@ -262,6 +267,8 @@ package breezedb.queries
 
 			GarbagePrevention.instance.add(this);
 			statement.setDatabase(database);
+			statement.addEventListener(BreezeQueryEvent.SUCCESS, onSubQueryExecutionCompleted, false, 0, true);
+			statement.addEventListener(BreezeQueryEvent.ERROR, onSubQueryExecutionCompleted, false, 0, true);
 			statement.execute(failOnError, transaction, onRawMultiQueryCompleted);
 			return new BreezeQueryReference(this);
 		}
@@ -278,6 +285,10 @@ package breezedb.queries
 			var result:BreezeSQLResult = new BreezeSQLResult(statement.getResult());
 
 			var params:Array = [error];
+			
+			// Dispatch event
+			var eventType:String = (error == null) ? BreezeQueryEvent.SUCCESS : BreezeQueryEvent.ERROR;
+			dispatchQueryEvent(eventType, error, result, statement.text);
 
 			// Format second callback parameter based on query type
 			if(_queryType == SELECT)
@@ -313,6 +324,25 @@ package breezedb.queries
 				Callback.call(callback, callbackParams);
 			}
 		}
+
+
+		private function onSubQueryExecutionCompleted(event:BreezeQueryEvent):void
+		{
+			// Re-dispatch
+			if(hasEventListener(event.type))
+			{
+				dispatchEvent(event);
+			}
+		}
+
+
+		private function dispatchQueryEvent(eventType:String, error:Error, result:BreezeSQLResult, rawQuery:String):void
+		{
+			if(hasEventListener(eventType))
+			{
+				dispatchEvent(new BreezeQueryEvent(eventType, error, result, rawQuery));
+			}
+		}
 		
 		
 		/**
@@ -327,6 +357,8 @@ package breezedb.queries
 			}
 
 			GarbagePrevention.instance.add(this);
+
+			_tableName = tableName;
 
 			_callback = callback;
 			_db.connection.addEventListener(SQLEvent.SCHEMA, onTableSchemaLoadSuccess);
@@ -374,6 +406,7 @@ package breezedb.queries
 			_db.connection.removeEventListener(SQLErrorEvent.ERROR, onTableSchemaLoadError);
 
 			var schema:SQLSchemaResult = _db.connection.getSchemaResult();
+			dispatchQueryEvent(BreezeQueryEvent.SUCCESS, null, null, "Has table [" + _tableName + "] = " + (schema.tables.length > 0));
 			finishQuery([null, schema.tables.length > 0]);
 		}
 
@@ -383,6 +416,7 @@ package breezedb.queries
 			_db.connection.removeEventListener(SQLEvent.SCHEMA, onTableSchemaLoadSuccess);
 			_db.connection.removeEventListener(SQLErrorEvent.ERROR, onTableSchemaLoadError);
 
+			dispatchQueryEvent(BreezeQueryEvent.SUCCESS, null, null, "Has table [" + _tableName + "] = false");
 			finishQuery([event.error, false]);
 		}
 
@@ -407,6 +441,7 @@ package breezedb.queries
 				}
 			}
 
+			dispatchQueryEvent(BreezeQueryEvent.SUCCESS, null, null, "Has column [" + _columnName + "] = " + hasColumn);
 			finishQuery([null, hasColumn]);
 		}
 
@@ -416,6 +451,7 @@ package breezedb.queries
 			_db.connection.removeEventListener(SQLEvent.SCHEMA, onColumnSchemaLoadSuccess);
 			_db.connection.removeEventListener(SQLErrorEvent.ERROR, onColumnSchemaLoadError);
 
+			dispatchQueryEvent(BreezeQueryEvent.SUCCESS, null, null, "Has column [" + _columnName + "] = false");
 			finishQuery([event.error, false]);
 		}
 
