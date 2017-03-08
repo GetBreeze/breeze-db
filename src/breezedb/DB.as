@@ -437,6 +437,30 @@ package breezedb
 
 
 		/**
+		 * Runs the given migrations. The database must be set up before calling this method.
+		 *
+		 * @param migrations A class or an <code>Array</code> of migration classes.
+		 *                   Each class must be a subclass of <code>BreezeMigration</code>.
+		 * @param callback Function called once the migrations are completed. It must have the following signature:
+		 * <listing version="3.0">
+		 * function callback(error:Error):void {
+		 *    if(error == null)
+		 *    {
+		 *        // migrations ran successfully
+		 *    }
+		 * };
+		 * </listing>
+		 *
+		 * @see #migrations
+		 * @see breezedb.migrations.BreezeMigration
+		 */
+		public static function runMigrations(migrations:*, callback:Function):void
+		{
+			BreezeDb.db.runMigrations(migrations, callback);
+		}
+
+
+		/**
 		 *
 		 *
 		 * Getters / Setters
@@ -453,6 +477,28 @@ package breezedb
 		public static function get instance():IBreezeDatabase
 		{
 			return BreezeDb.db;
+		}
+
+
+		/**
+		 * @private
+		 */
+		public static function set migrations(value:*):void
+		{
+			BreezeDb.db.migrations = value;
+		}
+
+
+		/**
+		 * A class or an <code>Array</code> of migration classes that will be run during the database setup.
+		 * Each class must be a subclass of <code>BreezeMigration</code>.
+		 *
+		 * @see #runMigrations()
+		 * @see breezedb.migrations.BreezeMigration
+		 */
+		public static function get migrations():*
+		{
+			return BreezeDb.db.migrations;
 		}
 
 

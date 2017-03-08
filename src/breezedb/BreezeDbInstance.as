@@ -354,6 +354,14 @@ package breezedb
 
 
 		/**
+		 * @inheritDoc
+		 */
+		public function runMigrations(migrations:*, callback:Function):void
+		{
+		}
+
+
+		/**
 		 *
 		 *
 		 * Private API
@@ -586,6 +594,24 @@ package breezedb
 		 *
 		 *
 		 */
+
+
+		/**
+		 * @inheritDoc
+		 */
+		public function get migrations():*
+		{
+			return null;
+		}
+
+
+		/**
+		 * @inheritDoc
+		 */
+		public function set migrations(value:*):void
+		{
+
+		}
 
 
 		/**

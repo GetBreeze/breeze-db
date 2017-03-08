@@ -129,6 +129,43 @@ package breezedb
 
 
 		/**
+		 * Runs the given migrations. The database must be set up before calling this method.
+		 *
+		 * @param migrations A class or an <code>Array</code> of migration classes.
+		 *                   Each class must be a subclass of <code>BreezeMigration</code>.
+		 * @param callback Function called once the migrations are completed. It must have the following signature:
+		 * <listing version="3.0">
+		 * function callback(error:Error):void {
+		 *    if(error == null)
+		 *    {
+		 *        // migrations ran successfully
+		 *    }
+		 * };
+		 * </listing>
+		 *
+		 * @see #migrations
+		 * @see breezedb.migrations.BreezeMigration
+		 */
+		function runMigrations(migrations:*, callback:Function):void;
+
+
+		/**
+		 * @private
+		 */
+		function set migrations(value:*):void;
+
+
+		/**
+		 * A class or an <code>Array</code> of migration classes that will be run during the database setup.
+		 * Each class must be a subclass of <code>BreezeMigration</code>.
+		 *
+		 * @see #runMigrations()
+		 * @see breezedb.migrations.BreezeMigration
+		 */
+		function get migrations():*;
+
+
+		/**
 		 * Returns schema builder associated with the database.
 		 */
 		function get schema():BreezeSchemaBuilder;
@@ -153,13 +190,13 @@ package breezedb
 
 
 		/**
-		 * Arbitrary <code>String</code> value that is used to encrypt the database file.
+		 * @private
 		 */
 		function set encryptionKey(value:String):void;
 
 
 		/**
-		 * @private
+		 * Arbitrary <code>String</code> value that is used to encrypt the database file.
 		 */
 		function get encryptionKey():String;
 
