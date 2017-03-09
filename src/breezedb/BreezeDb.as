@@ -33,7 +33,10 @@ package breezedb
 	 */
 	public class BreezeDb
 	{
-		private static const DEFAULT_DB:String = "database";
+		/**
+		 * Name of the default database.
+		 */
+		public static const DEFAULT_DB:String = "database";
 
 		private static var _databases:Dictionary;
 		private static var _fileExtension:String = ".sqlite";
