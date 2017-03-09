@@ -164,7 +164,7 @@ package breezedb.queries
 		 */
 		public function multiQuery(rawQueries:Array, params:* = null, callback:Function = null):BreezeQueryReference
 		{
-			return runMultiQueries(rawQueries, params, callback);
+			return runMultiQueries(rawQueries, params, callback, _db.inTransaction, _db.inTransaction);
 		}
 
 
@@ -173,7 +173,7 @@ package breezedb.queries
 		 */
 		public function multiQueryFailOnError(rawQueries:Array, params:* = null, callback:Function = null):BreezeQueryReference
 		{
-			return runMultiQueries(rawQueries, params, callback, true);
+			return runMultiQueries(rawQueries, params, callback, true, _db.inTransaction);
 		}
 
 

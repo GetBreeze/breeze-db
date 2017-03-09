@@ -44,6 +44,9 @@ package breezedb.queries
 		private var _failOnError:Boolean;
 		private var _transaction:Boolean;
 
+		// True if this multi-statement is in control of the current transaction
+		private var _transactionControl:Boolean;
+
 		private var _db:IBreezeDatabase;
 		private var _callback:Function;
 		private var _queries:Array;
@@ -125,8 +128,9 @@ package breezedb.queries
 			_failOnError = failOnError;
 			_isRunning = true;
 
-			if(transaction)
+			if(transaction && !_db.inTransaction)
 			{
+				_transactionControl = true;
 				_db.beginTransaction(onTransactionBegan);
 				return;
 			}
@@ -223,7 +227,7 @@ package breezedb.queries
 			if(result.error != null && (_failOnError || _transaction))
 			{
 				_fatalError = result.error;
-				if(_transaction)
+				if(_transaction && _db.inTransaction && _transactionControl)
 				{
 					_db.rollBack(onTransactionEnded);
 					return;
@@ -264,7 +268,7 @@ package breezedb.queries
 		{
 			if(_currentIndex >= _queries.length - 1)
 			{
-				if(_transaction)
+				if(_transaction && _db.inTransaction && _transactionControl)
 				{
 					_db.commit(onTransactionEnded);
 					return;
