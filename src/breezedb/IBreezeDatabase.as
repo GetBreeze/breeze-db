@@ -205,6 +205,12 @@ package breezedb
 		 * The SQL connection for this database.
 		 */
 		function get connection():SQLConnection;
+
+
+		/**
+		 * Returns <code>true</code> if the database connection is currently involved in a transaction.
+		 */
+		function get inTransaction():Boolean;
 	}
 	
 }

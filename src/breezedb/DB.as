@@ -554,6 +554,15 @@ package breezedb
 		{
 			return BreezeDb.db.encryptionKey;
 		}
+
+
+		/**
+		 * Returns <code>true</code> if the database connection is currently involved in a transaction.
+		 */
+		public static function get inTransaction():Boolean
+		{
+			return BreezeDb.db.inTransaction;
+		}
 	}
 	
 }

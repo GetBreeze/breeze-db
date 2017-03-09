@@ -681,6 +681,15 @@ package breezedb
 		{
 			return _sqlConnection;
 		}
+
+
+		/**
+		 * @inheritDoc
+		 */
+		public function get inTransaction():Boolean
+		{
+			return isSetup && _sqlConnection.inTransaction;
+		}
 	}
 	
 }
