@@ -34,6 +34,7 @@ package breezedb
 
 	import flash.data.SQLConnection;
 	import flash.data.SQLMode;
+	import flash.data.SQLTransactionLockType;
 	import flash.errors.IllegalOperationError;
 	import flash.events.EventDispatcher;
 	import flash.events.SQLErrorEvent;
@@ -170,7 +171,7 @@ package breezedb
 
 			_sqlConnection.addEventListener(SQLEvent.BEGIN, onTransactionBegan);
 			_sqlConnection.addEventListener(SQLErrorEvent.ERROR, onTransactionBeginError);
-			_sqlConnection.begin();
+			_sqlConnection.begin(SQLTransactionLockType.IMMEDIATE);
 		}
 
 
