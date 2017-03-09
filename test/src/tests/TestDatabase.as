@@ -248,7 +248,20 @@ package tests
 			_transactionDb.addEventListener(BreezeDatabaseEvent.COMMIT_ERROR, onTransactionCommittedEvent);
 			_transactionDb.addEventListener(BreezeDatabaseEvent.ROLL_BACK_SUCCESS, onTransactionRolledBackEvent);
 			_transactionDb.addEventListener(BreezeDatabaseEvent.ROLL_BACK_ERROR, onTransactionRolledBackEvent);
+
+			// Test transaction API while the database is not setup
+			_transactionDb.beginTransaction(onNonSetupDbTransactionAttempted);
+			_transactionDb.commit(onNonSetupDbTransactionAttempted);
+			_transactionDb.rollBack(onNonSetupDbTransactionAttempted);
+
 			_transactionDb.setup(onTransactionDatabaseSetup);
+		}
+
+
+		private function onNonSetupDbTransactionAttempted(error:Error):void
+		{
+			Assert.isNotNull(error);
+			Assert.isType(error, IllegalOperationError);
 		}
 
 
