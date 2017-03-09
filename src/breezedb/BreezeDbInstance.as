@@ -164,7 +164,8 @@ package breezedb
 
 			if(!isSetup)
 			{
-				throw new IllegalOperationError("There is no active database connection.");
+				callback(new IllegalOperationError("There is no active database connection."));
+				return;
 			}
 
 			_beginCallback = callback;
@@ -185,9 +186,10 @@ package breezedb
 				throw new ArgumentError("Parameter callback cannot be null.");
 			}
 
-			if(!isSetup)
+			if(!inTransaction)
 			{
-				throw new IllegalOperationError("There is no active database connection.");
+				callback(new IllegalOperationError("There is no active transaction."));
+				return;
 			}
 
 			_commitCallback = callback;
@@ -208,9 +210,10 @@ package breezedb
 				throw new ArgumentError("Parameter callback cannot be null.");
 			}
 
-			if(!isSetup)
+			if(!inTransaction)
 			{
-				throw new IllegalOperationError("There is no active database connection.");
+				callback(new IllegalOperationError("There is no active transaction."));
+				return;
 			}
 
 			_rollBackCallback = callback;
