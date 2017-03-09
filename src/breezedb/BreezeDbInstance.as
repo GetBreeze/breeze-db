@@ -26,7 +26,9 @@
 package breezedb
 {
 	import breezedb.events.BreezeDatabaseEvent;
+	import breezedb.events.BreezeMigrationEvent;
 	import breezedb.events.BreezeQueryEvent;
+	import breezedb.migrations.BreezeMigrationsRunner;
 	import breezedb.queries.BreezeQueryBuilder;
 	import breezedb.queries.BreezeQueryReference;
 	import breezedb.queries.BreezeRawQuery;
@@ -50,6 +52,10 @@ package breezedb
 		private var _name:String;
 		private var _file:File;
 		private var _encryptionKey:String;
+
+		// Migrations
+		private var _migrations:*;
+		private var _migrationsRunner:BreezeMigrationsRunner;
 
 		// Transaction callbacks
 		private var _beginCallback:Function;
@@ -362,6 +368,23 @@ package breezedb
 		 */
 		public function runMigrations(migrations:*, callback:Function):void
 		{
+			if(callback == null)
+			{
+				throw new ArgumentError("Parameter callback cannot be null.");
+			}
+
+			if(migrations == null)
+			{
+				throw new ArgumentError("Parameter migrations cannot be null.");
+			}
+
+			if(!isSetup || _isSettingUp)
+			{
+				callback(new IllegalOperationError("Database must be set up before running migrations."));
+				return;
+			}
+
+			runMigrationsInternal(migrations, callback);
 		}
 
 
@@ -379,14 +402,62 @@ package breezedb
 			_sqlConnection.removeEventListener(SQLEvent.OPEN, onDatabaseOpenSuccess);
 			_sqlConnection.removeEventListener(SQLErrorEvent.ERROR, onDatabaseOpenError);
 
-			_isSetup = true;
+			// Run migrations if there are any
+			if(_migrations != null)
+			{
+				// This flag must be set to true otherwise we would not be able to run migration queries
+				_isSetup = true;
+
+				runMigrationsInternal(_migrations, onSetupMigrationsCompleted);
+			}
+			// Otherwise finalize the setup
+			else
+			{
+				finalizeSetup();
+			}
+		}
+
+
+		private function onSetupMigrationsCompleted(migrationsError:Error):void
+		{
+			// Migrations failed, close the database connection
+			if(migrationsError != null)
+			{
+				_isSettingUp = false;
+				close(function(error:Error):void
+				{
+					finalizeSetup(migrationsError);
+				});
+			}
+			// Otherwise finalize the setup
+			else
+			{
+				finalizeSetup();
+			}
+		}
+
+
+		private function finalizeSetup(error:Error = null):void
+		{
+			// Setup successfully
+			if(error == null)
+			{
+				_isSetup = true;
+
+				dispatchDatabaseEvent(BreezeDatabaseEvent.SETUP_SUCCESS);
+			}
+			// Setup failed
+			else
+			{
+				_isSetup = false;
+
+				dispatchDatabaseEvent(BreezeDatabaseEvent.SETUP_ERROR, error);
+			}
+
 			_isSettingUp = false;
-
-			dispatchDatabaseEvent(BreezeDatabaseEvent.SETUP_SUCCESS);
-
 			var callback:Function = _setupCallback;
 			_setupCallback = null;
-			callback(null);
+			callback(error);
 		}
 
 
@@ -395,14 +466,7 @@ package breezedb
 			_sqlConnection.removeEventListener(SQLEvent.OPEN, onDatabaseOpenSuccess);
 			_sqlConnection.removeEventListener(SQLErrorEvent.ERROR, onDatabaseOpenError);
 
-			_isSetup = false;
-			_isSettingUp = false;
-
-			dispatchDatabaseEvent(BreezeDatabaseEvent.SETUP_ERROR, event.error);
-
-			var callback:Function = _setupCallback;
-			_setupCallback = null;
-			callback(event.error);
+			finalizeSetup(event.error);
 		}
 
 
@@ -582,6 +646,23 @@ package breezedb
 		}
 
 
+		private function runMigrationsInternal(migrations:*, callback:Function):void
+		{
+			_migrationsRunner = new BreezeMigrationsRunner(this);
+			_migrationsRunner.addEventListener(BreezeMigrationEvent.COMPLETE, onSubMigrationCompleted, false, 0, true);
+			_migrationsRunner.breezedb_internal::run(migrations, callback);
+		}
+
+
+		private function onSubMigrationCompleted(event:BreezeMigrationEvent):void
+		{
+			if(hasEventListener(event.type))
+			{
+				dispatchEvent(event);
+			}
+		}
+
+
 		private function dispatchDatabaseEvent(eventType:String, error:Error = null):void
 		{
 			if(hasEventListener(eventType))
@@ -605,7 +686,7 @@ package breezedb
 		 */
 		public function get migrations():*
 		{
-			return null;
+			return _migrations;
 		}
 
 
@@ -614,7 +695,7 @@ package breezedb
 		 */
 		public function set migrations(value:*):void
 		{
-
+			_migrations = value;
 		}
 
 
