@@ -23,44 +23,33 @@
  *
  */
 
-package
+package tests.migrations
 {
-
-	import breezetest.BreezeTest;
-	import breezetest.BreezeTestEvent;
-
-	import flash.desktop.NativeApplication;
-
-	import flash.display.Sprite;
-	import flash.text.TextField;
+	import breezedb.IBreezeDatabase;
+	import breezedb.migrations.BreezeMigration;
 	
-	import tests.TestDatabase;
-	import tests.migrations.TestMigrations;
-	import tests.TestQueryBuilder;
-	import tests.TestRawQuery;
-	import tests.TestSchema;
-	import tests.collections.TestCollection;
-	
-	public class Main extends Sprite
+	public class Migration_Insert_Default_Photos extends BreezeMigration
 	{
-		private var _breezeTest:BreezeTest;
-		public function Main()
-		{
-			var textField:TextField = new TextField();
-			textField.text = "Running tests...";
-			addChild(textField);
 
-			_breezeTest = new BreezeTest(this);
-			_breezeTest.addEventListener(BreezeTestEvent.TESTS_COMPLETE, onTestsComplete);
-			_breezeTest.add([TestCollection, TestDatabase, TestRawQuery, TestQueryBuilder, TestSchema, TestMigrations]);
-			_breezeTest.run();
+		private const _photos:Array = [
+			{ title: "Mountains",   views: 35,  downloads: 10,  likes: 4,  creation_date: new Date(2014, 1, 25) },
+			{ title: "Flowers",     views: 6,   downloads: 6,   likes: 6,  creation_date: new Date(2015, 3, 3) },
+			{ title: "Lake",        views: 35,  downloads: 0,   likes: 0,  creation_date: new Date(2016, 5, 19) }
+		];
+		
+		public function Migration_Insert_Default_Photos()
+		{
+			super();
 		}
+		
 
-
-		private function onTestsComplete(event:BreezeTestEvent):void
+		override public function run(db:IBreezeDatabase):void
 		{
-			// Return error if tests failed
-			NativeApplication.nativeApplication.exit(_breezeTest.success ? 0 : 1);
+			db.table("photos").insert(_photos, function(error:Error):void
+			{
+				done(error == null);
+			});
 		}
 	}
+	
 }

@@ -23,44 +23,25 @@
  *
  */
 
-package
+package tests.migrations
 {
+	import breezedb.IBreezeDatabase;
+	import breezedb.migrations.BreezeMigration;
 
-	import breezetest.BreezeTest;
-	import breezetest.BreezeTestEvent;
-
-	import flash.desktop.NativeApplication;
-
-	import flash.display.Sprite;
-	import flash.text.TextField;
-	
-	import tests.TestDatabase;
-	import tests.migrations.TestMigrations;
-	import tests.TestQueryBuilder;
-	import tests.TestRawQuery;
-	import tests.TestSchema;
-	import tests.collections.TestCollection;
-	
-	public class Main extends Sprite
+	// Always failing migration
+	public class Migration_Unsuccessful extends BreezeMigration
 	{
-		private var _breezeTest:BreezeTest;
-		public function Main()
+		
+		public function Migration_Unsuccessful()
 		{
-			var textField:TextField = new TextField();
-			textField.text = "Running tests...";
-			addChild(textField);
-
-			_breezeTest = new BreezeTest(this);
-			_breezeTest.addEventListener(BreezeTestEvent.TESTS_COMPLETE, onTestsComplete);
-			_breezeTest.add([TestCollection, TestDatabase, TestRawQuery, TestQueryBuilder, TestSchema, TestMigrations]);
-			_breezeTest.run();
+			super();
 		}
+		
 
-
-		private function onTestsComplete(event:BreezeTestEvent):void
+		override public function run(db:IBreezeDatabase):void
 		{
-			// Return error if tests failed
-			NativeApplication.nativeApplication.exit(_breezeTest.success ? 0 : 1);
+			done(false);
 		}
 	}
+	
 }

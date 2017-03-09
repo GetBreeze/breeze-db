@@ -23,44 +23,37 @@
  *
  */
 
-package
+package tests.migrations
 {
-
-	import breezetest.BreezeTest;
-	import breezetest.BreezeTestEvent;
-
-	import flash.desktop.NativeApplication;
-
-	import flash.display.Sprite;
-	import flash.text.TextField;
+	import breezedb.IBreezeDatabase;
+	import breezedb.migrations.BreezeMigration;
+	import breezedb.schemas.TableBlueprint;
 	
-	import tests.TestDatabase;
-	import tests.migrations.TestMigrations;
-	import tests.TestQueryBuilder;
-	import tests.TestRawQuery;
-	import tests.TestSchema;
-	import tests.collections.TestCollection;
-	
-	public class Main extends Sprite
+	public class Migration_Create_Table_Photos extends BreezeMigration
 	{
-		private var _breezeTest:BreezeTest;
-		public function Main()
+		
+		public function Migration_Create_Table_Photos()
 		{
-			var textField:TextField = new TextField();
-			textField.text = "Running tests...";
-			addChild(textField);
-
-			_breezeTest = new BreezeTest(this);
-			_breezeTest.addEventListener(BreezeTestEvent.TESTS_COMPLETE, onTestsComplete);
-			_breezeTest.add([TestCollection, TestDatabase, TestRawQuery, TestQueryBuilder, TestSchema, TestMigrations]);
-			_breezeTest.run();
+			super();
 		}
+		
 
-
-		private function onTestsComplete(event:BreezeTestEvent):void
+		override public function run(db:IBreezeDatabase):void
 		{
-			// Return error if tests failed
-			NativeApplication.nativeApplication.exit(_breezeTest.success ? 0 : 1);
+			db.schema.createTable("photos", function (table:TableBlueprint):void
+			{
+				table.increments("id");
+				table.string("title").defaultNull();
+				table.integer("views").defaultTo(0);
+				table.integer("downloads").defaultTo(0);
+				table.integer("likes").defaultTo(0);
+				table.date("creation_date");
+			},
+			function(error:Error):void
+			{
+				done(error == null);
+			});
 		}
 	}
+	
 }

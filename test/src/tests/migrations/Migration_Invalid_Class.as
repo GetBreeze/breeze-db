@@ -23,44 +23,17 @@
  *
  */
 
-package
+package tests.migrations
 {
 
-	import breezetest.BreezeTest;
-	import breezetest.BreezeTestEvent;
-
-	import flash.desktop.NativeApplication;
-
-	import flash.display.Sprite;
-	import flash.text.TextField;
-	
-	import tests.TestDatabase;
-	import tests.migrations.TestMigrations;
-	import tests.TestQueryBuilder;
-	import tests.TestRawQuery;
-	import tests.TestSchema;
-	import tests.collections.TestCollection;
-	
-	public class Main extends Sprite
+	// Does not inherit BreezeMigration, must fail
+	public class Migration_Invalid_Class
 	{
-		private var _breezeTest:BreezeTest;
-		public function Main()
+		
+		public function Migration_Invalid_Class()
 		{
-			var textField:TextField = new TextField();
-			textField.text = "Running tests...";
-			addChild(textField);
-
-			_breezeTest = new BreezeTest(this);
-			_breezeTest.addEventListener(BreezeTestEvent.TESTS_COMPLETE, onTestsComplete);
-			_breezeTest.add([TestCollection, TestDatabase, TestRawQuery, TestQueryBuilder, TestSchema, TestMigrations]);
-			_breezeTest.run();
 		}
-
-
-		private function onTestsComplete(event:BreezeTestEvent):void
-		{
-			// Return error if tests failed
-			NativeApplication.nativeApplication.exit(_breezeTest.success ? 0 : 1);
-		}
+		
 	}
+	
 }
