@@ -1021,7 +1021,7 @@ package breezedb.queries
 		 */
 
 
-		private function onChunkCompleted(error:Error, results:Collection):void
+		protected function onChunkCompleted(error:Error, results:Collection):void
 		{
 			// Track subsequent chunk queries so that the callback is not called when there are no more results
 			var initialChunk:Boolean = false;
@@ -1056,7 +1056,7 @@ package breezedb.queries
 		}
 
 
-		private function onFirstCompleted(error:Error, results:Collection):void
+		protected function onFirstCompleted(error:Error, results:Collection):void
 		{
 			var firstItem:Object = (results.length > 0) ? results[0] : null;
 			finishProxiedQuery([error, firstItem]);
