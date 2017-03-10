@@ -23,45 +23,21 @@
  *
  */
 
-package
+package tests.models
 {
-
-	import breezetest.BreezeTest;
-	import breezetest.BreezeTestEvent;
-
-	import flash.desktop.NativeApplication;
-
-	import flash.display.Sprite;
-	import flash.text.TextField;
+	import breezedb.models.BreezeModel;
 	
-	import tests.TestDatabase;
-	import tests.migrations.TestMigrations;
-	import tests.TestQueryBuilder;
-	import tests.TestRawQuery;
-	import tests.TestSchema;
-	import tests.collections.TestCollection;
-	import tests.models.TestModel;
-	
-	public class Main extends Sprite
+	public class CustomTableModel extends BreezeModel
 	{
-		private var _breezeTest:BreezeTest;
-		public function Main()
+		
+		public function CustomTableModel()
 		{
-			var textField:TextField = new TextField();
-			textField.text = "Running tests...";
-			addChild(textField);
+			super();
 
-			_breezeTest = new BreezeTest(this);
-			_breezeTest.addEventListener(BreezeTestEvent.TESTS_COMPLETE, onTestsComplete);
-			_breezeTest.add([TestCollection, TestDatabase, TestRawQuery, TestQueryBuilder, TestSchema, TestMigrations, TestModel]);
-			_breezeTest.run();
+			_tableName = "custom_table_name";
+			_databaseName = TestModel.DB_NAME;
 		}
-
-
-		private function onTestsComplete(event:BreezeTestEvent):void
-		{
-			// Return error if tests failed
-			NativeApplication.nativeApplication.exit(_breezeTest.success ? 0 : 1);
-		}
+		
 	}
+	
 }
