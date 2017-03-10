@@ -186,7 +186,7 @@ package tests.models
 		{
 			Assert.isNull(error);
 
-			_db.table(_photosTable).where("id", 1).fetch(onPhotoDeleteCheckCompleted);
+			BreezeModel.query(Photo).where("id", 1).fetch(onPhotoDeleteCheckCompleted);
 		}
 
 
@@ -217,9 +217,10 @@ package tests.models
 			Assert.equals("Sunset", photo.title);
 			Assert.equals(0, photo.views);
 			Assert.equals(0, photo.downloads);
+			Assert.isFalse(photo.exists);
 
 			// Check that the photo is not in the database
-			_db.table(_photosTable).where("id", 5).fetch(onFirstOrNewCheckCompleted);
+			BreezeModel.query(Photo).where("id", 5).fetch(onFirstOrNewCheckCompleted);
 		}
 
 
@@ -250,9 +251,10 @@ package tests.models
 			Assert.equals("Sunset", photo.title);
 			Assert.equals(10, photo.views);
 			Assert.equals(0, photo.downloads);
+			Assert.isTrue(photo.exists);
 
 			// Check that the photo is in the database
-			_db.table(_photosTable).where("id", 5).fetch(onFirstOrCreateCheckCompleted);
+			BreezeModel.query(Photo).where("id", 5).fetch(onFirstOrCreateCheckCompleted);
 		}
 
 
