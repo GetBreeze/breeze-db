@@ -29,6 +29,8 @@ package breezedb.models
 	import breezedb.IBreezeDatabase;
 	import breezedb.collections.Collection;
 	import breezedb.queries.BreezeQueryBuilder;
+	import breezedb.queries.BreezeQueryReference;
+	import breezedb.queries.BreezeSQLResult;
 
 	import flash.errors.IllegalOperationError;
 
@@ -116,7 +118,7 @@ package breezedb.models
 				throw new ArgumentError("Parameter primaryKeys cannot be null.");
 			}
 
-			if(_model.primaryKey == null)
+			if(_model.primaryKey == null || !(_model.primaryKey in _model))
 			{
 				throw new IllegalOperationError("The model " + _modelClass + " has no primary key set.");
 			}
@@ -137,7 +139,7 @@ package breezedb.models
 		/**
 		 *
 		 *
-		 * Private API
+		 * Internal / Private API
 		 *
 		 *
 		 */
@@ -156,6 +158,34 @@ package breezedb.models
 			}
 
 			return castCollection;
+		}
+
+
+		/**
+		 * @private
+		 */
+		internal function save(model:BreezeModel, callback:Function = null):BreezeQueryReference
+		{
+			_model = model;
+
+			// Perform update
+			if(model.exists)
+			{
+				// We need the primary key to do that
+				if(model.primaryKey == null || !(model.primaryKey in model))
+				{
+					throw new IllegalOperationError("Cannot update model " + model + " when the primary key is unknown.");
+				}
+
+				_callbackProxy = onUpdateViaSaveCompleted;
+				return where(model.primaryKey, model[model.primaryKey])
+						.update(model.toKeyValue(), callback)
+						.queryReference;
+			}
+
+			// Perform insertGetId
+			_callbackProxy = onInsertViaSaveCompleted;
+			return insertGetId(model.toKeyValue(), callback).queryReference;
 		}
 
 
@@ -192,6 +222,29 @@ package breezedb.models
 		{
 			var castCollection:Collection = getTypedCollection(results);
 			finishProxiedQuery([error, castCollection]);
+		}
+
+
+		protected function onUpdateViaSaveCompleted(error:Error, rowsAffected:int):void
+		{
+			finishProxiedQuery([error, _model]);
+		}
+
+
+		protected function onInsertViaSaveCompleted(error:Error, result:BreezeSQLResult):void
+		{
+			if(error == null)
+			{
+				if(_model.primaryKey != null &&
+						_model.autoIncrementId &&
+						_model.hasOwnProperty(_model.primaryKey) &&
+						(_model[_model.primaryKey] is Number))
+				{
+					_model[_model.primaryKey] = result.lastInsertRowID;
+				}
+				_model.setExists(true);
+			}
+			finishProxiedQuery([error, _model]);
 		}
 	}
 	

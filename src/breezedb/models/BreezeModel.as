@@ -28,7 +28,10 @@ package breezedb.models
 	import breezedb.BreezeDb;
 	import breezedb.queries.BreezeQueryReference;
 
+	import flash.errors.IllegalOperationError;
+
 	import flash.events.EventDispatcher;
+	import flash.utils.describeType;
 	import flash.utils.getQualifiedClassName;
 
 	/**
@@ -91,15 +94,21 @@ package breezedb.models
 		}
 
 
-		public function save(callback:* = null):BreezeQueryReference
+		public function save(callback:Function = null):BreezeQueryReference
 		{
-			throw new Error("Not implemented");
+			var modelClass:Class = Object(this).constructor as Class;
+			return new BreezeModelQueryBuilder(modelClass).save(this, callback);
 		}
 
 
-		public function remove(callback:* = null):BreezeQueryReference
+		public function remove(callback:Function = null):BreezeQueryReference
 		{
-			throw new Error("Not implemented");
+			var modelClass:Class = Object(this).constructor as Class;
+			if(primaryKey == null || !(primaryKey in this))
+			{
+				throw new IllegalOperationError("The model " + modelClass + " has no primary key set.");
+			}
+			return new BreezeModelQueryBuilder(modelClass).removeByKey(this[primaryKey], callback).queryReference;
 		}
 
 
@@ -112,6 +121,9 @@ package breezedb.models
 		 */
 
 
+		/**
+		 * @private
+		 */
 		internal function populateFromObject(values:Object, exists:Boolean = true):void
 		{
 			for(var property:String in values)
@@ -122,7 +134,40 @@ package breezedb.models
 				}
 			}
 
-			_exists = exists;
+			setExists(exists);
+		}
+
+
+		/**
+		 * @private
+		 */
+		internal function toKeyValue():Object
+		{
+			var result:Object = {};
+
+			var description:XML = describeType(this);
+			var variables:XMLList = description..variable;
+			for each(var variable:XML in variables)
+			{
+				var column:String = variable.@name;
+				if(column == '')
+				{
+					continue;
+				}
+
+				result[column] = this[column];
+			}
+
+			return result;
+		}
+
+
+		/**
+		 * @private
+		 */
+		internal function setExists(value:Boolean):void
+		{
+			_exists = value;
 		}
 
 
@@ -182,6 +227,12 @@ package breezedb.models
 		public function get exists():Boolean
 		{
 			return _exists;
+		}
+
+
+		public function get autoIncrementId():Boolean
+		{
+			return _autoIncrementId;
 		}
 	}
 	
