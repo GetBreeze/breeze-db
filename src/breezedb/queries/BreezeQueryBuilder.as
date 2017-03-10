@@ -79,7 +79,7 @@ package breezedb.queries
 		{
 			limit(1);
 
-			_callbackProxy = onFirstCompleted;
+			setCallbackProxy(onFirstCompleted);
 
 			executeIfNeeded(callback);
 
@@ -90,7 +90,7 @@ package breezedb.queries
 		public function count(callback:* = null):BreezeQueryBuilder
 		{
 			_aggregate = "total";
-			_callbackProxy = onAggregateCompleted;
+			setCallbackProxy(onAggregateCompleted);
 
 			select("COUNT(*) as total");
 			executeIfNeeded(callback);
@@ -104,7 +104,7 @@ package breezedb.queries
 			validateColumnName(column);
 
 			_aggregate = "max";
-			_callbackProxy = onAggregateCompleted;
+			setCallbackProxy(onAggregateCompleted);
 
 			select("MAX(" + column + ") as max");
 			executeIfNeeded(callback);
@@ -118,7 +118,7 @@ package breezedb.queries
 			validateColumnName(column);
 
 			_aggregate = "min";
-			_callbackProxy = onAggregateCompleted;
+			setCallbackProxy(onAggregateCompleted);
 
 			select("MIN(" + column + ") as min");
 			executeIfNeeded(callback);
@@ -132,7 +132,7 @@ package breezedb.queries
 			validateColumnName(column);
 
 			_aggregate = "sum";
-			_callbackProxy = onAggregateCompleted;
+			setCallbackProxy(onAggregateCompleted);
 
 			select("SUM(" + column + ") as sum");
 			executeIfNeeded(callback);
@@ -146,7 +146,7 @@ package breezedb.queries
 			validateColumnName(column);
 
 			_aggregate = "avg";
-			_callbackProxy = onAggregateCompleted;
+			setCallbackProxy(onAggregateCompleted);
 
 			select("AVG(" + column + ") as avg");
 			executeIfNeeded(callback);
@@ -179,7 +179,7 @@ package breezedb.queries
 		public function chunk(limit:uint, callback:* = null):BreezeQueryBuilder
 		{
 			_chunkLimit = limit;
-			_callbackProxy = onChunkCompleted;
+			setCallbackProxy(onChunkCompleted);
 
 			_offset = (_offset == -1) ? 0 : (_offset + limit);
 			_limit = limit;
@@ -472,7 +472,7 @@ package breezedb.queries
 			}
 
 			_queryType = QUERY_INSERT;
-			_callbackProxy = onInsertGetIdCompleted;
+			setCallbackProxy(onInsertGetIdCompleted);
 
 			setInsertColumns(value);
 			addInsertObjects(value);
@@ -879,6 +879,15 @@ package breezedb.queries
 		}
 
 
+		private function setCallbackProxy(callback:Function):void
+		{
+			if(_callbackProxy == null)
+			{
+				_callbackProxy = callback;
+			}
+		}
+
+
 		/**
 		 * Internal implementation for 'increment' and 'decrement' methods.
 		 */
@@ -1048,6 +1057,7 @@ package breezedb.queries
 			if(terminate || _chunkQueryReference.isCancelled)
 			{
 				_chunkQueryReference = null;
+				_callbackProxy = null;
 				return;
 			}
 
@@ -1058,6 +1068,7 @@ package breezedb.queries
 
 		protected function onFirstCompleted(error:Error, results:Collection):void
 		{
+			_callbackProxy = null;
 			var firstItem:Object = (results.length > 0) ? results[0] : null;
 			finishProxiedQuery([error, firstItem]);
 		}
@@ -1065,6 +1076,7 @@ package breezedb.queries
 
 		private function onAggregateCompleted(error:Error, results:Collection):void
 		{
+			_callbackProxy = null;
 			var row:Object = (results.length > 0) ? results[0] : null;
 			var aggregateValue:Number = (row !== null && _aggregate in row) ? row[_aggregate] : 0;
 			finishProxiedQuery([error, aggregateValue]);
@@ -1073,6 +1085,7 @@ package breezedb.queries
 
 		private function onInsertGetIdCompleted(error:Error, result:BreezeSQLResult):void
 		{
+			_callbackProxy = null;
 			finishProxiedQuery([error, result.lastInsertRowID]);
 		}
 	}
