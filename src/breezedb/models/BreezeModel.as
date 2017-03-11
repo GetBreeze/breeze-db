@@ -94,6 +94,24 @@ package breezedb.models
 		}
 
 
+		/**
+		 * Saves this model to the database. If it exists, its values will be updated.
+		 *
+		 * @param callback Function that is triggered when the query is completed. The saved model is returned
+		 * 		  to the callback as a second argument.
+		 *
+		 * <listing version="3.0">
+		 * var photo:Photo = new Photo();
+		 * photo.title = "Sunset";
+		 * photo.save(callback);
+		 * function callback(error:Error, photo:Photo):void
+		 * {
+		 *
+		 * };
+		 * </listing>
+		 *
+		 * @return <code>BreezeQueryReference</code> object that allows cancelling the request callback.
+         */
 		public function save(callback:Function = null):BreezeQueryReference
 		{
 			var modelClass:Class = Object(this).constructor as Class;
@@ -101,6 +119,26 @@ package breezedb.models
 		}
 
 
+		/**
+		 * Removes this model from the database.
+		 *
+		 * @param callback Function that is triggered when the query is completed.
+		 *
+		 * <listing version="3.0">
+		 * BreezeModelQueryBuilder.query(Photo).find(1, function(findError:Error, photo:Photo):void
+		 * {
+		 *     if(photo != null)
+		 *     {
+		 *        photo.remove(function(removeError:Error):void
+		 *        {
+		 *
+		 *        });
+		 *     }
+		 * });
+		 * </listing>
+		 *
+		 * @return <code>BreezeQueryReference</code> object that allows cancelling the request callback.
+		 */
 		public function remove(callback:Function = null):BreezeQueryReference
 		{
 			var modelClass:Class = Object(this).constructor as Class;
@@ -192,6 +230,9 @@ package breezedb.models
 		}
 
 
+		/**
+		 * Returns the model's table name.
+		 */
 		public function get tableName():String
 		{
 			if(_tableName != null)
@@ -212,24 +253,36 @@ package breezedb.models
 		}
 
 
+		/**
+		 * Returns the model's database name.
+		 */
 		public function get databaseName():String
 		{
 			return _databaseName;
 		}
 
 		
+		/**
+		 * Returns the name of the model's primary key.
+		 */
 		public function get primaryKey():String
 		{
 			return _primaryKey;
 		}
 
 
+		/**
+		 * Returns <code>true</code> if the model exists in the database.
+		 */
 		public function get exists():Boolean
 		{
 			return _exists;
 		}
 
 
+		/**
+		 * Returns <code>true</code> if the model has auto-incrementing id.
+		 */
 		public function get autoIncrementId():Boolean
 		{
 			return _autoIncrementId;

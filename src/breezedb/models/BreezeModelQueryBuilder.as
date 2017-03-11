@@ -65,8 +65,11 @@ package breezedb.models
 		 *
 		 *
 		 */
-		
-		
+
+
+		/**
+		 * @inheritDoc
+         */
 		override public function fetch(callback:* = null):BreezeQueryBuilder
 		{
 			if(_callbackProxy == null || _callbackProxy != onFirstCompleted)
@@ -75,8 +78,40 @@ package breezedb.models
 			}
 			return super.fetch(callback);
 		}
-		
-		
+
+
+		/**
+		 * Finds models that match the given primary keys.
+		 *
+		 * @param primaryKeys Either a single primary key or <code>Array</code> of primary keys.
+		 * @param callback This parameter can be one of the following:
+		 * <ul>
+		 *    <li>A <code>Function</code>, i.e. a callback that is triggered once the query is completed.
+		 *    Its signature depends on whether a single or multiple primary keys are passed to the the
+		 *    <code>primaryKeys</code> parameter:
+		 *    <listing version="3.0">
+		 *    // Find a single photo with primary key = 1
+		 *    var modelBuilder:BreezeModelQueryBuilder = new BreezeModelQueryBuilder(Photo);
+		 *    modelBuilder.find(1, callback);
+		 *    function callback(error:Error, photo:Photo):void
+		 *    {
+		 *    };
+		 *    // Find multiple photos with primary keys 1 and 2
+		 *    var modelBuilder:BreezeModelQueryBuilder = new BreezeModelQueryBuilder(Photo);
+		 *    modelBuilder.find([1, 2], callback);
+		 *    function callback(error:Error, photos:Collection):void
+		 *    {
+		 *    };
+		 *    </listing>
+		 *    </li>
+		 *    <li>The <code>BreezeDb.DELAY</code> constant, resulting in the query being delayed. It can be executed
+		 *    later by calling the <code>exec</code> method on the returned instance of <code>BreezeQueryBuilder</code>.
+		 *    </li>
+		 * </ul>
+		 *
+         * @return Instance of <code>BreezeQueryBuilder</code> allowing you to obtain the query reference
+		 * 		   or execute the query at later time if it was delayed.
+         */
 		public function find(primaryKeys:*, callback:* = null):BreezeQueryBuilder
 		{
 			if(primaryKeys == null)
@@ -101,18 +136,81 @@ package breezedb.models
 		}
 
 
+		/**
+		 * Returns the first model that matches the given values. If match is not found, a new model instance
+		 * with those values is returned. Note this instance is <strong>not</strong> saved to the database.
+		 * You will need to call the model's <code>save</code> method.
+		 *
+		 * @param values Key-value object specifying column names and values that will be used to find the matching model.
+		 * @param callback Function that is triggered when the query is completed.
+		 *
+		 * <listing version="3.0">
+		 * // Find or return new instance of Photo model with title "Sunset"
+		 * var modelBuilder:BreezeModelQueryBuilder = new BreezeModelQueryBuilder(Photo);
+		 * modelBuilder.firstOrNew({ title: "Sunset" }, callback);
+		 * function callback(error:Error, photo:Photo):void
+		 * {
+		 * };
+		 * </listing>
+		 *
+		 * @see #firstOrCreate()
+         */
 		public function firstOrNew(values:Object, callback:Function = null):void
 		{
 			firstOrInit(values, callback);
 		}
 
 
+		/**
+		 * Returns the first model that matches the given values. If match is not found, a new model instance
+		 * with those values is returned and saved to the database.
+		 *
+		 * @param values Key-value object specifying column names and values that will be used to find the matching model.
+		 * @param callback Function that is triggered when the query is completed.
+		 *
+		 * <listing version="3.0">
+		 * // Find or create new instance of Photo model with title "Sunset"
+		 * var modelBuilder:BreezeModelQueryBuilder = new BreezeModelQueryBuilder(Photo);
+		 * modelBuilder.firstOrNew({ title: "Sunset" }, callback);
+		 * function callback(error:Error, photo:Photo):void
+		 * {
+		 *     if(error == null)
+		 *     {
+		 *         trace(photo.exists); // true
+		 *     }
+		 * };
+		 * </listing>
+		 *
+		 * @see #firstOrNew()
+		 */
 		public function firstOrCreate(values:Object, callback:Function = null):void
 		{
 			firstOrInit(values, callback, true);
 		}
 
 
+		/**
+		 * Removes all the models that match the given primary keys.
+		 * 
+		 * @param primaryKeys Either a single primary key or <code>Array</code> of primary keys.
+		 * @param callback Function that is triggered when the query is completed.
+		 *
+		 * <listing version="3.0">
+		 * // Remove photos with id of 1 and 2
+		 * var modelBuilder:BreezeModelQueryBuilder = new BreezeModelQueryBuilder(Photo);
+		 * modelBuilder.removeByKey([1, 2], callback);
+		 * function callback(error:Error):void
+		 * {
+		 *    if(error == null)
+		 *    {
+		 *
+		 *    }
+		 * };
+		 * </listing>
+		 *
+		 * @return Instance of <code>BreezeQueryBuilder</code> allowing you to obtain the query reference
+		 * 		   or execute the query at later time if it was delayed.
+         */
 		public function removeByKey(primaryKeys:*, callback:* = null):BreezeQueryBuilder
 		{
 			if(primaryKeys == null)
