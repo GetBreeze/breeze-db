@@ -141,7 +141,7 @@ package breezedb.models
 		/**
 		 * @private
 		 */
-		internal function toKeyValue():Object
+		internal function toKeyValue(omitPrimaryKey:Boolean = false):Object
 		{
 			var result:Object = {};
 
@@ -150,7 +150,7 @@ package breezedb.models
 			for each(var variable:XML in variables)
 			{
 				var column:String = variable.@name;
-				if(column == '')
+				if((column == '') || (omitPrimaryKey && (primaryKey == column)))
 				{
 					continue;
 				}

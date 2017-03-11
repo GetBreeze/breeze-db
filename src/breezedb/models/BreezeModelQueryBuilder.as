@@ -31,6 +31,8 @@ package breezedb.models
 	import breezedb.queries.BreezeQueryBuilder;
 	import breezedb.queries.BreezeQueryReference;
 	import breezedb.queries.BreezeSQLResult;
+	import breezedb.utils.Callback;
+	import breezedb.utils.GarbagePrevention;
 
 	import flash.errors.IllegalOperationError;
 
@@ -99,15 +101,15 @@ package breezedb.models
 		}
 
 
-		public function firstOrNew(values:Object, callback:* = null):BreezeQueryBuilder
+		public function firstOrNew(values:Object, callback:Function = null):void
 		{
-			throw new Error("Not implemented");
+			firstOrInit(values, callback);
 		}
 
 
-		public function firstOrCreate(values:Object, callback:* = null):BreezeQueryBuilder
+		public function firstOrCreate(values:Object, callback:Function = null):void
 		{
-			throw new Error("Not implemented");
+			firstOrInit(values, callback, true);
 		}
 
 
@@ -162,6 +164,56 @@ package breezedb.models
 
 
 		/**
+		 * Internal implementation for 'firstOrNew' and 'firstOrCreate'.
+		 */
+		private function firstOrInit(values:Object, callback:Function = null, saveToDatabase:Boolean = false):void
+		{
+			if(values == null)
+			{
+				throw new ArgumentError("Parameter values cannot be null.");
+			}
+
+			// Add 'where' clause for each key-value
+			for(var key:String in values)
+			{
+				where(key, values[key]);
+			}
+
+			var self:BreezeModelQueryBuilder = this;
+
+			// Retrieve the first model matching the given values
+			first(function(firstError:Error, model:BreezeModel):void
+			{
+				// Match not found, create new model
+				if(model == null)
+				{
+					model = new _modelClass();
+					model.populateFromObject(values, false);
+
+					// Save the model first then trigger the callback
+					if(saveToDatabase)
+					{
+						GarbagePrevention.instance.add(self);
+						model.save(function(saveError:Error, savedModel:BreezeModel):void
+						{
+							GarbagePrevention.instance.remove(self);
+							Callback.call(callback, [saveError, model]);
+						});
+						return;
+					}
+				}
+
+				// Create the model with the next available id
+				if(!model.exists && model.autoIncrementId && !hasSetId(model))
+				{
+					model[model.primaryKey] = _db.connection.lastInsertRowID + 1;
+				}
+				Callback.call(callback, [firstError, model]);
+			});
+		}
+
+
+		/**
 		 * @private
 		 */
 		internal function save(model:BreezeModel, callback:Function = null):BreezeQueryReference
@@ -185,7 +237,16 @@ package breezedb.models
 
 			// Perform insertGetId
 			_callbackProxy = onInsertViaSaveCompleted;
-			return insertGetId(model.toKeyValue(), callback).queryReference;
+
+			// Omit the primary key in the insert statement to have one assigned automatically via auto-increment
+			var omitPrimaryKey:Boolean = (model.autoIncrementId) && !hasSetId(model);
+			return insertGetId(model.toKeyValue(omitPrimaryKey), callback).queryReference;
+		}
+
+
+		private function hasSetId(model:BreezeModel):Boolean
+		{
+			return !((model.primaryKey != null) && (model.primaryKey in model) && (model[model.primaryKey] is Number) && (model[model.primaryKey] < 1));
 		}
 
 
@@ -200,6 +261,8 @@ package breezedb.models
 
 		override protected function onFirstCompleted(error:Error, results:Collection):void
 		{
+			_callbackProxy = null;
+
 			var result:Object = (results.length > 0) ? results[0] : null;
 			var model:BreezeModel = null;
 			if(result != null)
@@ -220,6 +283,8 @@ package breezedb.models
 
 		protected function onFetchCompleted(error:Error, results:Collection):void
 		{
+			_callbackProxy = null;
+
 			var castCollection:Collection = getTypedCollection(results);
 			finishProxiedQuery([error, castCollection]);
 		}
@@ -227,12 +292,16 @@ package breezedb.models
 
 		protected function onUpdateViaSaveCompleted(error:Error, rowsAffected:int):void
 		{
+			_callbackProxy = null;
+
 			finishProxiedQuery([error, _model]);
 		}
 
 
 		protected function onInsertViaSaveCompleted(error:Error, result:BreezeSQLResult):void
 		{
+			_callbackProxy = null;
+
 			if(error == null)
 			{
 				if(_model.primaryKey != null &&
