@@ -204,17 +204,17 @@ package tests.models
 		{
 			async.timeout = 3000;
 			
-			BreezeModel.query(Photo).firstOrNew({ id: 5, title: "Sunset" }, onFirstOrNewRetrieved);
+			BreezeModel.query(Photo).firstOrNew({ id: 5, title: "Sunrise" }, onFirstOrNewCompleted);
 		}
 
 
-		private function onFirstOrNewRetrieved(error:Error, photo:Photo):void
+		private function onFirstOrNewCompleted(error:Error, photo:Photo):void
 		{
 			Assert.isNull(error);
 			Assert.isNotNull(photo);
 
 			Assert.equals(5, photo.id);
-			Assert.equals("Sunset", photo.title);
+			Assert.equals("Sunrise", photo.title);
 			Assert.equals(0, photo.views);
 			Assert.equals(0, photo.downloads);
 			Assert.isFalse(photo.exists);
@@ -230,6 +230,33 @@ package tests.models
 			Assert.isNotNull(results);
 			Assert.equals(0, results.length);
 
+			BreezeModel.query(Photo).firstOrNew({ title: "Sunrise" }, onFirstOrNewWithoutIdCompleted);
+		}
+
+
+		private function onFirstOrNewWithoutIdCompleted(error:Error, photo:Photo):void
+		{
+			Assert.isNull(error);
+			Assert.isNotNull(photo);
+
+			// The photo should have auto-incremented id, non-zero
+			Assert.isTrue(photo.id != 0);
+			Assert.equals("Sunrise", photo.title);
+			Assert.equals(0, photo.views);
+			Assert.equals(0, photo.downloads);
+			Assert.isFalse(photo.exists);
+
+			// Check that the photo is not in the database
+			BreezeModel.query(Photo).where("id", photo.id).fetch(onFirstOrNewWithoutIdCheckCompleted);
+		}
+
+
+		private function onFirstOrNewWithoutIdCheckCompleted(error:Error, results:Collection):void
+		{
+			Assert.isNull(error);
+			Assert.isNotNull(results);
+			Assert.equals(0, results.length);
+
 			currentAsync.complete();
 		}
 
@@ -237,24 +264,24 @@ package tests.models
 		public function testFirstOrCreate(async:Async):void
 		{
 			async.timeout = 3000;
-			
-			BreezeModel.query(Photo).firstOrCreate({ id: 5, title: "Sunset", views: 10 }, onFirstOrCreateRetrieved);
+
+			BreezeModel.query(Photo).firstOrCreate({ id: 20, title: "Sunset", views: 10 }, onFirstOrCreateCompleted);
 		}
 
 
-		private function onFirstOrCreateRetrieved(error:Error, photo:Photo):void
+		private function onFirstOrCreateCompleted(error:Error, photo:Photo):void
 		{
 			Assert.isNull(error);
 			Assert.isNotNull(photo);
 
-			Assert.equals(5, photo.id);
+			Assert.equals(20, photo.id);
 			Assert.equals("Sunset", photo.title);
 			Assert.equals(10, photo.views);
 			Assert.equals(0, photo.downloads);
 			Assert.isTrue(photo.exists);
 
 			// Check that the photo is in the database
-			BreezeModel.query(Photo).where("id", 5).fetch(onFirstOrCreateCheckCompleted);
+			BreezeModel.query(Photo).where("id", 20).fetch(onFirstOrCreateCheckCompleted);
 		}
 
 
@@ -268,9 +295,43 @@ package tests.models
 
 			var photo:Photo = results[0] as Photo;
 
-			Assert.equals(5, photo.id);
+			Assert.equals(20, photo.id);
 			Assert.equals("Sunset", photo.title);
 			Assert.equals(10, photo.views);
+			Assert.equals(0, photo.downloads);
+
+			// Save new photo without specifying the id (it must auto-increment)
+			BreezeModel.query(Photo).firstOrCreate({ title: "Cloudy Sky" }, onFirstOrCreateWithoutIdCompleted);
+		}
+
+
+		private function onFirstOrCreateWithoutIdCompleted(error:Error, photo:Photo):void
+		{
+			Assert.isNull(error);
+			Assert.isNotNull(photo);
+
+			Assert.equals(21, photo.id);
+			Assert.equals("Cloudy Sky", photo.title);
+			Assert.isTrue(photo.exists);
+
+			// Check that the photo is in the database
+			BreezeModel.query(Photo).where("id", 21).fetch(onFirstOrCreateWithoutIdCheckCompleted);
+		}
+
+
+		private function onFirstOrCreateWithoutIdCheckCompleted(error:Error, results:Collection):void
+		{
+			Assert.isNull(error);
+			Assert.isNotNull(results);
+			Assert.equals(1, results.length);
+
+			Assert.isType(results[0], Photo);
+
+			var photo:Photo = results[0] as Photo;
+
+			Assert.equals(21, photo.id);
+			Assert.equals("Cloudy Sky", photo.title);
+			Assert.equals(0, photo.views);
 			Assert.equals(0, photo.downloads);
 
 			currentAsync.complete();
