@@ -34,8 +34,10 @@ package tests.migrations
 	import breezetest.Assert;
 	
 	import breezetest.async.Async;
-	
-	public class TestMigrations extends BreezeMigration
+
+    import flash.utils.setTimeout;
+
+    public class TestMigrations extends BreezeMigration
 	{
 		
 		public var currentAsync:Async;
@@ -128,7 +130,8 @@ package tests.migrations
 			_migrationEvents.length = 0;
 
 			_db.removeEventListener(BreezeMigrationEvent.COMPLETE, onMigrationCompleted);
-			_db.close(onDbClosed);
+
+            setTimeout(_db.close, 500, onDbClosed);
 		}
 
 
@@ -146,7 +149,9 @@ package tests.migrations
 			}
 			else
 			{
-				currentAsync.complete();
+                _db.file.deleteFile();
+
+                currentAsync.complete();
 			}
 		}
 
@@ -204,7 +209,9 @@ package tests.migrations
 			Assert.isType(error, ArgumentError);
 			Assert.isFalse(_db.isSetup);
 
-			currentAsync.complete();
+            _db.file.deleteFile();
+
+            currentAsync.complete();
 		}
 
 
@@ -232,7 +239,12 @@ package tests.migrations
 		{
 			Assert.isFalse(hasTable);
 
-			currentAsync.complete();
+			_db.close(function(error:Error):void
+            {
+                _db.file.deleteFile();
+
+                currentAsync.complete();
+            });
 		}
 
 
@@ -251,41 +263,9 @@ package tests.migrations
 			Assert.isNotNull(error);
 			Assert.isFalse(_db.isSetup);
 
+            _db.file.deleteFile();
+
 			currentAsync.complete();
-		}
-
-
-		public function tearDownClass():void
-		{
-			var db:IBreezeDatabase = BreezeDb.getDb("after-setup-migrations");
-			if(db.file != null && db.file.exists)
-			{
-				db.file.deleteFile();
-			}
-
-			db = BreezeDb.getDb("setup-migrations");
-			if(db.file != null && db.file.exists)
-			{
-				db.file.deleteFile();
-			}
-
-			db = BreezeDb.getDb("invalid-migration-class");
-			if(db.file != null && db.file.exists)
-			{
-				db.file.deleteFile();
-			}
-
-			db = BreezeDb.getDb("unsuccessful-migration");
-			if(db.file != null && db.file.exists)
-			{
-				db.file.deleteFile();
-			}
-
-			db = BreezeDb.getDb("invalid-migration-argument");
-			if(db.file != null && db.file.exists)
-			{
-				db.file.deleteFile();
-			}
 		}
 	}
 	

@@ -43,8 +43,9 @@ package tests
 	import flash.errors.IllegalOperationError;
 
 	import flash.errors.SQLError;
-	
-	public class TestRawQuery
+    import flash.utils.setTimeout;
+
+    public class TestRawQuery
 	{
 		public var currentAsync:Async;
 
@@ -521,13 +522,26 @@ package tests
 		}
 
 
-		public function tearDownClass():void
-		{
-			if(_db != null && _db.file != null)
-			{
-				_db.file.deleteFile();
-			}
-		}
+        public function tearDownClass(async:Async):void
+        {
+            if(_db != null && _db.isSetup)
+            {
+                setTimeout(_db.close, 500, onDatabaseClosed);
+            }
+        }
+
+
+        private function onDatabaseClosed(error:Error):void
+        {
+            Assert.isNull(error);
+
+            if(_db.file != null && _db.file.exists)
+            {
+                _db.file.deleteFile();
+            }
+
+            currentAsync.complete();
+        }
 		
 	}
 	

@@ -33,8 +33,10 @@ package tests.models
 
 	import breezetest.Assert;
 	import breezetest.async.Async;
-	
-	public class TestModel
+
+    import flash.utils.setTimeout;
+
+    public class TestModel
 	{
 		// Used by custom models
 		public static const DB_NAME:String = "test-model";
@@ -417,12 +419,25 @@ package tests.models
 		}
 
 
-		public function tearDownClass():void
+		public function tearDownClass(async:Async):void
 		{
-			if(_db != null && _db.file != null && _db.file.exists)
+			if(_db != null && _db.isSetup)
+			{
+                setTimeout(_db.close, 500, onDatabaseClosed);
+			}
+		}
+
+
+		private function onDatabaseClosed(error:Error):void
+		{
+			Assert.isNull(error);
+
+			if(_db.file != null && _db.file.exists)
 			{
 				_db.file.deleteFile();
 			}
+
+            currentAsync.complete();
 		}
 		
 	}

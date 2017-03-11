@@ -37,6 +37,7 @@ package tests
 
 	import flash.errors.IllegalOperationError;
 	import flash.filesystem.File;
+    import flash.utils.setTimeout;
 
 	public class TestDatabase
 	{
@@ -158,7 +159,8 @@ package tests
 
 			customDb.addEventListener(BreezeDatabaseEvent.CLOSE_ERROR, onDbCloseErrorEvent);
 			customDb.addEventListener(BreezeDatabaseEvent.CLOSE_SUCCESS, onDbCloseSuccessEvent);
-			customDb.close(onCustomDbClosed);
+
+            setTimeout(customDb.close, 500, onCustomDbClosed);
 		}
 
 
@@ -353,7 +355,7 @@ package tests
 			Assert.equals(1, results[0].id);
 			Assert.equals("Test", results[0].title);
 
-			_transactionDb.close(onTransactionDatabaseClosed);
+            setTimeout(_transactionDb.close, 500, onTransactionDatabaseClosed);
 		}
 
 

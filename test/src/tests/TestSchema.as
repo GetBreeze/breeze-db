@@ -34,8 +34,9 @@ package tests
 	import breezetest.async.Async;
 
 	import flash.errors.IllegalOperationError;
-	
-	public class TestSchema
+    import flash.utils.setTimeout;
+
+    public class TestSchema
 	{
 		
 		public var currentAsync:Async;
@@ -348,14 +349,26 @@ package tests
 		}
 
 
-		public function tearDownClass():void
-		{
-			if(_db.file != null && _db.file.exists)
-			{
-				_db.file.deleteFile();
-				_db = null;
-			}
-		}
+        public function tearDownClass(async:Async):void
+        {
+            if(_db != null && _db.isSetup)
+            {
+                setTimeout(_db.close, 500, onDatabaseClosed);
+            }
+        }
+
+
+        private function onDatabaseClosed(error:Error):void
+        {
+            Assert.isNull(error);
+
+            if(_db.file != null && _db.file.exists)
+            {
+                _db.file.deleteFile();
+            }
+
+            currentAsync.complete();
+        }
 		
 	}
 	
