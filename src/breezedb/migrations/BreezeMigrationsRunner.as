@@ -198,13 +198,15 @@ package breezedb.migrations
 			}
 
 			var migration:BreezeMigration = _migrations[++_currentIndex];
-			migration.addEventListener(BreezeMigrationEvent.COMPLETE, onMigrationCompleted);
+			migration.addEventListener(BreezeMigrationEvent.RUN_SUCCESS, onMigrationRan);
+			migration.addEventListener(BreezeMigrationEvent.RUN_ERROR, onMigrationRunError);
+			migration.addEventListener(BreezeMigrationEvent.SKIP, onMigrationSkipped);
 
 			// Do not run the migration if it ran in the past
 			if(_previousMigrations.contains(migration.name, "name"))
 			{
-				// Dispatch event with 'didRun' set to false
-				migration.dispatchEvent(new BreezeMigrationEvent(BreezeMigrationEvent.COMPLETE, false));
+				// Dispatch the 'SKIP' event
+				migration.dispatchEvent(new BreezeMigrationEvent(BreezeMigrationEvent.SKIP));
 				return;
 			}
 
@@ -213,38 +215,52 @@ package breezedb.migrations
 		}
 
 
-		private function onMigrationCompleted(event:BreezeMigrationEvent):void
+		private function onMigrationRan(event:BreezeMigrationEvent):void
 		{
-			var migration:BreezeMigration = event.currentTarget as BreezeMigration;
-			migration.removeEventListener(BreezeMigrationEvent.COMPLETE, onMigrationCompleted);
+			var migration:BreezeMigration = processMigrationEvent(event);
 
-			dispatchEvent(event);
+			// The migration was successful, store it in the database so that it does not run again in the future
+			storeMigration(migration);
+		}
 
-			// If current migration failed then roll back
-			if(!event.successful)
+
+		private function onMigrationRunError(event:BreezeMigrationEvent):void
+		{
+			var migration:BreezeMigration = processMigrationEvent(event);
+
+			// The migration failed so roll back
+			if(_transactionControl)
 			{
-				if(_transactionControl)
-				{
-					_db.rollBack(function(rollBackError:Error):void
-					{
-						triggerCallback(new Error("Migration '" + migration.name + "' failed."));
-					});
-				}
-				else
+				_db.rollBack(function(rollBackError:Error):void
 				{
 					triggerCallback(new Error("Migration '" + migration.name + "' failed."));
-				}
+				});
 			}
-			// If the migration ran then store it in the database so that it does not run again in the future
-			else if(event.didRun)
-			{
-				storeMigration(migration);
-			}
-			// Otherwise run the next migration
 			else
 			{
-				runNextMigration();
+				triggerCallback(new Error("Migration '" + migration.name + "' failed."));
 			}
+		}
+
+
+		private function onMigrationSkipped(event:BreezeMigrationEvent):void
+		{
+			processMigrationEvent(event);
+
+			// Move on to the next migration
+			runNextMigration();
+		}
+
+
+		private function processMigrationEvent(event:BreezeMigrationEvent):BreezeMigration
+		{
+			var migration:BreezeMigration = event.currentTarget as BreezeMigration;
+			migration.removeEventListener(BreezeMigrationEvent.RUN_SUCCESS, onMigrationRan);
+			migration.removeEventListener(BreezeMigrationEvent.RUN_ERROR, onMigrationRunError);
+			migration.removeEventListener(BreezeMigrationEvent.SKIP, onMigrationSkipped);
+
+			dispatchEvent(event);
+			return migration;
 		}
 
 
@@ -278,6 +294,8 @@ package breezedb.migrations
 
 		private function onTransactionCommitted(error:Error):void
 		{
+			dispatchEvent(new BreezeMigrationEvent(BreezeMigrationEvent.FINISH));
+
 			triggerCallback(error);
 		}
 

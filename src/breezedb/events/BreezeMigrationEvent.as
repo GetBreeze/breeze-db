@@ -33,23 +33,33 @@ package breezedb.events
 	public class BreezeMigrationEvent extends Event
 	{
 		/**
-		 * A migration has completed.
+		 * A migration ran successfully.
 		 */
-		public static const COMPLETE:String = "BreezeMigrationEvent::complete";
+		public static const RUN_SUCCESS:String = "BreezeMigrationEvent::runSuccess";
 
-		private var _successful:Boolean;
-		private var _didRun:Boolean;
+		/**
+		 * Failed to run a migration.
+		 */
+		public static const RUN_ERROR:String = "BreezeMigrationEvent::runError";
+
+		/**
+		 * A migration was skipped because it had already been run.
+		 */
+		public static const SKIP:String = "BreezeMigrationEvent::skip";
+
+		/**
+		 * Finished running migrations. Note this does not mean all migrations had run,
+		 * only that no further migrations will run.
+		 */
+		public static const FINISH:String = "BreezeMigrationEvent::finish";
 
 
 		/**
 		 * @private
 		 */
-		public function BreezeMigrationEvent(type:String, didRun:Boolean = true, successful:Boolean = true)
+		public function BreezeMigrationEvent(type:String)
 		{
 			super(type, false, false);
-
-			_didRun = didRun;
-			_successful = successful;
 		}
 
 
@@ -58,25 +68,7 @@ package breezedb.events
 		 */
 		override public function clone():Event
 		{
-			return new BreezeMigrationEvent(type, _didRun, _successful);
-		}
-		
-
-		/**
-		 * Returns <code>true</code> if the migration was successful, <code>false</code> otherwise.
-		 */
-		public function get successful():Boolean
-		{
-			return _successful;
-		}
-
-
-		/**
-		 * Returns <code>true</code> if the migration was run, or <code>false</code> if the migration ran in the past.
-		 */
-		public function get didRun():Boolean
-		{
-			return _didRun;
+			return new BreezeMigrationEvent(type);
 		}
 	}
 	

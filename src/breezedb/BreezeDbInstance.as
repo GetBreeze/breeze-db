@@ -649,12 +649,15 @@ package breezedb
 		private function runMigrationsInternal(migrations:*, callback:Function):void
 		{
 			_migrationsRunner = new BreezeMigrationsRunner(this);
-			_migrationsRunner.addEventListener(BreezeMigrationEvent.COMPLETE, onSubMigrationCompleted, false, 0, true);
+			_migrationsRunner.addEventListener(BreezeMigrationEvent.RUN_SUCCESS, onMigrationEventReceived, false, 0, true);
+			_migrationsRunner.addEventListener(BreezeMigrationEvent.RUN_ERROR, onMigrationEventReceived, false, 0, true);
+			_migrationsRunner.addEventListener(BreezeMigrationEvent.SKIP, onMigrationEventReceived, false, 0, true);
+			_migrationsRunner.addEventListener(BreezeMigrationEvent.FINISH, onMigrationEventReceived, false, 0, true);
 			_migrationsRunner.breezedb_internal::run(migrations, callback);
 		}
 
 
-		private function onSubMigrationCompleted(event:BreezeMigrationEvent):void
+		private function onMigrationEventReceived(event:BreezeMigrationEvent):void
 		{
 			if(hasEventListener(event.type))
 			{

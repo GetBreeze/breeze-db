@@ -63,11 +63,13 @@ package breezedb.migrations
 		 */
 		protected final function done(successful:Boolean = true):void
 		{
-			dispatchEvent(new BreezeMigrationEvent(BreezeMigrationEvent.COMPLETE, true, successful));
+			var eventType:String = successful ? BreezeMigrationEvent.RUN_SUCCESS : BreezeMigrationEvent.RUN_ERROR;
+			dispatchEvent(new BreezeMigrationEvent(eventType));
 		}
 
 
 		/**
+		 * @private
 		 * Returns the class name. Stored in a database table to track previously run migrations.
 		 */
 		internal function get name():String
