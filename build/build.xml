@@ -73,4 +73,16 @@
 	</target>
 
 
+	<target name="asdoc">
+        <exec executable="${flex.sdk}/bin/asdoc" failonerror="false">
+            <env key="FLEX_HOME" value="${flex.sdk}"/>
+            <env key="FALCON_HOME" value="${flex.sdk}"/>
+            <arg line='-source-path ../src'/>
+            <arg line='-doc-sources ../src'/>
+            <arg line='-output ../docs'/>
+            <arg line='-library-path+="${flex.sdk}/frameworks/libs/air/airglobal.swc"'/>
+        </exec>
+    </target>
+
+
 </project>
