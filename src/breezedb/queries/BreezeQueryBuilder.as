@@ -61,7 +61,18 @@ package breezedb.queries
 
 		// Static makes the index unique across all query builders (useful when making UNION queries)
 		private static var _parametersIndex:uint = 0;
-		
+
+
+		/**
+		 * Creates a new builder instance and associates it with existing database
+		 * and table within that database. It is more convenient to access new instance using
+		 * <code>BreezeDb.db.table("table-name")</code> or <code>DB.table("table-name")</code> API.
+		 *
+		 * @param db The database to associate the builder with.
+		 * @param tableName The name of the table on which the queries will be executed.
+		 *
+		 * @see breezedb.IBreezeDatabase#table()
+		 */
 		public function BreezeQueryBuilder(db:IBreezeDatabase, tableName:String)
 		{
 			super(db);
@@ -75,6 +86,26 @@ package breezedb.queries
 		}
 
 
+		/**
+		 * Retrieves the first record in the table.
+		 *
+		 * @param callback This parameter can be one of the following:
+		 * <ul>
+		 *    <li>A <code>Function</code> that is triggered once the query is completed.
+		 *    It should have the following signature:
+		 *    <listing version="3.0">
+		 *    function callback(error:Error, first:Object):void
+		 *    { }
+		 *    </listing>
+		 *    </li>
+		 *    <li>The <code>BreezeDb.DELAY</code> constant, resulting in the query being delayed. It can be executed
+		 *    later by calling the <code>exec</code> method on the returned instance of <code>BreezeQueryBuilder</code>.
+		 *    </li>
+		 * </ul>
+		 *
+		 * @return Instance of <code>BreezeQueryBuilder</code> allowing you to obtain a reference to the executed query
+		 * 		   or execute the query at later time if it was delayed.
+		 */
 		public function first(callback:* = null):BreezeQueryBuilder
 		{
 			limit(1);
@@ -86,7 +117,27 @@ package breezedb.queries
 			return this;
 		}
 		
-		
+
+		/**
+		 * Retrieves the total number of records in the table.
+		 *
+		 * @param callback This parameter can be one of the following:
+		 * <ul>
+		 *    <li>A <code>Function</code> that is triggered once the query is completed.
+		 *    It should have the following signature:
+		 *    <listing version="3.0">
+		 *    function callback(error:Error, count:int):void
+		 *    { }
+		 *    </listing>
+		 *    </li>
+		 *    <li>The <code>BreezeDb.DELAY</code> constant, resulting in the query being delayed. It can be executed
+		 *    later by calling the <code>exec</code> method on the returned instance of <code>BreezeQueryBuilder</code>.
+		 *    </li>
+		 * </ul>
+		 *
+		 * @return Instance of <code>BreezeQueryBuilder</code> allowing you to obtain a reference to the executed query
+		 * 		   or execute the query at later time if it was delayed.
+		 */
 		public function count(callback:* = null):BreezeQueryBuilder
 		{
 			_aggregate = "total";
@@ -99,6 +150,27 @@ package breezedb.queries
 		}
 
 
+		/**
+		 * Retrieves the maximum value in the given column.
+		 *
+		 * @param column The name of the column where the maximum value should be found.
+		 * @param callback This parameter can be one of the following:
+		 * <ul>
+		 *    <li>A <code>Function</code> that is triggered once the query is completed.
+		 *    It should have the following signature:
+		 *    <listing version="3.0">
+		 *    function callback(error:Error, max:Number):void
+		 *    { }
+		 *    </listing>
+		 *    </li>
+		 *    <li>The <code>BreezeDb.DELAY</code> constant, resulting in the query being delayed. It can be executed
+		 *    later by calling the <code>exec</code> method on the returned instance of <code>BreezeQueryBuilder</code>.
+		 *    </li>
+		 * </ul>
+		 *
+		 * @return Instance of <code>BreezeQueryBuilder</code> allowing you to obtain a reference to the executed query
+		 * 		   or execute the query at later time if it was delayed.
+		 */
 		public function max(column:String, callback:* = null):BreezeQueryBuilder
 		{
 			validateColumnName(column);
@@ -113,6 +185,27 @@ package breezedb.queries
 		}
 
 
+		/**
+		 * Retrieves the minimum value in the given column.
+		 *
+		 * @param column The name of the column where the minimum value should be found.
+		 * @param callback This parameter can be one of the following:
+		 * <ul>
+		 *    <li>A <code>Function</code> that is triggered once the query is completed.
+		 *    It should have the following signature:
+		 *    <listing version="3.0">
+		 *    function callback(error:Error, min:Number):void
+		 *    { }
+		 *    </listing>
+		 *    </li>
+		 *    <li>The <code>BreezeDb.DELAY</code> constant, resulting in the query being delayed. It can be executed
+		 *    later by calling the <code>exec</code> method on the returned instance of <code>BreezeQueryBuilder</code>.
+		 *    </li>
+		 * </ul>
+		 *
+		 * @return Instance of <code>BreezeQueryBuilder</code> allowing you to obtain a reference to the executed query
+		 * 		   or execute the query at later time if it was delayed.
+		 */
 		public function min(column:String, callback:* = null):BreezeQueryBuilder
 		{
 			validateColumnName(column);
@@ -127,6 +220,27 @@ package breezedb.queries
 		}
 
 
+		/**
+		 * Retrieves the sum of all values in the given column.
+		 *
+		 * @param column The name of the column that should be summed up.
+		 * @param callback This parameter can be one of the following:
+		 * <ul>
+		 *    <li>A <code>Function</code> that is triggered once the query is completed.
+		 *    It should have the following signature:
+		 *    <listing version="3.0">
+		 *    function callback(error:Error, sum:Number):void
+		 *    { }
+		 *    </listing>
+		 *    </li>
+		 *    <li>The <code>BreezeDb.DELAY</code> constant, resulting in the query being delayed. It can be executed
+		 *    later by calling the <code>exec</code> method on the returned instance of <code>BreezeQueryBuilder</code>.
+		 *    </li>
+		 * </ul>
+		 *
+		 * @return Instance of <code>BreezeQueryBuilder</code> allowing you to obtain a reference to the executed query
+		 * 		   or execute the query at later time if it was delayed.
+		 */
 		public function sum(column:String, callback:* = null):BreezeQueryBuilder
 		{
 			validateColumnName(column);
@@ -141,6 +255,27 @@ package breezedb.queries
 		}
 
 
+		/**
+		 * Retrieves the average of all values in the given column.
+		 *
+		 * @param column The name of the column that should be averaged.
+		 * @param callback This parameter can be one of the following:
+		 * <ul>
+		 *    <li>A <code>Function</code> that is triggered once the query is completed.
+		 *    It should have the following signature:
+		 *    <listing version="3.0">
+		 *    function callback(error:Error, average:Number):void
+		 *    { }
+		 *    </listing>
+		 *    </li>
+		 *    <li>The <code>BreezeDb.DELAY</code> constant, resulting in the query being delayed. It can be executed
+		 *    later by calling the <code>exec</code> method on the returned instance of <code>BreezeQueryBuilder</code>.
+		 *    </li>
+		 * </ul>
+		 *
+		 * @return Instance of <code>BreezeQueryBuilder</code> allowing you to obtain a reference to the executed query
+		 * 		   or execute the query at later time if it was delayed.
+		 */
 		public function avg(column:String, callback:* = null):BreezeQueryBuilder
 		{
 			validateColumnName(column);
@@ -154,7 +289,15 @@ package breezedb.queries
 			return this;
 		}
 		
-		
+
+		/**
+		 * Specifies columns that should be returned when performing <code>SELECT</code> query.
+		 *
+		 * @param args One or multiple column names (<code>String</code>).
+		 *
+		 * @return Instance of <code>BreezeQueryBuilder</code> allowing you to obtain a reference to the created query
+		 * 		   or chain more query methods.
+		 */
 		public function select(...args):BreezeQueryBuilder
 		{
 			for(var i:int = 0; i < args.length; i++)
@@ -166,6 +309,14 @@ package breezedb.queries
 		}
 
 
+		/**
+		 * Creates a <code>SELECT DISTINCT</code> query for the given column.
+		 *
+		 * @param column The name of the column where only distinct values should be returned.
+		 *
+		 * @return Instance of <code>BreezeQueryBuilder</code> allowing you to obtain a reference to the created query
+		 * 		   or chain more query methods.
+		 */
 		public function distinct(column:String):BreezeQueryBuilder
 		{
 			_distinct = true;
@@ -175,7 +326,36 @@ package breezedb.queries
 			return this;
 		}
 		
-		
+
+		/**
+		 * Retrieves limited number of records at a time, as specified using the <code>limit</code> parameter.
+		 *
+		 * <p>
+		 * The callback may be called multiple times, until all records are processed. You may manually stop further
+		 * processing by returning <code>false</code> in the <code>callback</code> method.
+		 * </p>
+		 *
+		 * @param limit The maximum number of records to retrieve at one time.
+		 * @param callback This parameter can be one of the following:
+		 * <ul>
+		 *    <li>A <code>Function</code> that is triggered each time a new chunk is retrieved.
+		 *    It should have the following signature:
+		 *    <listing version="3.0">
+		 *    function callback(error:Error, results:Collection):&#42;
+		 *    {
+		 *        // If processed enough, return false
+		 *        return false;
+		 *    }
+		 *    </listing>
+		 *    </li>
+		 *    <li>The <code>BreezeDb.DELAY</code> constant, resulting in the query being delayed. It can be executed
+		 *    later by calling the <code>exec</code> method on the returned instance of <code>BreezeQueryBuilder</code>.
+		 *    </li>
+		 * </ul>
+		 *
+		 * @return Instance of <code>BreezeQueryBuilder</code> allowing you to obtain a reference to the executed query
+		 * 		   or execute the query at later time if it was delayed.
+		 */
 		public function chunk(limit:uint, callback:* = null):BreezeQueryBuilder
 		{
 			_chunkLimit = limit;
@@ -190,6 +370,28 @@ package breezedb.queries
 		}
 
 
+		/**
+		 * Adds a <code>WHERE</code> clause to the query. Conditions added with this method are joined using
+		 * the <code>AND</code> operator.
+		 *
+		 * @param param1 This parameter can be one of the following:
+		 * <ul>
+		 *    <li>A <code>String</code>, i.e. name of the column that will be evaluated in the condition.</li>
+		 *    <li>A <code>Function</code> that accepts <code>BreezeInnerQueryBuilder</code>, allowing you
+		 *    to build nested <code>WHERE</code> clauses. If such <code>Function</code> is provided, the
+		 *    remaining parameters must be <code>null</code>.</li>
+		 * </ul>
+		 * @param param2 The conditional operator, e.g. <code>=</code>, <code>&gt;</code> etc. If the equal
+		 *               operator is to be used, this parameter can specify the value to evaluate against the column
+		 *               (typically provided as the third argument).
+		 * @param param3 The value to evaluate against the column, or <code>null</code> if it is provided as the
+		 *               second argument.
+		 *
+		 * @return Instance of <code>BreezeQueryBuilder</code> allowing you to obtain a reference to the created query
+		 * 		   or chain more query methods.
+		 *
+		 * @see #orWhere()
+		 */
 		public function where(param1:*, param2:* = null, param3:* = null):BreezeQueryBuilder
 		{
 			var builder:BreezeInnerQueryBuilder = _where[_where.length - 1];
@@ -201,6 +403,28 @@ package breezedb.queries
 		}
 
 
+		/**
+		 * Adds a <code>WHERE</code> clause to the query. Conditions added with this method are joined using
+		 * the <code>OR</code> operator.
+		 *
+		 * @param param1 This parameter can be one of the following:
+		 * <ul>
+		 *    <li>A <code>String</code>, i.e. name of the column that will be evaluated in the condition.</li>
+		 *    <li>A <code>Function</code> that accepts <code>BreezeInnerQueryBuilder</code>, allowing you
+		 *    to build nested <code>WHERE</code> clauses. If such <code>Function</code> is provided, the
+		 *    remaining parameters must be <code>null</code>.</li>
+		 * </ul>
+		 * @param param2 The conditional operator, e.g. <code>=</code>, <code>&gt;</code> etc. If the equal
+		 *               operator is to be used, this parameter can specify the value to evaluate against the column
+		 *               (typically provided as the third argument).
+		 * @param param3 The value to evaluate against the column, or <code>null</code> if it is provided as the
+		 *               second argument.
+		 *
+		 * @return Instance of <code>BreezeQueryBuilder</code> allowing you to obtain a reference to the created query
+		 * 		   or chain more query methods.
+		 *
+		 * @see #where()
+		 */
 		public function orWhere(param1:*, param2:* = null, param3:* = null):BreezeQueryBuilder
 		{
 			var builder:BreezeInnerQueryBuilder = _where[_where.length - 1];
@@ -216,6 +440,19 @@ package breezedb.queries
 		}
 
 
+		/**
+		 * Adds a <code>WHERE BETWEEN</code> clause to the query, selecting the records whose column
+		 * value is between the two values (including).
+		 *
+		 * @param column The name of the column to evaluate.
+		 * @param greaterThan The minimum value.
+		 * @param lessThan The maximum value.
+		 *
+		 * @return Instance of <code>BreezeQueryBuilder</code> allowing you to obtain a reference to the created query
+		 * 		   or chain more query methods.
+		 *
+		 * @see #whereNotBetween()
+		 */
 		public function whereBetween(column:String, greaterThan:Number, lessThan:Number):BreezeQueryBuilder
 		{
 			validateColumnName(column);
@@ -226,6 +463,19 @@ package breezedb.queries
 		}
 
 
+		/**
+		 * Adds a <code>WHERE NOT BETWEEN</code> clause to the query, selecting the records whose column
+		 * value lies outside of the two values.
+		 *
+		 * @param column The name of the column to evaluate.
+		 * @param greaterThan The minimum value.
+		 * @param lessThan The maximum value.
+		 *
+		 * @return Instance of <code>BreezeQueryBuilder</code> allowing you to obtain a reference to the created query
+		 * 		   or chain more query methods.
+		 *
+		 * @see #whereBetween()
+		 */
 		public function whereNotBetween(column:String, greaterThan:Number, lessThan:Number):BreezeQueryBuilder
 		{
 			validateColumnName(column);
@@ -236,6 +486,17 @@ package breezedb.queries
 		}
 
 
+		/**
+		 * Adds a <code>WHERE IS NULL</code> clause to the query, selecting the records whose column
+		 * value is <code>NULL</code>.
+		 *
+		 * @param column The name of the column to evaluate.
+		 *
+		 * @return Instance of <code>BreezeQueryBuilder</code> allowing you to obtain a reference to the created query
+		 * 		   or chain more query methods.
+		 *
+		 * @see #whereNotNull()
+		 */
 		public function whereNull(column:String):BreezeQueryBuilder
 		{
 			validateColumnName(column);
@@ -246,6 +507,17 @@ package breezedb.queries
 		}
 
 
+		/**
+		 * Adds a <code>WHERE IS NOT NULL</code> clause to the query, selecting the records whose column
+		 * value is <strong>not</strong> <code>NULL</code>.
+		 *
+		 * @param column The name of the column to evaluate.
+		 *
+		 * @return Instance of <code>BreezeQueryBuilder</code> allowing you to obtain a reference to the created query
+		 * 		   or chain more query methods.
+		 *
+		 * @see #whereNull()
+		 */
 		public function whereNotNull(column:String):BreezeQueryBuilder
 		{
 			validateColumnName(column);
@@ -256,6 +528,18 @@ package breezedb.queries
 		}
 
 
+		/**
+		 * Adds a <code>WHERE IN</code> clause to the query, selecting the records whose column
+		 * value is contained within the given <code>Array</code>.
+		 *
+		 * @param column The name of the column to evaluate.
+		 * @param values The list of values to use for evaluation.
+		 *
+		 * @return Instance of <code>BreezeQueryBuilder</code> allowing you to obtain a reference to the created query
+		 * 		   or chain more query methods.
+		 *
+		 * @see #whereNotIn()
+		 */
 		public function whereIn(column:String, values:Array):BreezeQueryBuilder
 		{
 			validateColumnName(column);
@@ -266,6 +550,18 @@ package breezedb.queries
 		}
 
 
+		/**
+		 * Adds a <code>WHERE NOT IN</code> clause to the query, selecting the records whose column
+		 * value is <strong>not</strong> contained within the given <code>Array</code>.
+		 *
+		 * @param column The name of the column to evaluate.
+		 * @param values The list of values to use for evaluation.
+		 *
+		 * @return Instance of <code>BreezeQueryBuilder</code> allowing you to obtain a reference to the created query
+		 * 		   or chain more query methods.
+		 *
+		 * @see #whereIn()
+		 */
 		public function whereNotIn(column:String, values:Array):BreezeQueryBuilder
 		{
 			validateColumnName(column);
@@ -276,6 +572,23 @@ package breezedb.queries
 		}
 
 
+		/**
+		 * Adds a <code>WHERE</code> clause that compares a day of the month to a column value.
+		 *
+		 * @param dateColumn The name of the date column.
+		 * @param param2 The conditional operator, e.g. <code>=</code>, <code>&gt;</code> etc. If the equal
+		 *               operator is to be used, this parameter can specify the value to evaluate against the column
+		 *               (typically provided as the third argument).
+		 * @param param3 The value to evaluate against the column, or <code>null</code> if it is provided as the
+		 *               second argument. It can be either an integer between 1 and 31 or <code>Date</code> object.
+		 *
+		 * @return Instance of <code>BreezeQueryBuilder</code> allowing you to obtain a reference to the created query
+		 * 		   or chain more query methods.
+		 *
+		 * @see #whereMonth()
+		 * @see #whereYear()
+		 * @see #whereDate()
+		 */
 		public function whereDay(dateColumn:String, param2:* = null, param3:* = null):BreezeQueryBuilder
 		{
 			var builder:BreezeInnerQueryBuilder = _where[_where.length - 1];
@@ -286,6 +599,23 @@ package breezedb.queries
 		}
 
 
+		/**
+		 * Adds a <code>WHERE</code> clause that compares a month of the year to a column value.
+		 *
+		 * @param dateColumn The name of the date column.
+		 * @param param2 The conditional operator, e.g. <code>=</code>, <code>&gt;</code> etc. If the equal
+		 *               operator is to be used, this parameter can specify the value to evaluate against the column
+		 *               (typically provided as the third argument).
+		 * @param param3 The value to evaluate against the column, or <code>null</code> if it is provided as the
+		 *               second argument. It can be either an integer between 1 and 12 or <code>Date</code> object.
+		 *
+		 * @return Instance of <code>BreezeQueryBuilder</code> allowing you to obtain a reference to the created query
+		 * 		   or chain more query methods.
+		 *
+		 * @see #whereDay()
+		 * @see #whereYear()
+		 * @see #whereDate()
+		 */
 		public function whereMonth(dateColumn:String, param2:* = null, param3:* = null):BreezeQueryBuilder
 		{
 			var builder:BreezeInnerQueryBuilder = _where[_where.length - 1];
@@ -296,6 +626,24 @@ package breezedb.queries
 		}
 
 
+		/**
+		 * Adds a <code>WHERE</code> clause that compares a column value to a specific year.
+		 *
+		 * @param dateColumn The name of the date column.
+		 * @param param2 The conditional operator, e.g. <code>=</code>, <code>&gt;</code> etc. If the equal
+		 *               operator is to be used, this parameter can specify the value to evaluate against the column
+		 *               (typically provided as the third argument).
+		 * @param param3 The value to evaluate against the column, or <code>null</code> if it is provided as the
+		 *               second argument. It can be either an integer or <code>String</code> in <code>YYYY</code>
+		 *               format or <code>Date</code> object.
+		 *
+		 * @return Instance of <code>BreezeQueryBuilder</code> allowing you to obtain a reference to the created query
+		 * 		   or chain more query methods.
+		 *
+		 * @see #whereMonth()
+		 * @see #whereDay()
+		 * @see #whereDate()
+		 */
 		public function whereYear(dateColumn:String, param2:* = null, param3:* = null):BreezeQueryBuilder
 		{
 			var builder:BreezeInnerQueryBuilder = _where[_where.length - 1];
@@ -306,6 +654,25 @@ package breezedb.queries
 		}
 
 
+		/**
+		 * Adds a <code>WHERE</code> clause that compares a <code>DATE</code> column with
+		 * date value in <code>YYYY-MM-DD</code> format.
+		 *
+		 * @param dateColumn The name of the date column.
+		 * @param param2 The conditional operator, e.g. <code>=</code>, <code>&gt;</code> etc. If the equal
+		 *               operator is to be used, this parameter can specify the value to evaluate against the column
+		 *               (typically provided as the third argument).
+		 * @param param3 The value to evaluate against the column, or <code>null</code> if it is provided as the
+		 *               second argument. It can be either a <code>String</code> in <code>YYYY-MM-DD</code> format
+		 *               or <code>Date</code> object.
+		 *
+		 * @return Instance of <code>BreezeQueryBuilder</code> allowing you to obtain a reference to the created query
+		 * 		   or chain more query methods.
+		 *
+		 * @see #whereMonth()
+		 * @see #whereYear()
+		 * @see #whereDay()
+		 */
 		public function whereDate(dateColumn:String, param2:* = null, param3:* = null):BreezeQueryBuilder
 		{
 			var builder:BreezeInnerQueryBuilder = _where[_where.length - 1];
@@ -316,6 +683,18 @@ package breezedb.queries
 		}
 
 
+		/**
+		 * Adds a <code>WHERE</code> clause that compares two columns.
+		 *
+		 * @param param1 The name of the first column.
+		 * @param param2 The conditional operator, e.g. <code>=</code>, <code>&gt;</code> etc. If the equal
+		 *               operator is to be used, this parameter can specify the name of the second column
+		 *               (typically provided as the third argument).
+		 * @param param3 The name of the second column, or <code>null</code> if it is provided as the second argument.
+		 *
+		 * @return Instance of <code>BreezeQueryBuilder</code> allowing you to obtain a reference to the created query
+		 * 		   or chain more query methods.
+		 */
 		public function whereColumn(param1:*, param2:String = null, param3:String = null):BreezeQueryBuilder
 		{
 			var builder:BreezeInnerQueryBuilder = _where[_where.length - 1];
@@ -325,6 +704,20 @@ package breezedb.queries
 		}
 
 
+		/**
+		 * Adds an <code>ORDER BY</code> clause that allows you to sort the query results by one
+		 * or multiple columns.
+		 *
+		 * @param args List of pairs consisting of the column name and sort order
+		 *             (<code>ASC</code> or <code>DESC</code>):
+		 *
+		 * <listing version="3.0">
+		 * BreezeDb.db.orderBy("title", "ASC", "views", "DESC").fetch(...);
+		 * </listing>
+		 *
+		 * @return Instance of <code>BreezeQueryBuilder</code> allowing you to obtain a reference to the created query
+		 * 		   or chain more query methods.
+		 */
 		public function orderBy(...args):BreezeQueryBuilder
 		{
 			if(args.length % 2 != 0)
@@ -341,6 +734,16 @@ package breezedb.queries
 		}
 
 
+		/**
+		 * Adds a <code>GROUP BY</code> clause that allows you to group the results.
+		 *
+		 * @param args List of columns to group the results by.
+		 *
+		 * @return Instance of <code>BreezeQueryBuilder</code> allowing you to obtain a reference to the created query
+		 * 		   or chain more query methods.
+		 *
+		 * @see #having()
+		 */
 		public function groupBy(...args):BreezeQueryBuilder
 		{
 			var length:uint = args.length;
@@ -352,6 +755,23 @@ package breezedb.queries
 		}
 
 
+		/**
+		 * Adds a <code>HAVING</code> clause that allows you to filter groups created by <code>GROUP BY</code> clause.
+		 * Conditions added with this method are joined using the <code>AND</code> operator.
+		 *
+		 * @param param1 The name of the grouped column that will be evaluated in the condition.
+		 * @param param2 The conditional operator, e.g. <code>=</code>, <code>&gt;</code> etc. If the equal
+		 *               operator is to be used, this parameter can specify the value to evaluate against the column
+		 *               (typically provided as the third argument).
+		 * @param param3 The value to evaluate against the column, or <code>null</code> if it is provided as the
+		 *               second argument.
+		 *
+		 * @return Instance of <code>BreezeQueryBuilder</code> allowing you to obtain a reference to the created query
+		 * 		   or chain more query methods.
+		 *
+		 * @see #groupBy()
+		 * @see #orHaving()
+		 */
 		public function having(param1:*, param2:* = null, param3:* = null):BreezeQueryBuilder
 		{
 			// Raw having statement, e.g. having("count > 2")
@@ -404,6 +824,23 @@ package breezedb.queries
 		}
 
 
+		/**
+		 * Adds a <code>HAVING</code> clause that allows you to filter groups created by <code>GROUP BY</code> clause.
+		 * Conditions added with this method are joined using the <code>OR</code> operator.
+		 *
+		 * @param param1 The name of the grouped column that will be evaluated in the condition.
+		 * @param param2 The conditional operator, e.g. <code>=</code>, <code>&gt;</code> etc. If the equal
+		 *               operator is to be used, this parameter can specify the value to evaluate against the column
+		 *               (typically provided as the third argument).
+		 * @param param3 The value to evaluate against the column, or <code>null</code> if it is provided as the
+		 *               second argument.
+		 *
+		 * @return Instance of <code>BreezeQueryBuilder</code> allowing you to obtain a reference to the created query
+		 * 		   or chain more query methods.
+		 *
+		 * @see #groupBy()
+		 * @see #having()
+		 */
 		public function orHaving(param1:*, param2:* = null, param3:* = null):BreezeQueryBuilder
 		{
 			_having[_having.length] = [];
@@ -413,6 +850,14 @@ package breezedb.queries
 		}
 
 
+		/**
+		 * Limits the number of query results to the given value.
+		 *
+		 * @param value Maximum number of results to retrieve using a <code>SELECT</code> query.
+		 *
+		 * @return Instance of <code>BreezeQueryBuilder</code> allowing you to obtain a reference to the created query
+		 * 		   or chain more query methods.
+		 */
 		public function limit(value:int):BreezeQueryBuilder
 		{
 			_limit = value;
@@ -420,6 +865,14 @@ package breezedb.queries
 		}
 
 
+		/**
+		 * Skips the given number of results.
+		 *
+		 * @param value Number of results to skip.
+		 *
+		 * @return Instance of <code>BreezeQueryBuilder</code> allowing you to obtain a reference to the created query
+		 * 		   or chain more query methods.
+		 */
 		public function offset(value:int):BreezeQueryBuilder
 		{
 			_offset = value;
@@ -427,6 +880,28 @@ package breezedb.queries
 		}
 
 
+		/**
+		 * Creates an <code>INSERT</code> query for one or more values.
+		 *
+		 * @param value Either a single value (key-value <code>Object</code>) or multiple values (<code>Array</code>
+		 *              of key-value objects). The keys represent column names.
+		 * @param callback This parameter can be one of the following:
+		 * <ul>
+		 *    <li>A <code>Function</code> that is triggered once the query is completed.
+		 *    It should have the following signature:
+		 *    <listing version="3.0">
+		 *    function callback(error:Error):void
+		 *    { }
+		 *    </listing>
+		 *    </li>
+		 *    <li>The <code>BreezeDb.DELAY</code> constant, resulting in the query being delayed. It can be executed
+		 *    later by calling the <code>exec</code> method on the returned instance of <code>BreezeQueryBuilder</code>.
+		 *    </li>
+		 * </ul>
+		 *
+		 * @return Instance of <code>BreezeQueryBuilder</code> allowing you to obtain a reference to the executed query
+		 * 		   or execute the query at later time if it was delayed.
+		 */
 		public function insert(value:*, callback:* = null):BreezeQueryBuilder
 		{
 			if(value == null)
@@ -464,6 +939,27 @@ package breezedb.queries
 		}
 
 
+		/**
+		 * Creates an <code>INSERT</code> query for a single value and attempts to retrieve its ID.
+		 *
+		 * @param value A key-value <code>Object</code>. The keys represent column names.
+		 * @param callback This parameter can be one of the following:
+		 * <ul>
+		 *    <li>A <code>Function</code> that is triggered once the query is completed.
+		 *    It should have the following signature:
+		 *    <listing version="3.0">
+		 *    function callback(error:Error, newId:int):void
+		 *    { }
+		 *    </listing>
+		 *    </li>
+		 *    <li>The <code>BreezeDb.DELAY</code> constant, resulting in the query being delayed. It can be executed
+		 *    later by calling the <code>exec</code> method on the returned instance of <code>BreezeQueryBuilder</code>.
+		 *    </li>
+		 * </ul>
+		 *
+		 * @return Instance of <code>BreezeQueryBuilder</code> allowing you to obtain a reference to the executed query
+		 * 		   or execute the query at later time if it was delayed.
+		 */
 		public function insertGetId(value:Object, callback:* = null):BreezeQueryBuilder
 		{
 			if(value == null)
@@ -483,6 +979,32 @@ package breezedb.queries
 		}
 
 
+		/**
+		 * Creates an <code>UPDATE</code> query. Records selected by the query will be updated with values
+		 * passed in using the <code>value</code> parameter. Combine this method with the available
+		 * <code>where</code> methods to update specific records.
+		 *
+		 * @param value A key-value <code>Object</code> that holds the new values. The keys represent column names.
+		 * @param callback This parameter can be one of the following:
+		 * <ul>
+		 *    <li>A <code>Function</code> that is triggered once the query is completed.
+		 *    It should have the following signature:
+		 *    <listing version="3.0">
+		 *    function callback(error:Error, affectedRows:int):void
+		 *    { }
+		 *    </listing>
+		 *    </li>
+		 *    <li>The <code>BreezeDb.DELAY</code> constant, resulting in the query being delayed. It can be executed
+		 *    later by calling the <code>exec</code> method on the returned instance of <code>BreezeQueryBuilder</code>.
+		 *    </li>
+		 * </ul>
+		 *
+		 * @return Instance of <code>BreezeQueryBuilder</code> allowing you to obtain a reference to the executed query
+		 * 		   or execute the query at later time if it was delayed.
+		 *
+		 * @see #where()
+		 * @see #orWhere()
+		 */
 		public function update(value:Object, callback:* = null):BreezeQueryBuilder
 		{
 			if(value == null)
@@ -501,6 +1023,30 @@ package breezedb.queries
 		}
 
 
+		/**
+		 * Creates a <code>DELETE</code> query, effectively removing all selected records. Combine this method
+		 * with the available <code>where</code> methods to remove specific records.
+		 *
+		 * @param callback This parameter can be one of the following:
+		 * <ul>
+		 *    <li>A <code>Function</code> that is triggered once the query is completed.
+		 *    It should have the following signature:
+		 *    <listing version="3.0">
+		 *    function callback(error:Error, rowsDeleted:int):void
+		 *    { }
+		 *    </listing>
+		 *    </li>
+		 *    <li>The <code>BreezeDb.DELAY</code> constant, resulting in the query being delayed. It can be executed
+		 *    later by calling the <code>exec</code> method on the returned instance of <code>BreezeQueryBuilder</code>.
+		 *    </li>
+		 * </ul>
+		 *
+		 * @return Instance of <code>BreezeQueryBuilder</code> allowing you to obtain a reference to the executed query
+		 * 		   or execute the query at later time if it was delayed.
+		 *
+		 * @see #where()
+		 * @see #orWhere()
+		 */
 		public function remove(callback:* = null):BreezeQueryBuilder
 		{
 			_queryType = QUERY_DELETE;
@@ -511,6 +1057,58 @@ package breezedb.queries
 		}
 
 
+		/**
+		 * A helper method for an <code>UPDATE</code> query that increments a numeric column by certain amount.
+		 *
+		 * @param column The name of the column to increment.
+		 * @param param1 This parameter can be one of the following:
+		 * <ul>
+		 *    <li>A <code>Number</code> that specifies the amount by which the <code>column</code>
+		 *    will be incremented. If not specified, it will default to 1.
+		 *    </li>
+		 *    <li>If the above option is not used, the parameter can be a key-value <code>Object</code> that
+		 *    specifies new column values that will be updated along the increment operation.
+		 *    </li>
+		 *    <li>If the above option is not used, the parameter can be a <code>Function</code> that is triggered
+		 *    once the query is completed. It should have the signature as shown for the <code>callback</code> parameter.
+		 *    </li>
+		 *    <li>Otherwise it can be the <code>BreezeDb.DELAY</code> constant, resulting in the query being delayed.
+		 *    It can be executed later by calling the <code>exec</code> method on the returned instance
+		 *    of <code>BreezeQueryBuilder</code>.
+		 *    </li>
+		 * </ul>
+		 * @param param2 This parameter can be one of the following:
+		 * <ul>
+		 *    <li>A key-value <code>Object</code> that
+		 *    specifies new column values that will be updated along the increment operation.
+		 *    </li>
+		 *    <li>If the above option is not used, the parameter can be a <code>Function</code> that is triggered
+		 *    once the query is completed. It should have the signature as shown for the <code>callback</code> parameter.
+		 *    </li>
+		 *    <li>Otherwise it can be the <code>BreezeDb.DELAY</code> constant, resulting in the query being delayed.
+		 *    It can be executed later by calling the <code>exec</code> method on the returned instance
+		 *    of <code>BreezeQueryBuilder</code>.
+		 *    </li>
+		 * </ul>
+		 * @param callback This parameter can be one of the following:
+		 * <ul>
+		 *    <li>A <code>Function</code> that is triggered once the query is completed.
+		 *    It should have the following signature:
+		 *    <listing version="3.0">
+		 *    function callback(error:Error):void
+		 *    { }
+		 *    </listing>
+		 *    </li>
+		 *    <li>The <code>BreezeDb.DELAY</code> constant, resulting in the query being delayed. It can be executed
+		 *    later by calling the <code>exec</code> method on the returned instance of <code>BreezeQueryBuilder</code>.
+		 *    </li>
+		 * </ul>
+		 *
+		 * @return Instance of <code>BreezeQueryBuilder</code> allowing you to obtain a reference to the executed query
+		 * 		   or execute the query at later time if it was delayed.
+		 *
+		 * @see #decrement()
+		 */
 		public function increment(column:String, param1:* = null, param2:* = null, callback:* = null):BreezeQueryBuilder
 		{
 			incrementOrDecrement(column, param1, param2, callback, "+");
@@ -519,6 +1117,58 @@ package breezedb.queries
 		}
 
 
+		/**
+		 * A helper method for an <code>UPDATE</code> query that decrements a numeric column by certain amount.
+		 *
+		 * @param column The name of the column to decrement.
+		 * @param param1 This parameter can be one of the following:
+		 * <ul>
+		 *    <li>A <code>Number</code> that specifies the amount by which the <code>column</code>
+		 *    will be decremented. If not specified, it will default to 1.
+		 *    </li>
+		 *    <li>If the above option is not used, the parameter can be a key-value <code>Object</code> that
+		 *    specifies new column values that will be updated along the decrement operation.
+		 *    </li>
+		 *    <li>If the above option is not used, the parameter can be a <code>Function</code> that is triggered
+		 *    once the query is completed. It should have the signature as shown for the <code>callback</code> parameter.
+		 *    </li>
+		 *    <li>Otherwise it can be the <code>BreezeDb.DELAY</code> constant, resulting in the query being delayed.
+		 *    It can be executed later by calling the <code>exec</code> method on the returned instance
+		 *    of <code>BreezeQueryBuilder</code>.
+		 *    </li>
+		 * </ul>
+		 * @param param2 This parameter can be one of the following:
+		 * <ul>
+		 *    <li>A key-value <code>Object</code> that
+		 *    specifies new column values that will be updated along the decrement operation.
+		 *    </li>
+		 *    <li>If the above option is not used, the parameter can be a <code>Function</code> that is triggered
+		 *    once the query is completed. It should have the signature as shown for the <code>callback</code> parameter.
+		 *    </li>
+		 *    <li>Otherwise it can be the <code>BreezeDb.DELAY</code> constant, resulting in the query being delayed.
+		 *    It can be executed later by calling the <code>exec</code> method on the returned instance
+		 *    of <code>BreezeQueryBuilder</code>.
+		 *    </li>
+		 * </ul>
+		 * @param callback This parameter can be one of the following:
+		 * <ul>
+		 *    <li>A <code>Function</code> that is triggered once the query is completed.
+		 *    It should have the following signature:
+		 *    <listing version="3.0">
+		 *    function callback(error:Error):void
+		 *    { }
+		 *    </listing>
+		 *    </li>
+		 *    <li>The <code>BreezeDb.DELAY</code> constant, resulting in the query being delayed. It can be executed
+		 *    later by calling the <code>exec</code> method on the returned instance of <code>BreezeQueryBuilder</code>.
+		 *    </li>
+		 * </ul>
+		 *
+		 * @return Instance of <code>BreezeQueryBuilder</code> allowing you to obtain a reference to the executed query
+		 * 		   or execute the query at later time if it was delayed.
+		 *
+		 * @see #increment()
+		 */
 		public function decrement(column:String, param1:* = null, param2:* = null, callback:* = null):BreezeQueryBuilder
 		{
 			incrementOrDecrement(column, param1, param2, callback, "-");
@@ -527,13 +1177,45 @@ package breezedb.queries
 		}
 
 
+		/**
+		 * Executes the created <code>SELECT</code> query.
+		 *
+		 * @param callback This parameter can be one of the following:
+		 * <ul>
+		 *    <li>A <code>Function</code> that is triggered once the query is completed.
+		 *    It should have the following signature:
+		 *    <listing version="3.0">
+		 *    function callback(error:Error, results:Collection):void
+		 *    { }
+		 *    </listing>
+		 *    </li>
+		 *    <li>The <code>BreezeDb.DELAY</code> constant, resulting in the query being delayed. It can be executed
+		 *    later by calling the <code>exec</code> method on the returned instance of <code>BreezeQueryBuilder</code>.
+		 *    </li>
+		 * </ul>
+		 *
+		 * @return Instance of <code>BreezeQueryBuilder</code> allowing you to obtain a reference to the executed query
+		 * 		   or execute the query at later time if it was delayed.
+		 */
 		public function fetch(callback:* = null):BreezeQueryBuilder
 		{
 			executeIfNeeded(callback);
 			return this;
 		}
 		
-		
+
+		/**
+		 * Adds an <code>INNER JOIN</code> clause to the query.
+		 *
+		 * @param tableName The name of the table to join.
+		 * @param predicate The column constraints for the join.
+		 *
+		 * @return Instance of <code>BreezeQueryBuilder</code> allowing you to obtain a reference to the created query
+		 * 		   or chain more query methods.
+		 *
+		 * @see #leftJoin()
+		 * @see #crossJoin()
+		 */
 		public function join(tableName:String, predicate:String):BreezeQueryBuilder
 		{
 			validateJoinParams(tableName, predicate);
@@ -544,6 +1226,18 @@ package breezedb.queries
 		}
 
 
+		/**
+		 * Adds a <code>LEFT OUTER JOIN</code> clause to the query.
+		 *
+		 * @param tableName The name of the table to join.
+		 * @param predicate The column constraints for the join.
+		 *
+		 * @return Instance of <code>BreezeQueryBuilder</code> allowing you to obtain a reference to the created query
+		 * 		   or chain more query methods.
+		 *
+		 * @see #join()
+		 * @see #crossJoin()
+		 */
 		public function leftJoin(tableName:String, predicate:String):BreezeQueryBuilder
 		{
 			validateJoinParams(tableName, predicate);
@@ -554,6 +1248,17 @@ package breezedb.queries
 		}
 
 
+		/**
+		 * Adds a <code>CROSS JOIN</code> clause to the query.
+		 *
+		 * @param tableName The name of the table to join.
+		 *
+		 * @return Instance of <code>BreezeQueryBuilder</code> allowing you to obtain a reference to the created query
+		 * 		   or chain more query methods.
+		 *
+		 * @see #join()
+		 * @see #crossJoin()
+		 */
 		public function crossJoin(tableName:String):BreezeQueryBuilder
 		{
 			validateJoinParams(tableName, null, false);
@@ -563,13 +1268,35 @@ package breezedb.queries
 			return this;
 		}
 		
-		
+
+		/**
+		 * Adds an <code>UNION</code> clause, combining the results of this and the given query. Duplicate rows
+		 * are removed from the final result. <strong>Both queries must be associated with the same database.</strong>
+		 *
+		 * @param query The query to be added after the <code>UNION</code> clause.
+		 *
+		 * @return Instance of <code>BreezeQueryBuilder</code> allowing you to obtain a reference to the created query
+		 * 		   or chain more query methods.
+		 *
+		 * @see #unionAll()
+		 */
 		public function union(query:BreezeQueryBuilder):BreezeQueryBuilder
 		{
 			return unionInternal(query);
 		}
 
 
+		/**
+		 * Adds an <code>UNION ALL</code> clause, combining the results of this and the given query. Duplicate rows
+		 * are kept in the final result. <strong>Both queries must be associated with the same database.</strong>
+		 *
+		 * @param query The query to be added after the <code>UNION ALL</code> clause.
+		 *
+		 * @return Instance of <code>BreezeQueryBuilder</code> allowing you to obtain a reference to the created query
+		 * 		   or chain more query methods.
+		 *
+		 * @see #union()
+		 */
 		public function unionAll(query:BreezeQueryBuilder):BreezeQueryBuilder
 		{
 			return unionInternal(query, true);
@@ -1030,6 +1757,9 @@ package breezedb.queries
 		 */
 
 
+		/**
+		 * @private
+		 */
 		protected function onChunkCompleted(error:Error, results:Collection):void
 		{
 			// Track subsequent chunk queries so that the callback is not called when there are no more results
@@ -1066,6 +1796,9 @@ package breezedb.queries
 		}
 
 
+		/**
+		 * @private
+		 */
 		protected function onFirstCompleted(error:Error, results:Collection):void
 		{
 			_callbackProxy = null;

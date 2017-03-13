@@ -30,7 +30,7 @@ package breezedb.queries
 	import flash.data.SQLResult;
 
 	/**
-	 * Class providing access to data returned in response to the execution of a SQL statement.
+	 * Class providing access to data returned as a response to execution of a SQL statement.
 	 */
 	public class BreezeSQLResult
 	{

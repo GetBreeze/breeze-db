@@ -357,6 +357,9 @@ package breezedb.models
 		 */
 
 
+		/**
+		 * @private
+		 */
 		override protected function onFirstCompleted(error:Error, results:Collection):void
 		{
 			_callbackProxy = null;
@@ -371,7 +374,10 @@ package breezedb.models
 			finishProxiedQuery([error, model]);
 		}
 		
-		
+
+		/**
+		 * @private
+		 */
 		override protected function onChunkCompleted(error:Error, results:Collection):void
 		{
 			var castCollection:Collection = getTypedCollection(results);
@@ -379,6 +385,9 @@ package breezedb.models
 		}
 
 
+		/**
+		 * @private
+		 */
 		protected function onFetchCompleted(error:Error, results:Collection):void
 		{
 			_callbackProxy = null;
@@ -388,6 +397,9 @@ package breezedb.models
 		}
 
 
+		/**
+		 * @private
+		 */
 		protected function onUpdateViaSaveCompleted(error:Error, rowsAffected:int):void
 		{
 			_callbackProxy = null;
@@ -396,6 +408,9 @@ package breezedb.models
 		}
 
 
+		/**
+		 * @private
+		 */
 		protected function onInsertViaSaveCompleted(error:Error, result:BreezeSQLResult):void
 		{
 			_callbackProxy = null;

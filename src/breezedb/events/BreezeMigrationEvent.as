@@ -72,8 +72,7 @@ package breezedb.events
 
 
 		/**
-		 * Returns <code>true</code> if the migration was run, or <code>false</code> if the migration
-		 * had run in the past.
+		 * Returns <code>true</code> if the migration was run, or <code>false</code> if the migration ran in the past.
 		 */
 		public function get didRun():Boolean
 		{

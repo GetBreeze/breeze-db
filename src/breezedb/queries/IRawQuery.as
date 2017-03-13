@@ -114,7 +114,7 @@ package breezedb.queries
 
 		/**
 		 * Executes an <code>UPDATE</code> query on the associated database. The result is cast to
-		 * an <code>int</code> that provides information about the number of rows affect by the query.
+		 * an <code>int</code> that provides information about the number of rows affected by the query.
 		 *
 		 * @param rawQuery SQL query to execute.
 		 * @param params Optional query parameters, i.e. key-value <code>Object</code>. If query parameters
@@ -140,7 +140,7 @@ package breezedb.queries
 
 		/**
 		 * Executes a <code>DELETE</code> query on the associated database. The result is cast to
-		 * an <code>int</code> that provides information about the number of rows affect by the query.
+		 * an <code>int</code> that provides information about the number of rows deleted by the query.
 		 *
 		 * @param rawQuery SQL query to execute.
 		 * @param params Optional query parameters, i.e. key-value <code>Object</code>. If query parameters
@@ -150,11 +150,11 @@ package breezedb.queries
 		 * <listing version="3.0">
 		 * BreezeDb.db.remove("DELETE FROM photos WHERE title = :title", { title: "Camp Fire" }, onDeleteCompleted);
 		 *
-		 * function onDeleteCompleted(error:Error, rowsAffected:int):void
+		 * function onDeleteCompleted(error:Error, rowsDeleted:int):void
 		 * {
 		 *    if(error == null)
 		 *    {
-		 *       trace("Deleted", rowsAffected, "row(s)");
+		 *       trace("Deleted", rowsDeleted, "row(s)");
 		 *    }
 		 * };
 		 * </listing>
@@ -165,7 +165,7 @@ package breezedb.queries
 
 
 		/**
-		 * Executes multiple raw queries on the associated database. All queries are executed, regardless
+		 * Executes multiple queries on the associated database. All queries are executed, regardless
 		 * of any errors that occur in earlier queries.
 		 *
 		 * <p>The result is cast to a list of <code>BreezeQueryResult</code> and the results are in
@@ -181,7 +181,7 @@ package breezedb.queries
 		 *
 		 * <listing version="3.0">
 		 * var query1:BreezeQueryBuilder = BreezeDb.db.table("photos").where("id", 1).update({ title: "Hills" }, BreezeDb.DELAY);
-		 * var query2:BreezeQueryRunner = BreezeDb.db.table("photos").where("id", 2).fetch(BreezeDb.DELAY);
+		 * var query2:BreezeQueryBuilder = BreezeDb.db.table("photos").where("id", 2).fetch(BreezeDb.DELAY);
 		 * 
 		 * BreezeDb.db.multiQuery(
 		 *    [
@@ -211,7 +211,7 @@ package breezedb.queries
 
 
 		/**
-		 * Executes multiple raw queries on the associated database. If a query fails, the queries that follow
+		 * Executes multiple queries on the associated database. If a query fails, the queries that follow
 		 * will <strong>not</strong> be executed. Successful queries are <strong>not</strong> rolled back.
 		 *
 		 * <p>The first callback parameter is an <code>Error</code> object that references the error that
@@ -250,7 +250,7 @@ package breezedb.queries
 
 
 		/**
-		 * Executes multiple raw queries on the associated database. If a query fails, the queries that follow
+		 * Executes multiple queries on the associated database. If a query fails, the queries that follow
 		 * will <strong>not</strong> be executed and the database is rolled back to the state before executing
 		 * the queries.
 		 *

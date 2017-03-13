@@ -39,26 +39,41 @@ package breezedb.models
 	 */
 	public class BreezeModel extends EventDispatcher
 	{
-		// Name of the database
+		/**
+		 * @private
+		 */
 		protected var _databaseName:String = null;
 
-		// Name of the database table
+
+		/**
+		 * @private
+		 */
 		protected var _tableName:String = null;
 
-		// Name of the primary key
+
+		/**
+		 * @private
+		 */
 		protected var _primaryKey:String = "id";
 
-		// Does this object exist in the database?
+
+		/**
+		 * @private
+		 */
 		protected var _exists:Boolean = false;
 
-		// Does this model have an auto-increment id?
+
+		/**
+		 * @private
+		 */
 		protected var _autoIncrementId:Boolean = true;
 		
 
 		/**
 		 * Creates new instance of the model.
 		 *
-		 * @param initialValues A key-value object representing values of the model's properties.
+		 * @param initialValues A key-value <code>Object</code> (where keys represent column names) used
+		 *                      to initialize the model's properties.
 		 */
 		public function BreezeModel(initialValues:Object = null)
 		{
@@ -83,9 +98,10 @@ package breezedb.models
 
 
 		/**
-		 * Helper method that retrieves an instance of <code>BreezeModelQueryBuilder</code> for the given model.
+		 * Helper method that retrieves an instance of <code>BreezeModelQueryBuilder</code> for the given model class.
 		 *
-		 * @param modelClass The model to retrieve the builder for.
+		 * @param modelClass The model to retrieve the builder for. <strong>Must be a subclass
+		 *                   of <code>BreezeModel</code> class.</strong>
 		 * @return Instance of <code>BreezeModelQueryBuilder</code> associated with the given model.
 		 */
 		public static function query(modelClass:Class):BreezeModelQueryBuilder
@@ -98,7 +114,7 @@ package breezedb.models
 		 * Saves this model to the database. If it exists, its values will be updated.
 		 *
 		 * @param callback Function that is triggered when the query is completed. The saved model is returned
-		 * 		  to the callback as a second argument.
+		 * 		  to the callback as the second argument.
 		 *
 		 * <listing version="3.0">
 		 * var photo:Photo = new Photo();
@@ -281,7 +297,7 @@ package breezedb.models
 
 
 		/**
-		 * Returns <code>true</code> if the model has auto-incrementing id.
+		 * Returns <code>true</code> if the model has an auto-incrementing id.
 		 */
 		public function get autoIncrementId():Boolean
 		{

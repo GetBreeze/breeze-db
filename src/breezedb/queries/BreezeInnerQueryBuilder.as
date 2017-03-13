@@ -51,6 +51,26 @@ package breezedb.queries
 		}
 
 
+		/**
+		 * Adds a <code>WHERE</code> clause to the query. Clauses added with this method are joined using
+		 * the <code>AND</code> operator.
+		 *
+		 * @param param1 This parameter can be one of the following:
+		 * <ul>
+		 *    <li>A <code>String</code>, i.e. name of the column that will be evaluated in the condition.</li>
+		 *    <li>A <code>Function</code> that accepts <code>BreezeInnerQueryBuilder</code>, allowing you
+		 *    to build nested <code>WHERE</code> clauses. If such <code>Function</code> is provided, the
+		 *    remaining parameters must be <code>null</code>.</li>
+		 * </ul>
+		 * @param param2 The conditional operator, e.g. <code>=</code>, <code>&gt;</code> etc. If the equal
+		 *               operator is to be used, this parameter can specify the value to evaluate against the column
+		 *               (typically provided as the third argument).
+		 * @param param3 The value to evaluate against the column, or <code>null</code> if it is provided as the
+		 *               second argument.
+		 *
+		 * @return Instance of <code>BreezeInnerQueryBuilder</code> allowing you to add more
+		 *         <code>WHERE</code> clauses.
+		 */
 		public function where(param1:*, param2:* = null, param3:* = null):BreezeInnerQueryBuilder
 		{
 			// Function to build nested where clauses
@@ -114,6 +134,26 @@ package breezedb.queries
 		}
 
 
+		/**
+		 * Adds a <code>WHERE</code> clause to the query. Clauses added with this method are joined using
+		 * the <code>OR</code> operator.
+		 *
+		 * @param param1 This parameter can be one of the following:
+		 * <ul>
+		 *    <li>A <code>String</code>, i.e. name of the column that will be evaluated in the condition.</li>
+		 *    <li>A <code>Function</code> that accepts <code>BreezeInnerQueryBuilder</code>, allowing you
+		 *    to build nested <code>WHERE</code> clauses. If such <code>Function</code> is provided, the
+		 *    remaining parameters must be <code>null</code>.</li>
+		 * </ul>
+		 * @param param2 The conditional operator, e.g. <code>=</code>, <code>&gt;</code> etc. If the equal
+		 *               operator is to be used, this parameter can specify the value to evaluate against the column
+		 *               (typically provided as the third argument).
+		 * @param param3 The value to evaluate against the column, or <code>null</code> if it is provided as the
+		 *               second argument.
+		 *
+		 * @return Instance of <code>BreezeInnerQueryBuilder</code> allowing you to add more
+		 *         <code>WHERE</code> clauses.
+		 */
 		public function orWhere(param1:*, param2:* = null, param3:* = null):BreezeInnerQueryBuilder
 		{
 			_where[_where.length] = [];
@@ -123,6 +163,19 @@ package breezedb.queries
 		}
 
 
+		/**
+		 * Adds a <code>WHERE</code> clause that compares a day of the month to a column value.
+		 *
+		 * @param dateColumn The name of the date column.
+		 * @param param2 The conditional operator, e.g. <code>=</code>, <code>&gt;</code> etc. If the equal
+		 *               operator is to be used, this parameter can specify the value to evaluate against the column
+		 *               (typically provided as the third argument).
+		 * @param param3 The value to evaluate against the column, or <code>null</code> if it is provided as the
+		 *               second argument. It can be either an integer between 1 and 31 or <code>Date</code> object.
+		 *
+		 * @return Instance of <code>BreezeInnerQueryBuilder</code> allowing you to add more
+		 *         <code>WHERE</code> clauses.
+		 */
 		public function whereDay(dateColumn:String, param2:* = null, param3:* = null):BreezeInnerQueryBuilder
 		{
 			validateColumnName(dateColumn);
@@ -136,6 +189,19 @@ package breezedb.queries
 		}
 
 
+		/**
+		 * Adds a <code>WHERE</code> clause that compares a month of the year to a column value.
+		 *
+		 * @param dateColumn The name of the date column.
+		 * @param param2 The conditional operator, e.g. <code>=</code>, <code>&gt;</code> etc. If the equal
+		 *               operator is to be used, this parameter can specify the value to evaluate against the column
+		 *               (typically provided as the third argument).
+		 * @param param3 The value to evaluate against the column, or <code>null</code> if it is provided as the
+		 *               second argument. It can be either an integer between 1 and 12 or <code>Date</code> object.
+		 *
+		 * @return Instance of <code>BreezeInnerQueryBuilder</code> allowing you to add more
+		 *         <code>WHERE</code> clauses.
+		 */
 		public function whereMonth(dateColumn:String, param2:* = null, param3:* = null):BreezeInnerQueryBuilder
 		{
 			validateColumnName(dateColumn);
@@ -149,6 +215,20 @@ package breezedb.queries
 		}
 
 
+		/**
+		 * Adds a <code>WHERE</code> clause that compares a column value to a specific year.
+		 *
+		 * @param dateColumn The name of the date column.
+		 * @param param2 The conditional operator, e.g. <code>=</code>, <code>&gt;</code> etc. If the equal
+		 *               operator is to be used, this parameter can specify the value to evaluate against the column
+		 *               (typically provided as the third argument).
+		 * @param param3 The value to evaluate against the column, or <code>null</code> if it is provided as the
+		 *               second argument. It can be either an integer or <code>String</code> in <code>YYYY</code>
+		 *               format or <code>Date</code> object.
+		 *
+		 * @return Instance of <code>BreezeInnerQueryBuilder</code> allowing you to add more
+		 *         <code>WHERE</code> clauses.
+		 */
 		public function whereYear(dateColumn:String, param2:* = null, param3:* = null):BreezeInnerQueryBuilder
 		{
 			validateColumnName(dateColumn);
@@ -162,6 +242,21 @@ package breezedb.queries
 		}
 
 
+		/**
+		 * Adds a <code>WHERE</code> clause that compares a <code>DATE</code> column with
+		 * date value in <code>YYYY-MM-DD</code> format.
+		 *
+		 * @param dateColumn The name of the date column.
+		 * @param param2 The conditional operator, e.g. <code>=</code>, <code>&gt;</code> etc. If the equal
+		 *               operator is to be used, this parameter can specify the value to evaluate against the column
+		 *               (typically provided as the third argument).
+		 * @param param3 The value to evaluate against the column, or <code>null</code> if it is provided as the
+		 *               second argument. It can be either a <code>String</code> in <code>YYYY-MM-DD</code> format
+		 *               or <code>Date</code> object.
+		 *
+		 * @return Instance of <code>BreezeInnerQueryBuilder</code> allowing you to add more
+		 *         <code>WHERE</code> clauses.
+		 */
 		public function whereDate(dateColumn:String, param2:* = null, param3:* = null):BreezeInnerQueryBuilder
 		{
 			validateColumnName(dateColumn);
@@ -182,6 +277,18 @@ package breezedb.queries
 		}
 
 
+		/**
+		 * Adds a <code>WHERE</code> clause that compares two columns.
+		 *
+		 * @param param1 The name of the first column.
+		 * @param param2 The conditional operator, e.g. <code>=</code>, <code>&gt;</code> etc. If the equal
+		 *               operator is to be used, this parameter can specify name of the second column
+		 *               (typically provided as the third argument).
+		 * @param param3 The name of the second column, or <code>null</code> if it is provided as the second argument.
+		 *
+		 * @return Instance of <code>BreezeInnerQueryBuilder</code> allowing you to add more
+		 *         <code>WHERE</code> clauses.
+		 */
 		public function whereColumn(param1:*, param2:String = null, param3:String = null):BreezeInnerQueryBuilder
 		{
 			if(!(param1 is Array || param1 is String))
