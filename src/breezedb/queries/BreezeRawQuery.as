@@ -416,7 +416,7 @@ package breezedb.queries
 			_db.connection.removeEventListener(SQLEvent.SCHEMA, onTableSchemaLoadSuccess);
 			_db.connection.removeEventListener(SQLErrorEvent.ERROR, onTableSchemaLoadError);
 
-			dispatchQueryEvent(BreezeQueryEvent.SUCCESS, null, null, "Has table [" + _tableName + "] = false");
+			dispatchQueryEvent(BreezeQueryEvent.ERROR, event.error, null, "Has table [" + _tableName + "] = false");
 			finishQuery([event.error, false]);
 		}
 
@@ -451,7 +451,7 @@ package breezedb.queries
 			_db.connection.removeEventListener(SQLEvent.SCHEMA, onColumnSchemaLoadSuccess);
 			_db.connection.removeEventListener(SQLErrorEvent.ERROR, onColumnSchemaLoadError);
 
-			dispatchQueryEvent(BreezeQueryEvent.SUCCESS, null, null, "Has column [" + _columnName + "] = false");
+			dispatchQueryEvent(BreezeQueryEvent.ERROR, event.error, null, "Has column [" + _columnName + "] = false");
 			finishQuery([event.error, false]);
 		}
 
