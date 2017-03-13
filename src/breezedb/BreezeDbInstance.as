@@ -641,7 +641,7 @@ package breezedb
 		{
 			if(hasEventListener(event.type))
 			{
-				dispatchEvent(new BreezeQueryEvent(event.type, event.error, event.result, event.query));
+				dispatchEvent(event);
 			}
 		}
 
