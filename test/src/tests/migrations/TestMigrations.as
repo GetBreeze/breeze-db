@@ -45,6 +45,7 @@ package tests.migrations
 		private var _migrationEvents:Vector.<BreezeMigrationEvent>;
 		private var _testRepeatMigrations:Boolean;
 		private var _isRepeatedMigration:Boolean;
+	    private var _migrationFinished:Boolean;
 		
 		
 		public function testSetupMigrations(async:Async):void
@@ -54,9 +55,13 @@ package tests.migrations
 			_migrationEvents = new <BreezeMigrationEvent>[];
 			_testRepeatMigrations = true;
 			_isRepeatedMigration = false;
+			_migrationFinished = false;
 
 			_db = BreezeDb.getDb("setup-migrations");
-			_db.addEventListener(BreezeMigrationEvent.COMPLETE, onMigrationCompleted);
+			_db.addEventListener(BreezeMigrationEvent.RUN_SUCCESS, onMigrationRan);
+			_db.addEventListener(BreezeMigrationEvent.RUN_ERROR, onMigrationRan);
+			_db.addEventListener(BreezeMigrationEvent.SKIP, onMigrationRan);
+			_db.addEventListener(BreezeMigrationEvent.FINISH, onMigrationsFinished);
 			_db.migrations = [Migration_Create_Table_Photos, Migration_Insert_Default_Photos];
 			_db.setup(onSetupWithMigrationsCompleted);
 		}
@@ -73,6 +78,9 @@ package tests.migrations
 
 		private function validateMigrations():void
 		{
+			// Check that the BreezeMigrationEvent.FINISH event was dispatched
+			Assert.isTrue(_migrationFinished);
+
 			// Check the table has been created
 			_db.schema.hasTable("photos", onCheckTableCompleted);
 		}
@@ -116,20 +124,22 @@ package tests.migrations
 			var length:int = _migrationEvents.length;
 			for(var i:int = 0; i < length; ++i)
 			{
-				Assert.isTrue(_migrationEvents[i].successful);
 				if(_isRepeatedMigration)
 				{
-					Assert.isFalse(_migrationEvents[i].didRun);
+					Assert.equals(BreezeMigrationEvent.SKIP, _migrationEvents[i].type);
 				}
 				else
 				{
-					Assert.isTrue(_migrationEvents[i].didRun);
+					Assert.equals(BreezeMigrationEvent.RUN_SUCCESS, _migrationEvents[i].type);
 				}
 			}
 
 			_migrationEvents.length = 0;
 
-			_db.removeEventListener(BreezeMigrationEvent.COMPLETE, onMigrationCompleted);
+			_db.removeEventListener(BreezeMigrationEvent.RUN_SUCCESS, onMigrationRan);
+			_db.removeEventListener(BreezeMigrationEvent.RUN_ERROR, onMigrationRan);
+			_db.removeEventListener(BreezeMigrationEvent.SKIP, onMigrationRan);
+			_db.removeEventListener(BreezeMigrationEvent.FINISH, onMigrationsFinished);
 
             setTimeout(_db.close, 500, onDbClosed);
 		}
@@ -144,7 +154,10 @@ package tests.migrations
 			{
 				_testRepeatMigrations = false;
 				_isRepeatedMigration = true;
-				_db.addEventListener(BreezeMigrationEvent.COMPLETE, onMigrationCompleted);
+				_db.addEventListener(BreezeMigrationEvent.RUN_SUCCESS, onMigrationRan);
+				_db.addEventListener(BreezeMigrationEvent.RUN_ERROR, onMigrationRan);
+				_db.addEventListener(BreezeMigrationEvent.SKIP, onMigrationRan);
+				_db.addEventListener(BreezeMigrationEvent.FINISH, onMigrationsFinished);
 				_db.setup(onSetupWithMigrationsCompleted);
 			}
 			else
@@ -163,9 +176,13 @@ package tests.migrations
 			_migrationEvents = new <BreezeMigrationEvent>[];
 			_testRepeatMigrations = false;
 			_isRepeatedMigration = false;
+			_migrationFinished = false;
 
 			_db = BreezeDb.getDb("after-setup-migrations");
-			_db.addEventListener(BreezeMigrationEvent.COMPLETE, onMigrationCompleted);
+			_db.addEventListener(BreezeMigrationEvent.RUN_SUCCESS, onMigrationRan);
+			_db.addEventListener(BreezeMigrationEvent.RUN_ERROR, onMigrationRan);
+			_db.addEventListener(BreezeMigrationEvent.SKIP, onMigrationRan);
+			_db.addEventListener(BreezeMigrationEvent.FINISH, onMigrationsFinished);
 			_db.setup(onDbSetup);
 		}
 
@@ -187,9 +204,15 @@ package tests.migrations
 		}
 
 
-		private function onMigrationCompleted(event:BreezeMigrationEvent):void
+		private function onMigrationRan(event:BreezeMigrationEvent):void
 		{
 			_migrationEvents[_migrationEvents.length] = event;
+		}
+
+
+		private function onMigrationsFinished(event:BreezeMigrationEvent):void
+		{
+			_migrationFinished = true;
 		}
 
 
