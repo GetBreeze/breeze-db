@@ -34,18 +34,23 @@ package breezedb
 	public class BreezeDb
 	{
 		/**
+		 * BreezeDb library version.
+		 */
+		public static const VERSION:String = "1.0.0";
+
+		/**
 		 * Name of the default database.
 		 */
 		public static const DEFAULT_DB:String = "database";
-
-		private static var _databases:Dictionary;
-		private static var _fileExtension:String = ".sqlite";
-		private static var _storageDirectory:File = File.applicationStorageDirectory;
 
 		/**
 		 * Constant used in place of a query callback to delay query execution.
 		 */
 		public static const DELAY:Boolean = false;
+
+		private static var _databases:Dictionary;
+		private static var _fileExtension:String = ".sqlite";
+		private static var _storageDirectory:File = File.applicationStorageDirectory;
 
 
 		/**
