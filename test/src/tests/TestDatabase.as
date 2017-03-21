@@ -37,7 +37,8 @@ package tests
 
 	import flash.errors.IllegalOperationError;
 	import flash.filesystem.File;
-    import flash.utils.setTimeout;
+	import flash.utils.ByteArray;
+	import flash.utils.setTimeout;
 
 	public class TestDatabase
 	{
@@ -175,6 +176,106 @@ package tests
 			
 			Assert.equals(2, _numDbSetupEvents);
 			Assert.equals(2, _numDbCloseEvents);
+
+			currentAsync.complete();
+		}
+
+
+		public function testEncryptionKey(async:Async):void
+		{
+			var db:IBreezeDatabase = BreezeDb.getDb("enc-key");
+
+			// Empty encryption key
+			Assert.throwsError(function():void
+			{
+				db.encryptionKey = "";
+			}, ArgumentError);
+
+			// Invalid ByteArray length
+			Assert.throwsError(function():void
+			{
+				db.encryptionKey = new ByteArray();
+			}, ArgumentError);
+
+			// Write 16 bytes
+			var key:ByteArray = new ByteArray();
+			for(var i:int = 0; i < 16; ++i)
+			{
+				key.writeByte(i);
+			}
+			db.encryptionKey = key;
+
+			db.setup(onEncryptedDbSetup);
+		}
+
+		private function onEncryptedDbSetup(error:Error):void
+		{
+			Assert.isNull(error);
+
+			var db:IBreezeDatabase = BreezeDb.getDb("enc-key");
+			Assert.isTrue(db.isSetup);
+
+			Assert.throwsError(function():void
+			{
+				db.encryptionKey = "new-key";
+			}, IllegalOperationError);
+
+			db.close(onEncryptedDbClosed);
+		}
+
+
+		private function onEncryptedDbClosed(error:Error):void
+		{
+			Assert.isNull(error);
+
+			var db:IBreezeDatabase = BreezeDb.getDb("enc-key");
+			Assert.isFalse(db.isSetup);
+
+			// Remove encryption key and try to open the encrypted database
+			db.encryptionKey = null;
+
+			db.setup(onEncryptedDbWithoutKeySetup);
+		}
+
+
+		private function onEncryptedDbWithoutKeySetup(error:Error):void
+		{
+			Assert.isNotNull(error);
+
+			var db:IBreezeDatabase = BreezeDb.getDb("enc-key");
+			Assert.isFalse(db.isSetup);
+
+			// Setup again with the correct key
+			var key:ByteArray = new ByteArray();
+			for(var i:int = 0; i < 16; ++i)
+			{
+				key.writeByte(i);
+			}
+			db.encryptionKey = key;
+
+			db.setup(onCheckEncryptedDbSetup);
+		}
+
+
+		private function onCheckEncryptedDbSetup(error:Error):void
+		{
+			Assert.isNull(error);
+
+			var db:IBreezeDatabase = BreezeDb.getDb("enc-key");
+			Assert.isTrue(db.isSetup);
+
+			db.close(onEncryptedDbFinalClosed);
+		}
+
+
+		private function onEncryptedDbFinalClosed(error:Error):void
+		{
+			Assert.isNull(error);
+
+			var db:IBreezeDatabase = BreezeDb.getDb("enc-key");
+			Assert.isFalse(db.isSetup);
+
+			db.file.deleteFile();
 
 			currentAsync.complete();
 		}
