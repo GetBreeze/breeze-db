@@ -597,9 +597,9 @@ package breezedb
 
 		private function generateEncryptionKey():ByteArray
 		{
-			if(encryptionKey == null)
+			if(encryptionKey === null || encryptionKey is ByteArray)
 			{
-				return null;
+				return encryptionKey;
 			}
 
 			var key:String = encryptionKey;
@@ -705,11 +705,26 @@ package breezedb
 		/**
 		 * @inheritDoc
 		 */
-		public function set encryptionKey(value:String):void
+		public function set encryptionKey(value:*):void
 		{
 			if(_isSetup)
 			{
 				throw new IllegalOperationError("Encryption key must be set before calling setup().")
+			}
+
+			if(!((value === null) || (value is String) || (value is ByteArray)))
+			{
+				throw new ArgumentError("Parameter value can be a String, ByteArray or null.");
+			}
+
+			if(value is String && String(value).length == 0)
+			{
+				throw new ArgumentError("Encryption key cannot be empty String");
+			}
+
+			if(value is ByteArray && ByteArray(value).length != 16)
+			{
+				throw new ArgumentError("ByteArray encryption key must be 16 bytes long.");
 			}
 
 			_encryptionKey = value;
@@ -719,7 +734,7 @@ package breezedb
 		/**
 		 * @inheritDoc
 		 */
-		public function get encryptionKey():String
+		public function get encryptionKey():*
 		{
 			return _encryptionKey;
 		}

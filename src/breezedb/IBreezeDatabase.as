@@ -192,13 +192,14 @@ package breezedb
 		/**
 		 * @private
 		 */
-		function set encryptionKey(value:String):void;
+		function set encryptionKey(value:*):void;
 
 
 		/**
-		 * Arbitrary <code>String</code> value that is used to encrypt the database file.
+		 * The value used to encrypt the database file. It be either a <code>String</code>
+		 * (at least one character) or 16 bytes long <code>ByteArray</code>.
 		 */
-		function get encryptionKey():String;
+		function get encryptionKey():*;
 
 
 		/**

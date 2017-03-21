@@ -539,7 +539,7 @@ package breezedb
 
 
 		/**
-		 * Arbitrary <code>String</code> value that is used to encrypt the database file.
+		 * @private
 		 */
 		public static function set encryptionKey(value:String):void
 		{
@@ -548,7 +548,8 @@ package breezedb
 
 
 		/**
-		 * @private
+		 * The value used to encrypt the database file. It be either a <code>String</code>
+		 * (at least one character) or 16 bytes long <code>ByteArray</code>.
 		 */
 		public static function get encryptionKey():String
 		{
