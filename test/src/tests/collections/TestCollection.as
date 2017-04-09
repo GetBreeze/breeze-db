@@ -363,50 +363,6 @@ package tests.collections
 		}
 
 
-		public function testHas():void
-		{
-			Assert.isFalse(_emptyCollection.has("missingKey"));
-
-			Assert.isTrue(_objectCollection.has("name"));
-			Assert.isFalse(_objectCollection.has("year"));
-			Assert.isFalse(_numberCollection.has("name"));
-
-			Assert.throwsError(function():void
-			{
-				// Invalid argument
-				_emptyCollection.has(null);
-			}, ArgumentError);
-		}
-
-
-		public function testGet():void
-		{
-			Assert.isNull(_emptyCollection.get("missingKey"));
-			Assert.equals("defaultValue", _emptyCollection.get("missingKey", "defaultValue"));
-
-			var deviceToPrice:Collection = new Collection(
-				{"iPhone 6": 549},
-				{"iPhone SE": 399},
-				{"Apple Watch": 299},
-				{"Galaxy S6": 399},
-				{"Galaxy Gear": 199}
-			);
-
-			Assert.equals(399, deviceToPrice.get("iPhone SE"));
-
-			Assert.equals(-1, _numberCollection.get("index", function():Number
-			{
-				return -1;
-			}));
-
-			Assert.throwsError(function():void
-			{
-				// Invalid argument
-				_emptyCollection.get(null);
-			}, ArgumentError);
-		}
-
-
 		public function testPluck():void
 		{
 			Assert.isNotNull(_emptyCollection.pluck("missingKey"));
@@ -421,25 +377,6 @@ package tests.collections
 					["iPhone 6", "iPhone SE", "Apple Watch", "Galaxy S6", "Galaxy Gear"],
 					deviceNames.all
 			);
-
-			var plucked:Collection = _objectCollection.pluck("price", "name");
-
-			Assert.isNotNull(plucked);
-			Assert.notSame(_objectCollection, plucked);
-			Assert.equals(5, plucked.all.length);
-
-			var deviceToPrice:Collection = new Collection(
-					{"iPhone 6": 549},
-					{"iPhone SE": 399},
-					{"Apple Watch": 299},
-					{"Galaxy S6": 399},
-					{"Galaxy Gear": 199}
-			);
-			for each(var deviceName:String in deviceNames)
-			{
-				Assert.isNotNull(plucked.get(deviceName));
-				Assert.equals(plucked.get(deviceName), deviceToPrice.get(deviceName));
-			}
 
 			Assert.throwsError(function():void
 			{
@@ -468,38 +405,6 @@ package tests.collections
 			{
 				// Invalid argument
 				_emptyCollection.prepend(null);
-			}, ArgumentError);
-		}
-
-
-		public function testPull():void
-		{
-			Assert.isNull(_emptyCollection.pull("missingKey"));
-			Assert.isNull(_numberCollection.pull("missingKey"));
-
-			var deviceToPrice:Collection = new Collection(
-					{"iPhone 6": 549},
-					{"iPhone SE": 399},
-					{"Apple Watch": 299},
-					{"Galaxy S6": 399},
-					{"Galaxy Gear": 199}
-			);
-
-			Assert.equals(5, deviceToPrice.length);
-			Assert.isTrue(deviceToPrice.contains(299, "Apple Watch"));
-
-			var pulled:Object = deviceToPrice.pull("Apple Watch");
-
-			Assert.isNotNull(pulled);
-			Assert.isTrue("Apple Watch" in pulled);
-			Assert.equals(299, pulled["Apple Watch"]);
-			Assert.equals(4, deviceToPrice.length);
-			Assert.isFalse(deviceToPrice.contains(299, "Apple Watch"));
-
-			Assert.throwsError(function():void
-			{
-				// Invalid argument
-				_emptyCollection.pull(null);
 			}, ArgumentError);
 		}
 
