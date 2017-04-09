@@ -507,60 +507,6 @@ package breezedb.collections
 
 			return false;
 		}
-
-
-		/**
-		 * Returns the value at a given key, or <code>null</code> if the key does not exist.
-		 *
-		 * @param key Key for which to find the value.
-		 * @param defaultValue Default value in case the key is not found, or <code>Function</code> that returns
-		 *        the default value.
-		 * @return The value at a given key, or <code>null</code> if the key does not exist.
-		 */
-		public function get(key:String, defaultValue:* = null):*
-		{
-			if(key == null)
-			{
-				throw new ArgumentError( "Parameter key cannot be null." );
-			}
-
-			for each(var item:* in this)
-			{
-				if(key in item)
-				{
-					return item[key];
-				}
-			}
-
-			return (defaultValue is Function) ? defaultValue() : defaultValue;
-		}
-		
-
-		/**
-		 * Returns <code>true</code> if any item in the collection has the given key.
-		 *
-		 * @param key Key to find.
-		 * @return <code>true</code> if any item in the collection has the given key, <code>false</code> otherwise.
-		 */
-		public function has(key:String):Boolean
-		{
-			if(key == null)
-			{
-				throw new ArgumentError( "Parameter key cannot be null." );
-			}
-
-			for each(var item:* in this)
-			{
-				for( var itemKey:String in item)
-				{
-					if(itemKey == key)
-					{
-						return true;
-					}
-				}
-			}
-			return false;
-		}
 		
 
 		/**
@@ -635,34 +581,6 @@ package breezedb.collections
 			this[0] = item;
 
 			return this;
-		}
-
-
-		/**
-		 * Removes and returns an item from the collection by its key
-		 *
-		 * @param key The key used to find the item.
-		 * @return The removed item, or <code>null</code> if it was not found.
-		 */
-		public function pull(key:String):*
-		{
-			if(key === null)
-			{
-				throw new ArgumentError("Parameter key cannot be null.");
-			}
-
-			var index:int = 0;
-			for each(var item:* in this)
-			{
-				if(key in item)
-				{
-					this.removeAt(index);
-					return item;
-				}
-				index++;
-			}
-
-			return null;
 		}
 		
 
