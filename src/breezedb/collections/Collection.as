@@ -513,7 +513,7 @@ package breezedb.collections
 		 * Retrieves all values for the given key. This method does not modify the original collection.
 		 *
 		 * @param key Key for which the values are to be retrieved.
-		 * @param keyBy Specifies how the resulting collection will be keyed.
+		 *
 		 * <listing version="3.0">
 		 * var devices:Collection = new Collection(
 		 *	 {name: "iPhone 6",    brand: "Apple",   price: 549},
@@ -521,11 +521,10 @@ package breezedb.collections
 		 *	 {name: "Galaxy S6",   brand: "Samsung", price: 399}
 		 * );
 		 * device.pluck("name").all; // ["iPhone 6", "iPhone SE", "Galaxy S6"]
-		 * device.pluck("price", "name").all; // [{"iPhone 6": 549}, {"iPhone SE": 399}, {"Galaxy S6": 399}]
 		 * </listing>
 		 * @return New <code>Collection</code> with all the values for the given key.
 		 */
-		public function pluck(key:String, keyBy:String = null):Collection
+		public function pluck(key:String):Collection
 		{
 			if(key == null)
 			{
@@ -536,21 +535,53 @@ package breezedb.collections
 
 			for each(var elem:* in this)
 			{
-				var value:* = null;
 				if(key in elem)
 				{
-					value = elem[key];
+					result.add(elem[key]);
 				}
-				if(value != null && keyBy != null)
+			}
+
+			return result;
+		}
+
+
+		/**
+		 * Creates a mapping between values specified by the given keys.
+		 *
+		 * @param key Key used to retrieve the values which will be used as the map's values.
+		 * @param keyBy Key used to retrieve the values which will be used as the map's keys.
+		 *
+		 * <listing version="3.0">
+		 * var devices:Collection = new Collection(
+		 *	 {name: "iPhone 6",    brand: "Apple",   price: 549},
+		 *	 {name: "iPhone SE",   brand: "Apple",   price: 399},
+		 *	 {name: "Galaxy S6",   brand: "Samsung", price: 399}
+		 * );
+		 * device.pluckAndKeyBy("price", "name"); // {"iPhone 6": 549, "iPhone SE": 399, "Galaxy S6": 399}
+		 * </listing>
+		 *
+		 * @return A key-value <code>Object</code> (map) where each item's value of <code>keyBy</code>
+		 *         is mapped to the value of <code>key</code>.
+		 */
+		public function pluckAndKeyBy(key:String, keyBy:String):Object
+		{
+			if(key == null)
+			{
+				throw new ArgumentError( "Parameter key cannot be null." );
+			}
+
+			if(keyBy == null)
+			{
+				throw new ArgumentError( "Parameter keyBy cannot be null." );
+			}
+
+			var result:Object = {};
+
+			for each(var elem:* in this)
+			{
+				if((key in elem) && (keyBy in elem))
 				{
-					var pluckedKey:String = (keyBy in elem && elem[keyBy] is String) ? elem[keyBy] : keyBy;
-					var plucked:Object = {};
-					plucked[pluckedKey] = value;
-					value = plucked;
-				}
-				if(value != null)
-				{
-					result.add(value);
+					result[elem[keyBy]] = elem[key];
 				}
 			}
 
