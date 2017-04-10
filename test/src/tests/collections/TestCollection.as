@@ -386,6 +386,44 @@ package tests.collections
 		}
 
 
+		public function testPluckAndKeyBy():void
+		{
+			Assert.isNotNull(_emptyCollection.pluckAndKeyBy("missingKey", "missingKey"));
+
+			Assert.isNotNull(_numberCollection.pluckAndKeyBy("missingKey", "missingKey"));
+
+			var plucked:Object = _objectCollection.pluckAndKeyBy("price", "name");
+
+			Assert.isNotNull(plucked);
+
+			var deviceNames:Array = ["iPhone 6", "iPhone SE", "Apple Watch", "Galaxy S6", "Galaxy Gear"];
+			var deviceToPrice:Object = {
+				"iPhone 6": 549,
+				"iPhone SE": 399,
+				"Apple Watch": 299,
+				"Galaxy S6": 399,
+				"Galaxy Gear": 199
+			};
+			for each(var deviceName:String in deviceNames)
+			{
+				Assert.isTrue(deviceName in plucked);
+				Assert.equals(plucked[deviceName], deviceToPrice[deviceName]);
+			}
+
+			Assert.throwsError(function():void
+			{
+				// Invalid argument
+				_emptyCollection.pluckAndKeyBy(null, "key");
+			}, ArgumentError);
+
+			Assert.throwsError(function():void
+			{
+				// Invalid argument
+				_emptyCollection.pluckAndKeyBy("key", null);
+			}, ArgumentError);
+		}
+
+
 		public function testPrepend():void
 		{
 			Assert.isNull(_emptyCollection.first());
