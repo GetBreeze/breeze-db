@@ -34,6 +34,8 @@ package breezedb.models
 	import flash.utils.describeType;
 	import flash.utils.getQualifiedClassName;
 
+	import org.kuwamoto.Inflect;
+
 	/**
 	 * Base class for custom database models.
 	 */
@@ -265,7 +267,10 @@ package breezedb.models
 				className = result.join("_");
 			}
 
-			return className.toLowerCase();
+			className = className.toLowerCase();
+
+			_tableName = Inflect.pluralize(className);
+			return _tableName;
 		}
 
 
