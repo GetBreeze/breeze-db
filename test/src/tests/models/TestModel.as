@@ -51,7 +51,7 @@ package tests.models
 			{ title: "Lake",        views: 35,  downloads: 0,   creation_date: new Date(2016, 5, 19) },
 			{ title: "Camp Fire",   views: 13,  downloads: 13,  creation_date: new Date(2016, 8, 27) }
 		];
-		private const _photosTable:String = "photo";
+		private const _photosTable:String = "photos";
 
 
 		public function setupClass(async:Async):void
@@ -99,10 +99,10 @@ package tests.models
 		public function testTableName():void
 		{
 			var photo:Photo = new Photo();
-			Assert.equals("photo", photo.tableName);
+			Assert.equals("photos", photo.tableName);
 
 			var photoAlbum:PhotoAlbum = new PhotoAlbum();
-			Assert.equals("photo_album", photoAlbum.tableName);
+			Assert.equals("photo_albums", photoAlbum.tableName);
 
 			var customTable:CustomTableModel = new CustomTableModel();
 			Assert.equals("custom_table_name", customTable.tableName);
