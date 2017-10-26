@@ -51,7 +51,8 @@ package breezedb
 		private var _isClosing:Boolean;
 		private var _name:String;
 		private var _file:File;
-		private var _encryptionKey:String;
+        /** String or ByteArray */
+		private var _encryptionKey:* = null;
 
 		// Migrations
 		private var _migrations:*;
