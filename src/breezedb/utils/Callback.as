@@ -32,19 +32,44 @@ package breezedb.utils
 	public class Callback
 	{
 
-		public static function call(fn:Function, params:Array):Boolean
+		public static function call(fn:Function, args:Array):Boolean
 		{
 			if(fn == null)
 			{
 				return false;
 			}
 
-			params = (params == null) ? null : params.slice(0, fn.length);
-			fn.apply(fn, params);
+			var numArgs:int = fn.length;
+			for(var i:int = args.length; i < numArgs; ++i)
+			{
+				args[i] = null;
+			}
+
+			// There are less than 3 arguments most of the time,
+			// so we call the method directly to avoid the 'slice' allocations
+
+			switch(numArgs)
+			{
+				case 0:
+					fn();
+					break;
+				case 1:
+					fn(args[0]);
+					break;
+				case 2:
+					fn(args[0], args[1]);
+					break;
+				case 3:
+					fn(args[0], args[1], args[2]);
+					break;
+				default:
+					fn.apply(null, args.slice(0, numArgs));
+					break;
+			}
 
 			return true;
 		}
-		
+
 	}
-	
+
 }
