@@ -35,6 +35,7 @@ package
 	import flash.text.TextField;
 	
 	import tests.TestDatabase;
+	import tests.TestQueryQueue;
 	import tests.migrations.TestMigrations;
 	import tests.TestQueryBuilder;
 	import tests.TestRawQuery;
@@ -53,7 +54,7 @@ package
 
 			_breezeTest = new BreezeTest(this);
 			_breezeTest.addEventListener(BreezeTestEvent.TESTS_COMPLETE, onTestsComplete);
-			_breezeTest.add([TestCollection, TestDatabase, TestRawQuery, TestQueryBuilder, TestSchema, TestMigrations, TestModel]);
+			_breezeTest.add([TestCollection, TestDatabase, TestRawQuery, TestQueryBuilder, TestSchema, TestMigrations, TestModel, TestQueryQueue]);
 			_breezeTest.run();
 		}
 
