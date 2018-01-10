@@ -1570,9 +1570,9 @@ package breezedb.queries
 
 			if(callback !== BreezeDb.DELAY)
 			{
-				if(!(callback is Function))
+				if(callback != null && !(callback is Function))
 				{
-					throw new ArgumentError("Parameter callback must be a Function or BreezeDb.DELAY constant.");
+					throw new ArgumentError("When specified, callback must be either a Function or BreezeDb.DELAY constant.");
 				}
 
 				exec(callback);
