@@ -25,9 +25,11 @@
 
 package breezedb.queries
 {
+	import breezedb.BreezeDb;
 	import breezedb.IBreezeDatabase;
 	import breezedb.collections.Collection;
 	import breezedb.events.BreezeQueryEvent;
+	import breezedb.events.BreezeSQLStatementEvent;
 	import breezedb.utils.Callback;
 	import breezedb.utils.GarbagePrevention;
 
@@ -36,7 +38,7 @@ package breezedb.queries
 	import flash.errors.IllegalOperationError;
 	import flash.events.EventDispatcher;
 
-	internal class BreezeSQLMultiStatement extends EventDispatcher
+	internal class BreezeSQLMultiStatement extends EventDispatcher implements ISQLStatement
 	{
 		private var _isRunning:Boolean;
 		private var _currentIndex:int = -1;
@@ -54,8 +56,12 @@ package breezedb.queries
 		private var _fatalError:Error;
 
 
-		public function BreezeSQLMultiStatement()
+		public function BreezeSQLMultiStatement(failOnError:Boolean = true, transaction:Boolean = false, callback:Function = null)
 		{
+			_failOnError = failOnError;
+			_transaction = transaction;
+			_callback = callback;
+
 			_queries = [];
 			_results = new <BreezeQueryResult>[];
 		}
@@ -68,6 +74,31 @@ package breezedb.queries
 		 *
 		 *
 		 */
+
+
+		public function exec():void
+		{
+			if(_db == null)
+			{
+				throw new IllegalOperationError("Database must be set before executing the queries.");
+			}
+
+			if(_isRunning)
+			{
+				throw new Error("The execute statement can not be called while queries are running");
+			}
+
+			_isRunning = true;
+
+			if(_transaction && !_db.inTransaction)
+			{
+				_transactionControl = true;
+				_db.beginTransaction(onTransactionBegan);
+				return;
+			}
+
+			startExecution();
+		}
 		
 
 		/**
@@ -108,35 +139,6 @@ package breezedb.queries
 				throw new ArgumentError("Parameter query must be a String or BreezeQueryRunner");
 			}
 		}
-		
-		
-		public function execute(failOnError:Boolean = true, transaction:Boolean = false, callback:Function = null):void
-		{
-			if(_db == null)
-			{
-				throw new IllegalOperationError("Database must be set before executing the queries.");
-			}
-
-			if(_isRunning)
-			{
-				throw new Error("The execute statement can not be called while queries are running");
-			}
-
-			_callback = callback;
-
-			_transaction = transaction;
-			_failOnError = failOnError;
-			_isRunning = true;
-
-			if(transaction && !_db.inTransaction)
-			{
-				_transactionControl = true;
-				_db.beginTransaction(onTransactionBegan);
-				return;
-			}
-
-			startExecution();
-		}
 
 
 		public function setDatabase(db:IBreezeDatabase):void
@@ -171,6 +173,9 @@ package breezedb.queries
 		
 		private function onQueryRunnerCompleted(error:Error, queryResult:* = null):void
 		{
+			// Enable the statements queue again (if it was enabled at all)
+			BreezeRawQuery.breezedb_internal::useQueryQueue = BreezeDb.isQueryQueueEnabled;
+
 			var result:BreezeQueryResult = null;
 
 			// Generic result
@@ -286,12 +291,16 @@ package breezedb.queries
 				var statement:BreezeSQLStatement = query as BreezeSQLStatement;
 				statement.sqlConnection = _db.connection;
 				_currentRawQuery = statement.text;
-				statement.execute();
+				statement.exec();
 			}
 			// Otherwise execute delayed query runner
 			else
 			{
 				_currentRawQuery = BreezeQueryRunner(query).queryString;
+
+				// This multi statement is already in the queue, we cannot queue
+				// this runner's statements because they would never get executed
+				BreezeRawQuery.breezedb_internal::useQueryQueue = false;
 				BreezeQueryRunner(query).exec(onQueryRunnerCompleted);
 			}
 		}
@@ -300,7 +309,6 @@ package breezedb.queries
 		private function finalize():void
 		{
 			_isRunning = false;
-			GarbagePrevention.instance.remove(this);
 
 			var result:Array = [];
 			if(_failOnError || _transaction)
@@ -310,6 +318,10 @@ package breezedb.queries
 			result[result.length] = _results;
 
 			Callback.call(_callback, [result]);
+
+			dispatchEvent(new BreezeSQLStatementEvent(BreezeSQLStatementEvent.COMPLETE));
+
+			GarbagePrevention.instance.remove(this);
 		}
 	}
 	

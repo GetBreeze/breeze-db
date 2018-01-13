@@ -25,6 +25,8 @@
 
 package breezedb
 {
+	import breezedb.queries.BreezeRawQuery;
+
 	import flash.filesystem.File;
 	import flash.utils.Dictionary;
 
@@ -48,6 +50,7 @@ package breezedb
 		 */
 		public static const DELAY:Boolean = false;
 
+		private static var _isQueryQueueEnabled:Boolean = false;
 		private static var _databases:Dictionary;
 		private static var _fileExtension:String = ".sqlite";
 		private static var _storageDirectory:File = File.applicationStorageDirectory;
@@ -152,6 +155,30 @@ package breezedb
 			}
 
 			_fileExtension = value;
+		}
+
+
+		/**
+		 * Flag to control whether BreezeDb should queue SQL queries,
+		 * i.e. run at most one at a time and in the same order as they are created.
+		 *
+		 * Make sure there are no queries running when changing this value.
+		 *
+		 * @default false
+		 */
+		public static function get isQueryQueueEnabled():Boolean
+		{
+			return _isQueryQueueEnabled;
+		}
+
+
+		/**
+		 * @private
+		 */
+		public static function set isQueryQueueEnabled(value:Boolean):void
+		{
+			_isQueryQueueEnabled = value;
+			BreezeRawQuery.breezedb_internal::useQueryQueue = value;
 		}
 	}
 }

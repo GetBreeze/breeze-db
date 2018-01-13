@@ -25,6 +25,7 @@
 
 package breezedb.queries
 {
+	import breezedb.events.BreezeSQLStatementEvent;
 	import breezedb.utils.Callback;
 	import breezedb.utils.GarbagePrevention;
 
@@ -33,7 +34,7 @@ package breezedb.queries
 	import flash.events.SQLEvent;
 	import flash.net.Responder;
 
-	internal class BreezeSQLStatement extends SQLStatement
+	internal class BreezeSQLStatement extends SQLStatement implements ISQLStatement
 	{
 		private var _callback:Function;
 
@@ -51,6 +52,12 @@ package breezedb.queries
 		 *
 		 *
 		 */
+
+
+		public function exec():void
+		{
+			execute();
+		}
 		
 		
 		override public function execute(prefetch:int = -1, responder:Responder = null):void
@@ -95,7 +102,9 @@ package breezedb.queries
 		private function onQuerySuccess(event:SQLEvent):void
 		{
 			Callback.call(_callback, [null, this]);
-			
+
+			dispatchEvent(new BreezeSQLStatementEvent(BreezeSQLStatementEvent.COMPLETE));
+
 			GarbagePrevention.instance.remove(this);
 		}
 		
@@ -103,6 +112,8 @@ package breezedb.queries
 		private function onQueryError(event:SQLErrorEvent):void
 		{
 			Callback.call(_callback, [event.error, this]);
+
+			dispatchEvent(new BreezeSQLStatementEvent(BreezeSQLStatementEvent.COMPLETE));
 			
 			GarbagePrevention.instance.remove(this);
 		}

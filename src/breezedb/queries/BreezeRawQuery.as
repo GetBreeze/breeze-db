@@ -25,6 +25,7 @@
 
 package breezedb.queries
 {
+	import breezedb.BreezeDb;
 	import breezedb.IBreezeDatabase;
 	import breezedb.events.BreezeQueryEvent;
 	import breezedb.utils.Callback;
@@ -46,6 +47,14 @@ package breezedb.queries
 	 */
 	public class BreezeRawQuery extends EventDispatcher implements IRawQuery
 	{
+		/**
+		 * We need to have control over the queue internally, e.g. when executing a multi statement
+		 * that contains BreezeQueryBuilder. In such case the queue must be disabled, otherwise
+		 * the builder query would never be executed (as the parent multi statement is being processed).
+		 * @private
+		 */
+		breezedb_internal static var useQueryQueue:Boolean = true;
+
 		private static const RAW:int = 0;
 		private static const SELECT:int = 1;
 		private static const INSERT:int = 2;
@@ -114,7 +123,14 @@ package breezedb.queries
 					statement.parameters[paramKey] = params[key];
 				}
 			}
-			statement.execute();
+			if(BreezeDb.isQueryQueueEnabled && breezedb_internal::useQueryQueue)
+			{
+				SQLStatementQueue.forDatabase(_db).add(statement);
+			}
+			else
+			{
+				statement.exec();
+			}
 			return new BreezeQueryReference(this);
 		}
 
@@ -164,7 +180,7 @@ package breezedb.queries
 		 */
 		public function multiQuery(rawQueries:Array, params:* = null, callback:Function = null):BreezeQueryReference
 		{
-			return runMultiQueries(rawQueries, params, callback, _db.inTransaction, _db.inTransaction);
+			return runMultiQueries(rawQueries, params, callback);
 		}
 
 
@@ -173,7 +189,7 @@ package breezedb.queries
 		 */
 		public function multiQueryFailOnError(rawQueries:Array, params:* = null, callback:Function = null):BreezeQueryReference
 		{
-			return runMultiQueries(rawQueries, params, callback, true, _db.inTransaction);
+			return runMultiQueries(rawQueries, params, callback, true);
 		}
 
 
@@ -216,7 +232,7 @@ package breezedb.queries
 			_callback = callback;
 
 			var database:IBreezeDatabase = null;
-			var statement:BreezeSQLMultiStatement = new BreezeSQLMultiStatement();
+			var statement:BreezeSQLMultiStatement = new BreezeSQLMultiStatement(failOnError, transaction, onRawMultiQueryCompleted);
 			var length:int = rawQueries.length;
 			for(var i:int = 0; i < length; ++i)
 			{
@@ -269,7 +285,14 @@ package breezedb.queries
 			statement.setDatabase(database);
 			statement.addEventListener(BreezeQueryEvent.SUCCESS, onSubQueryExecutionCompleted, false, 0, true);
 			statement.addEventListener(BreezeQueryEvent.ERROR, onSubQueryExecutionCompleted, false, 0, true);
-			statement.execute(failOnError, transaction, onRawMultiQueryCompleted);
+			if(BreezeDb.isQueryQueueEnabled && breezedb_internal::useQueryQueue)
+			{
+				SQLStatementQueue.forDatabase(_db).add(statement);
+			}
+			else
+			{
+				statement.exec();
+			}
 			return new BreezeQueryReference(this);
 		}
 
