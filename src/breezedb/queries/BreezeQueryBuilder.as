@@ -58,6 +58,7 @@ package breezedb.queries
 		private var _chunkLimit:uint;
 		private var _chunkQueryReference:BreezeQueryReference;
 		private var _aggregate:String = null;
+		private var _insertOrIgnore:Boolean = false;
 
 		// Static makes the index unique across all query builders (useful when making UNION queries)
 		private static var _parametersIndex:uint = 0;
@@ -909,33 +910,42 @@ package breezedb.queries
 				throw new ArgumentError("Parameter value cannot be null.");
 			}
 
-			_queryType = QUERY_INSERT;
+			return insertInternal(value, callback, false);
+		}
 
-			if(!(value is Array))
+
+		/**
+		 * Creates an <code>INSERT OR IGNORE</code> query for one or more values.
+		 * Error is not returned when an attempt is made to insert a duplicate primary key
+		 * or unique value, it is ignored instead.
+		 *
+		 * @param value Either a single value (key-value <code>Object</code>) or multiple values (<code>Array</code>
+		 *              of key-value objects). The keys represent column names.
+		 * @param callback This parameter can be one of the following:
+		 * <ul>
+		 *    <li>A <code>Function</code> that is triggered once the query is completed.
+		 *    It should have the following signature:
+		 *    <listing version="3.0">
+		 *    function callback(error:Error):void
+		 *    { }
+		 *    </listing>
+		 *    </li>
+		 *    <li>The <code>BreezeDb.DELAY</code> constant, resulting in the query being delayed. It can be executed
+		 *    later by calling the <code>exec</code> method on the returned instance of <code>BreezeQueryBuilder</code>.
+		 *    </li>
+		 * </ul>
+		 *
+		 * @return Instance of <code>BreezeQueryBuilder</code> allowing you to obtain a reference to the executed query
+		 * 		   or execute the query at later time if it was delayed.
+		 */
+		public function insertOrIgnore(value:*, callback:* = null):BreezeQueryBuilder
+		{
+			if(value == null)
 			{
-				value = [value];
+				throw new ArgumentError("Parameter value cannot be null.");
 			}
 
-			if(value is Array && value.length > 0)
-			{
-				if(_insertColumns == null)
-				{
-					setInsertColumns(value[0]);
-				}
-
-				for each(var row:Object in value)
-				{
-					addInsertObjects(row);
-				}
-			}
-			else
-			{
-				throw new ArgumentError("Insert value must be a key-value object or Array of key-value objects.");
-			}
-
-			executeIfNeeded(callback);
-
-			return this;
+			return insertInternal(value, callback, true);
 		}
 
 
@@ -1373,11 +1383,18 @@ package breezedb.queries
 			// INSERT
 			else if(_queryType == QUERY_INSERT)
 			{
+				var statement:String = "INSERT";
+				if(_insertOrIgnore)
+				{
+					statement += " OR IGNORE";
+				}
+				statement += " INTO ";
+
 				// Multiple inserts must be split into single query each
 				var tmpInsert:Array = [];
 				for each(var insert:String in _insert)
 				{
-					tmpInsert[tmpInsert.length] = "INSERT INTO " + _tableName + " " + _insertColumns + " VALUES " + insert;
+					tmpInsert[tmpInsert.length] = statement + _tableName + " " + _insertColumns + " VALUES " + insert;
 				}
 				addQueryPart(parts, tmpInsert.join(";"));
 			}
@@ -1683,6 +1700,42 @@ package breezedb.queries
 			}
 
 			_union[_union.length] = new BreezeUnionStatement(query, unionAll);
+
+			return this;
+		}
+
+
+		/**
+		 * Internal implementation for 'insert' and 'insertOrIgnore' methods.
+		 */
+		private function insertInternal(value:*, callback:* = null, insertOrIgnore:Boolean = false):BreezeQueryBuilder
+		{
+			_queryType = QUERY_INSERT;
+			_insertOrIgnore = insertOrIgnore;
+
+			if(!(value is Array))
+			{
+				value = [value];
+			}
+
+			if(value is Array && value.length > 0)
+			{
+				if(_insertColumns == null)
+				{
+					setInsertColumns(value[0]);
+				}
+
+				for each(var row:Object in value)
+				{
+					addInsertObjects(row);
+				}
+			}
+			else
+			{
+				throw new ArgumentError("Insert value must be a key-value object or Array of key-value objects.");
+			}
+
+			executeIfNeeded(callback);
 
 			return this;
 		}
