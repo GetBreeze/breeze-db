@@ -38,7 +38,7 @@ package breezedb
 		/**
 		 * BreezeDb library version.
 		 */
-		public static const VERSION:String = "1.1.0";
+		public static const VERSION:String = "1.1.1";
 
 		/**
 		 * Name of the default database.
