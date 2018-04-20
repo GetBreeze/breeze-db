@@ -128,7 +128,7 @@ package tests
 			var createDepartments:BreezeQueryRunner = _db.schema.createTable(_departmentsTable, function (table:TableBlueprint):void
 			{
 				table.increments("dept_id");
-				table.string("dept_name").notNull();
+				table.string("dept_name").notNull().unique();
 				table.integer("emp_id");
 				table.integer("build_id");
 			}, BreezeDb.DELAY);
@@ -1318,6 +1318,55 @@ package tests
 
 			currentAsync.complete();
 		}
+
+
+	    public function testInsertOrIgnore(async:Async):void
+	    {
+		    async.timeout = 2000;
+
+		    // Try to insert duplicate dept_id
+		    _db.table(_departmentsTable).insertOrIgnore({ dept_id: 3, dept_name: "Management", emp_id: 2, build_id: 2 }, onDuplicateDeptIdInsertCompleted);
+	    }
+
+
+	    private function onDuplicateDeptIdInsertCompleted(error:Error):void
+	    {
+		    Assert.isNull(error);
+
+		    // Check the name has not changed for dept_id 3
+		    _db.table(_departmentsTable).select("dept_name").where("dept_id", 3).fetch(onDuplicateDeptIdCheckCompleted);
+	    }
+
+
+	    private function onDuplicateDeptIdCheckCompleted(error:Error, results:Collection):void
+	    {
+		    Assert.isNull(error);
+		    Assert.isNotNull(results);
+		    Assert.equals(results.length, 1);
+		    Assert.equals(results[0].dept_name, "Finance");
+
+		    // Try to insert duplicate dept_name
+		    _db.table(_departmentsTable).insertOrIgnore({dept_id: 4, dept_name: "Finance", emp_id: 2, build_id: 2}, onDuplicateDeptNameInsertCompleted);
+	    }
+
+
+	    private function onDuplicateDeptNameInsertCompleted(error:Error):void
+	    {
+		    Assert.isNull(error);
+
+		    // Check the dept_id 4 has not been inserted
+		    _db.table(_departmentsTable).select("dept_name").where("dept_id", 4).fetch(onDuplicateDeptNameCheckCompleted);
+	    }
+
+
+	    private function onDuplicateDeptNameCheckCompleted(error:Error, results:Collection):void
+	    {
+		    Assert.isNull(error);
+		    Assert.isNotNull(results);
+		    Assert.equals(results.length, 0);
+
+		    currentAsync.complete();
+	    }
 
 
 		public function testUpdate(async:Async):void
