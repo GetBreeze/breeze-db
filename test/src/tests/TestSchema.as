@@ -117,7 +117,7 @@ package tests
 
 		private function hasNonExistingTable(error:Error, hasTable:Boolean):void
 		{
-			Assert.isNotNull(error);
+			Assert.isNull(error);
 			Assert.isFalse(hasTable);
 
 			checkColumnsExistence();
@@ -183,7 +183,7 @@ package tests
 
 		private function hasNonExistingTableAndColumn(error:Error, hasColumn:Boolean):void
 		{
-			Assert.isNotNull(error);
+			Assert.isNull(error);
 			Assert.isFalse(hasColumn);
 
 			testEditTable();
@@ -284,7 +284,7 @@ package tests
 		
 		private function hasOldTableName(error:Error, hasTable:Boolean):void
 		{
-			Assert.isNotNull(error);
+			Assert.isNull(error);
 			Assert.isFalse(hasTable);
 
 			_db.schema.hasTable("pictures", hasNewTableName);
@@ -326,7 +326,7 @@ package tests
 
 		private function hasDroppedTable(error:Error, hasTable:Boolean):void
 		{
-			Assert.isNotNull(error);
+			Assert.isNull(error);
 			Assert.isFalse(hasTable);
 
 			_db.schema.dropTable("pictures", onNonExistingTableDropped);
