@@ -429,8 +429,8 @@ package breezedb.queries
 			_db.connection.removeEventListener(SQLErrorEvent.ERROR, onTableSchemaLoadError);
 
 			var schema:SQLSchemaResult = _db.connection.getSchemaResult();
-			dispatchQueryEvent(BreezeQueryEvent.SUCCESS, null, null, "Has table [" + _tableName + "] = " + (schema.tables.length > 0));
-			finishQuery([null, schema.tables.length > 0]);
+			var hasTable:Boolean = schema.tables.length > 0;
+			processSchemaResult(BreezeQueryEvent.SUCCESS, null, "Has table [" + _tableName + "] = ", hasTable);
 		}
 
 
@@ -439,8 +439,16 @@ package breezedb.queries
 			_db.connection.removeEventListener(SQLEvent.SCHEMA, onTableSchemaLoadSuccess);
 			_db.connection.removeEventListener(SQLErrorEvent.ERROR, onTableSchemaLoadError);
 
-			dispatchQueryEvent(BreezeQueryEvent.ERROR, event.error, null, "Has table [" + _tableName + "] = false");
-			finishQuery([event.error, false]);
+			var message:String = "Has table [" + _tableName + "] = ";
+
+			// 1007 means the table is not found, do not dispatch an error in this case
+			if(event.error != null && event.error.detailID == 1007)
+			{
+				processSchemaResult(BreezeQueryEvent.SUCCESS, null, message, false);
+				return;
+			}
+
+			processSchemaResult(BreezeQueryEvent.ERROR, event.error, message, false);
 		}
 
 
@@ -464,8 +472,7 @@ package breezedb.queries
 				}
 			}
 
-			dispatchQueryEvent(BreezeQueryEvent.SUCCESS, null, null, "Has column [" + _columnName + "] = " + hasColumn);
-			finishQuery([null, hasColumn]);
+			processSchemaResult(BreezeQueryEvent.SUCCESS, null, "Has column [" + _columnName + "] = ", hasColumn);
 		}
 
 
@@ -474,8 +481,23 @@ package breezedb.queries
 			_db.connection.removeEventListener(SQLEvent.SCHEMA, onColumnSchemaLoadSuccess);
 			_db.connection.removeEventListener(SQLErrorEvent.ERROR, onColumnSchemaLoadError);
 
-			dispatchQueryEvent(BreezeQueryEvent.ERROR, event.error, null, "Has column [" + _columnName + "] = false");
-			finishQuery([event.error, false]);
+			var message:String = "Has column [" + _columnName + "] = ";
+
+			// 1007 means the column is not found, do not dispatch an error in this case
+			if(event.error != null && event.error.detailID == 1007)
+			{
+				processSchemaResult(BreezeQueryEvent.SUCCESS, null, message, false);
+				return;
+			}
+
+			processSchemaResult(BreezeQueryEvent.ERROR, event.error, message, false);
+		}
+
+
+		private function processSchemaResult(eventType:String, error:Error, message:String, result:Boolean):void
+		{
+			dispatchQueryEvent(eventType, error, null, message + result);
+			finishQuery([error, result]);
 		}
 
 
