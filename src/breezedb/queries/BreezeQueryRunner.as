@@ -166,9 +166,6 @@ package breezedb.queries
 				++i;
 			}
 
-			_queryString = queries.join(";");
-			_queryString += ";";
-
 			if(_callbackProxy != null)
 			{
 				_originalCallback = callback;
@@ -195,6 +192,9 @@ package breezedb.queries
 				listenToQueryCancel();
 				return _queryReference;
 			}
+
+			_queryString = queries.join(";");
+			_queryString += ";";
 
 			switch(_queryType)
 			{
